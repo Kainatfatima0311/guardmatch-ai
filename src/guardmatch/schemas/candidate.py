@@ -69,10 +69,22 @@ class ParsedProfile(BaseModel):
         description="None when it could not be determined. Never defaulted to zero.",
     )
     certifications: frozenset[CertificationCode] = Field(default_factory=frozenset)
-    driving_licence: bool = False
+    driving_licence: bool | None = Field(
+        default=None,
+        description="None when the CV does not mention driving at all. Distinct from False, "
+        "which means the CV states the candidate does not drive. Roughly a third of CVs "
+        "never raise the subject, and treating that silence as a 'no' would penalise "
+        "candidates for what they omitted rather than for what they lack.",
+    )
     shift_availability: frozenset[ShiftType] = Field(default_factory=frozenset)
     site_experience: frozenset[SiteType] = Field(default_factory=frozenset)
-    previous_role_count: int = Field(default=0, ge=0)
+    previous_role_count: int | None = Field(
+        default=None,
+        ge=0,
+        description="None when the CV has no employment section. Distinct from 0, which "
+        "means the CV states there are no previous security roles. A missing section is "
+        "an absence of evidence, not evidence of absence.",
+    )
     months_since_last_role: int | None = Field(
         default=None,
         ge=0,
