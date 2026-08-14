@@ -8,8 +8,11 @@ candidates.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from collections.abc import Iterable
 
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
+
+from guardmatch.schemas.candidate import sorted_values
 from guardmatch.schemas.enums import CertificationCode, ShiftType, SiteType
 
 
@@ -31,6 +34,10 @@ class Job(BaseModel):
     driving_required: bool = False
 
     description: str = Field(default="", description="Free text. Not currently parsed.")
+
+    @field_serializer("required_certifications")
+    def _serialise_sets(self, value: Iterable[str]) -> list[str]:
+        return sorted_values(value)
 
     @property
     def critical_certifications(self) -> frozenset[CertificationCode]:

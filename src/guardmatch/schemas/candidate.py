@@ -20,9 +20,23 @@ natively, so passing ``None`` through is both simpler and more honest.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, ConfigDict, Field
+from collections.abc import Iterable
+
+from pydantic import BaseModel, ConfigDict, Field, field_serializer
 
 from guardmatch.schemas.enums import CertificationCode, ShiftType, SiteType
+
+
+def sorted_values(value: Iterable[str]) -> list[str]:
+    """Serialise a set field as a sorted list.
+
+    Frozenset iteration order follows string hashes, and Python randomises those
+    per process. Without sorting, serialising the same data twice produces two
+    different files — which quietly breaks the reproducibility guarantee the
+    data card makes, since a metric could no longer be traced to a dataset by
+    checksum.
+    """
+    return sorted(str(item) for item in value)
 
 
 class Candidate(BaseModel):
@@ -71,6 +85,10 @@ class ParsedProfile(BaseModel):
         "a reviewer can see where the system was unsure.",
     )
 
+    @field_serializer("certifications", "shift_availability", "site_experience")
+    def _serialise_sets(self, value: Iterable[str]) -> list[str]:
+        return sorted_values(value)
+
     @property
     def has_security_licence(self) -> bool:
         """Whether the candidate holds the gating security licence."""
@@ -97,3 +115,9 @@ class GeneratedCandidate(Candidate):
     true_site_experience: frozenset[SiteType]
     true_previous_role_count: int
     true_months_since_last_role: int | None
+
+    @field_serializer(
+        "true_certifications", "true_shift_availability", "true_site_experience"
+    )
+    def _serialise_true_sets(self, value: Iterable[str]) -> list[str]:
+        return sorted_values(value)
