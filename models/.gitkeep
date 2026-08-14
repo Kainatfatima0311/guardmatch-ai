@@ -1,0 +1,2 @@
+Versioned model artifacts live here, one directory per release (models/v0.1.0/).
+Unlike data/, these ARE committed - versioned artifacts are a project deliverable.
