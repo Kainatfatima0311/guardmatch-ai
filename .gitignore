@@ -10,11 +10,15 @@ PROGRESS.md
 # ---------------------------------------------------------------------------
 # Generated data
 # ---------------------------------------------------------------------------
-# Everything under data/ is reproducible from a seed via `guardmatch
-# generate-data`, so committing it would add weight without adding information.
-# Model artifacts under models/ are NOT ignored — versioned artifacts are a
-# project deliverable.
-data/
+# Everything under the top-level data/ is reproducible from a seed via
+# `guardmatch generate-data`, so committing it would add weight without adding
+# information. Model artifacts under models/ are NOT ignored — versioned
+# artifacts are a project deliverable.
+#
+# The leading slash anchors this to the repository root. Without it, the pattern
+# would also match src/guardmatch/data/ — the synthetic data generator package —
+# and silently exclude source code from every commit.
+/data/
 *.parquet
 *.feather
 
