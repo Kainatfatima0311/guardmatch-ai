@@ -60,6 +60,44 @@ rather than accept/reject verdicts.
 | Fairness | Adverse impact ratio at or above 0.80 for every measured group | Automated audit, enforced in CI |
 | Explainability | Every returned candidate carries per-feature contributions | API contract test |
 
+### 1.5 Measured results
+
+Recorded here rather than adjusting the targets above, because moving a target after
+seeing the number is how a project stops being able to tell whether it succeeded.
+
+| Metric | Target | Measured (v0.1.0) | Verdict |
+|---|---|---|---|
+| NDCG@10 | 0.75–0.85 | **0.904** | Above the estimated band |
+| Below circularity threshold | < 0.95 | 0.904 | Pass |
+| Beats baseline | meaningful margin | 0.804 → 0.904, **+12.4%** | Pass |
+| MAP | — | 0.899 (baseline 0.804) | — |
+| MRR | — | 1.000 (baseline 0.964) | See below |
+
+**On exceeding the band.** The 0.75–0.85 estimate was made before any data existed. The
+measured 0.904 sits below the circularity threshold and the model clears the rule-based
+baseline by ten NDCG points, so the result is not an artefact of label leakage. The more
+likely explanation is that hidden factors carry only 20% of the label, leaving more
+learnable structure in the visible features than the estimate assumed.
+
+The honest reading is not "the model is excellent" but **"the synthetic task is easier than
+real hiring"**. Real applications are messier, real reviewers less consistent, and real
+outcomes depend on far more that never reaches a CV. This is recorded as a limitation in the
+model card rather than presented as performance.
+
+An MRR of exactly 1.000 supports that reading: the top-ranked candidate is genuinely
+relevant in every one of the fifty validation postings. That is not a plausible outcome on
+real data.
+
+**A finding that changes Phase 9.** `shift_match` is the model's single most important
+feature at **33.5% of total gain** — and it is also the proxy the bias injection exploits,
+because availability correlates with caring responsibilities and therefore with gender.
+
+The model is leaning hardest on precisely the feature most likely to carry demographic
+information. Nothing has gone wrong: the feature is job-relevant and legitimately predictive.
+But it means the fairness audit is not a formality here, and that removing the feature if it
+fails would cost real ranking quality. That trade-off is now a known, documented decision
+rather than a surprise.
+
 ---
 
 ## 2. Data Strategy
