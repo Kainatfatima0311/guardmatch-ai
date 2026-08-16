@@ -1,0 +1,342 @@
+"""Model artifact tests.
+
+The failures guarded against here are all silent ones.
+
+A tampered artifact still loads and still returns scores — they are simply the
+scores of a model nobody evaluated. A reordered feature contract still produces
+numbers, and every one of them is computed from the wrong columns. An
+overwritten version still works, while quietly making every metric ever reported
+about that version a description of a different model.
+
+None of these announce themselves, which is why each one is asserted explicitly.
+"""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+import lightgbm as lgb
+import numpy as np
+import pytest
+
+from guardmatch.core.exceptions import (
+    ArtifactError,
+    ChecksumMismatchError,
+    FeatureContractError,
+)
+from guardmatch.features.registry import FEATURE_NAMES
+from guardmatch.registry.artifacts import (
+    CHECKSUMS_FILE,
+    METADATA_FILE,
+    MODEL_FILE,
+    list_versions,
+    load_model,
+    save_model,
+    update_fairness,
+    verify_checksums,
+)
+from guardmatch.registry.metadata import (
+    ModelMetadata,
+    assert_clean_tree,
+    library_versions,
+)
+
+
+@pytest.fixture(scope="module")
+def booster() -> lgb.Booster:
+    """A minimal trained ranker, sufficient to exercise save and load."""
+    rng = np.random.default_rng(0)
+    rows = 60
+    features = rng.random((rows, len(FEATURE_NAMES)))
+    labels = rng.integers(0, 4, size=rows)
+    groups = [20, 20, 20]
+
+    dataset = lgb.Dataset(features, label=labels, group=groups, free_raw_data=False)
+    return lgb.train(
+        {
+            "objective": "lambdarank",
+            "metric": "ndcg",
+            "num_leaves": 5,
+            "verbosity": -1,
+            "seed": 0,
+        },
+        dataset,
+        num_boost_round=5,
+    )
+
+
+def make_metadata(version: str = "v9.9.9") -> ModelMetadata:
+    return ModelMetadata(
+        model_version=version,
+        trained_at="2026-08-16T00:00:00+00:00",
+        generator_version="1.0.0",
+        data_seed=42,
+        n_candidates=100,
+        n_jobs=10,
+        n_pairs=400,
+        n_train_groups=8,
+        n_valid_groups=2,
+        feature_names=list(FEATURE_NAMES),
+        hyperparameters={"num_leaves": 5},
+        best_iteration=5,
+        git_sha="abc123",
+        git_dirty=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Round trip
+# ---------------------------------------------------------------------------
+
+
+def test_save_and_load_round_trip(tmp_path: Path, booster: lgb.Booster) -> None:
+    save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={"model_ndcg_at_10": 0.9},
+        fairness={},
+    )
+
+    loaded = load_model(tmp_path, "v9.9.9")
+
+    assert loaded.version == "v9.9.9"
+    assert loaded.feature_names == FEATURE_NAMES
+    assert loaded.metadata.git_sha == "abc123"
+    assert loaded.metrics["model_ndcg_at_10"] == 0.9
+    assert loaded.fairness == {}
+
+
+def test_saved_model_is_text_not_pickle(tmp_path: Path, booster: lgb.Booster) -> None:
+    """LightGBM's native format cannot execute code on load, unlike pickle."""
+    directory = save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={},
+        fairness={},
+    )
+    content = (directory / MODEL_FILE).read_text(encoding="utf-8")
+    assert content.lstrip().startswith("tree")
+
+
+def test_all_artifact_files_are_written(tmp_path: Path, booster: lgb.Booster) -> None:
+    directory = save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={},
+        fairness={},
+    )
+    written = {p.name for p in directory.iterdir()}
+    assert written == {
+        "model.txt",
+        "feature_names.json",
+        "metadata.json",
+        "metrics.json",
+        "fairness.json",
+        "checksums.json",
+    }
+
+
+# ---------------------------------------------------------------------------
+# Integrity
+# ---------------------------------------------------------------------------
+
+
+def test_tampered_artifact_is_rejected(tmp_path: Path, booster: lgb.Booster) -> None:
+    """A modified artifact still loads and still scores.
+
+    Those scores belong to a model nobody evaluated or audited, so the mismatch
+    has to be caught here rather than discovered in production.
+    """
+    directory = save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={"model_ndcg_at_10": 0.9},
+        fairness={},
+    )
+
+    metadata = json.loads((directory / METADATA_FILE).read_text(encoding="utf-8"))
+    metadata["git_sha"] = "tampered"
+    (directory / METADATA_FILE).write_text(json.dumps(metadata, indent=2), encoding="utf-8")
+
+    with pytest.raises(ChecksumMismatchError, match=r"metadata\.json"):
+        load_model(tmp_path, "v9.9.9")
+
+
+def test_missing_artifact_file_is_rejected(tmp_path: Path, booster: lgb.Booster) -> None:
+    directory = save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={},
+        fairness={},
+    )
+    (directory / "metrics.json").unlink()
+
+    with pytest.raises(ArtifactError, match="missing"):
+        verify_checksums(directory)
+
+
+def test_missing_checksum_record_is_rejected(tmp_path: Path, booster: lgb.Booster) -> None:
+    directory = save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={},
+        fairness={},
+    )
+    (directory / CHECKSUMS_FILE).unlink()
+
+    with pytest.raises(ArtifactError, match="integrity"):
+        verify_checksums(directory)
+
+
+def test_unknown_version_is_rejected(tmp_path: Path) -> None:
+    with pytest.raises(ArtifactError, match="not found"):
+        load_model(tmp_path, "v0.0.1")
+
+
+# ---------------------------------------------------------------------------
+# Immutability
+# ---------------------------------------------------------------------------
+
+
+def test_overwriting_a_version_is_refused(tmp_path: Path, booster: lgb.Booster) -> None:
+    """Versions are immutable.
+
+    Overwriting one would leave every previously reported metric describing a
+    model that no longer exists.
+    """
+    save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={},
+        fairness={},
+    )
+
+    with pytest.raises(ArtifactError, match="already exists"):
+        save_model(
+            tmp_path,
+            version="v9.9.9",
+            booster=booster,
+            metadata=make_metadata(),
+            metrics={},
+            fairness={},
+        )
+
+
+def test_fairness_update_keeps_checksums_valid(tmp_path: Path, booster: lgb.Booster) -> None:
+    """The audit runs after training, so this one mutation is permitted."""
+    directory = save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=make_metadata(),
+        metrics={},
+        fairness={},
+    )
+
+    update_fairness(directory, {"adverse_impact_ratio": 0.91})
+
+    verify_checksums(directory)
+    assert load_model(tmp_path, "v9.9.9").fairness == {"adverse_impact_ratio": 0.91}
+
+
+# ---------------------------------------------------------------------------
+# Feature contract
+# ---------------------------------------------------------------------------
+
+
+def test_reordered_feature_contract_is_rejected(tmp_path: Path, booster: lgb.Booster) -> None:
+    """Positional columns mean a reorder produces wrong scores with no error."""
+    metadata = make_metadata()
+    reordered = [metadata.feature_names[1], metadata.feature_names[0], *metadata.feature_names[2:]]
+
+    save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=ModelMetadata(**{**metadata.to_dict(), "feature_names": reordered}),
+        metrics={},
+        fairness={},
+    )
+
+    with pytest.raises(FeatureContractError, match="ORDER"):
+        load_model(tmp_path, "v9.9.9")
+
+
+def test_changed_feature_set_is_rejected(tmp_path: Path, booster: lgb.Booster) -> None:
+    metadata = make_metadata()
+    changed = [*metadata.feature_names[:-1], "an_extra_feature"]
+
+    save_model(
+        tmp_path,
+        version="v9.9.9",
+        booster=booster,
+        metadata=ModelMetadata(**{**metadata.to_dict(), "feature_names": changed}),
+        metrics={},
+        fairness={},
+    )
+
+    with pytest.raises(FeatureContractError, match="SET"):
+        load_model(tmp_path, "v9.9.9")
+
+
+# ---------------------------------------------------------------------------
+# Discovery and rollback
+# ---------------------------------------------------------------------------
+
+
+def test_versions_are_discoverable(tmp_path: Path, booster: lgb.Booster) -> None:
+    """Rollback is a configuration change, so the options must be listable."""
+    for version in ("v0.1.0", "v0.2.0"):
+        save_model(
+            tmp_path,
+            version=version,
+            booster=booster,
+            metadata=make_metadata(version),
+            metrics={},
+            fairness={},
+        )
+
+    assert list_versions(tmp_path) == ["v0.1.0", "v0.2.0"]
+    assert load_model(tmp_path, "v0.1.0").metadata.model_version == "v0.1.0"
+
+
+def test_listing_an_absent_root_is_empty(tmp_path: Path) -> None:
+    assert list_versions(tmp_path / "nope") == []
+
+
+# ---------------------------------------------------------------------------
+# Provenance
+# ---------------------------------------------------------------------------
+
+
+def test_metadata_round_trips(tmp_path: Path) -> None:
+    metadata = make_metadata()
+    assert ModelMetadata.from_dict(metadata.to_dict()) == metadata
+
+
+def test_library_versions_are_recorded() -> None:
+    """Library versions cannot be reconstructed later, so they must be captured."""
+    versions = library_versions()
+    assert "python" in versions
+    for package in ("lightgbm", "shap", "spacy"):
+        assert versions[package] != "not installed"
+
+
+def test_dirty_tree_bypass_is_available() -> None:
+    """The guard must be escapable for throwaway experiments, but only explicitly."""
+    assert_clean_tree(allow_dirty=True)

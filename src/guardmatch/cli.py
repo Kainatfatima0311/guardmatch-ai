@@ -21,7 +21,13 @@ from guardmatch.data.protected import (
     generate_protected_attributes,
     night_availability_by_gender,
 )
-from guardmatch.data.storage import save_dataset
+from guardmatch.data.storage import load_dataset, save_dataset
+from guardmatch.ranking.baseline import baseline_scores
+from guardmatch.ranking.dataset import build_dataset
+from guardmatch.ranking.evaluate import Comparison, evaluate
+from guardmatch.ranking.train import predict_scores, train_model
+from guardmatch.registry.artifacts import save_model
+from guardmatch.registry.metadata import ModelMetadata, assert_clean_tree, git_is_dirty, git_sha
 
 app = typer.Typer(
     name="guardmatch",
@@ -127,6 +133,134 @@ def generate_data(
             "before trusting the fairness baseline.",
             fg=typer.colors.YELLOW,
         )
+
+
+@app.command("train")
+def train(
+    data: Path = typer.Option(Path("data"), "--data", "-d", help="Dataset directory."),
+    models: Path = typer.Option(Path("models"), "--models", "-m", help="Artifact root."),
+    version: str = typer.Option("v0.1.0", "--version", "-v", help="Version to write."),
+    seed: int | None = typer.Option(None, "--seed", help="Override the split seed."),
+    allow_dirty: bool = typer.Option(
+        False,
+        "--allow-dirty",
+        help="Write an artifact even with uncommitted changes. For throwaway experiments "
+        "only — the recorded git SHA will not describe the code that ran.",
+    ),
+) -> None:
+    """Train the ranker and write a versioned, checksummed artifact."""
+    settings = get_settings()
+    resolved_seed = seed if seed is not None else settings.random_seed
+
+    # Checked before any expensive work, so a dirty tree fails in a second
+    # rather than after several minutes of training.
+    assert_clean_tree(allow_dirty=allow_dirty)
+
+    typer.echo(f"Loading dataset from {data}...")
+    dataset = load_dataset(data)
+
+    typer.echo("Parsing CVs and building features...")
+    ranking_dataset = build_dataset(dataset, seed=resolved_seed)
+    typer.echo(
+        f"  train {ranking_dataset.train.n_groups} groups / "
+        f"{len(ranking_dataset.train.features)} rows"
+    )
+    typer.echo(
+        f"  valid {ranking_dataset.valid.n_groups} groups / "
+        f"{len(ranking_dataset.valid.features)} rows"
+    )
+
+    typer.echo("Training LambdaRank...")
+    result = train_model(ranking_dataset)
+
+    model_scores = predict_scores(result.booster, ranking_dataset.valid)
+    base_scores = baseline_scores(
+        ranking_dataset.valid.features, ranking_dataset.feature_names
+    )
+
+    comparison = Comparison(
+        model=evaluate(
+            ranking_dataset.valid.labels,
+            model_scores,
+            ranking_dataset.valid.group_sizes,
+            scorer_name="lambdarank",
+        ),
+        baseline=evaluate(
+            ranking_dataset.valid.labels,
+            base_scores,
+            ranking_dataset.valid.group_sizes,
+            scorer_name="baseline",
+        ),
+    )
+
+    typer.echo("")
+    typer.echo(f"  {'metric':<12}{'baseline':>11}{'model':>11}{'delta':>10}")
+    for label, attribute in (
+        ("NDCG@5", "ndcg_at_5"),
+        ("NDCG@10", "ndcg_at_10"),
+        ("MAP", "mean_average_precision"),
+        ("MRR", "mean_reciprocal_rank"),
+    ):
+        base_value = getattr(comparison.baseline, attribute)
+        model_value = getattr(comparison.model, attribute)
+        typer.echo(
+            f"  {label:<12}{base_value:>11.4f}{model_value:>11.4f}"
+            f"{model_value - base_value:>+10.4f}"
+        )
+
+    typer.echo("")
+    if comparison.model_beats_baseline:
+        typer.secho(
+            f"  Model beats the rule-based baseline by {comparison.ndcg_at_10_lift:+.1%}.",
+            fg=typer.colors.GREEN,
+        )
+    else:
+        typer.secho(
+            "  Model does NOT meaningfully beat the rule-based baseline. "
+            "This belongs in the model card as a finding, not hidden.",
+            fg=typer.colors.RED,
+        )
+
+    for warning in comparison.model.warnings:
+        typer.secho(f"  WARNING: {warning}", fg=typer.colors.YELLOW)
+
+    metadata = ModelMetadata(
+        model_version=version,
+        trained_at=datetime.now(UTC).isoformat(),
+        generator_version=dataset.manifest.generator_version,
+        data_seed=dataset.manifest.seed,
+        n_candidates=dataset.manifest.n_candidates,
+        n_jobs=dataset.manifest.n_jobs,
+        n_pairs=dataset.manifest.n_pairs,
+        n_train_groups=ranking_dataset.train.n_groups,
+        n_valid_groups=ranking_dataset.valid.n_groups,
+        feature_names=list(ranking_dataset.feature_names),
+        hyperparameters=result.params,
+        best_iteration=result.best_iteration,
+        git_sha=git_sha(),
+        git_dirty=allow_dirty and git_is_dirty(),
+    )
+
+    directory = save_model(
+        models,
+        version=version,
+        booster=result.booster,
+        metadata=metadata,
+        metrics=comparison.to_dict(),
+        # Populated by `guardmatch audit` in Phase 9. Written empty rather than
+        # omitted so the artifact shape is constant and its absence is visible.
+        fairness={},
+    )
+
+    typer.echo("")
+    typer.echo(f"Artifact written to {directory.resolve()}")
+    typer.echo(f"  git sha       : {metadata.git_sha}")
+    typer.echo(f"  best iteration: {metadata.best_iteration}")
+    typer.echo(f"  features      : {len(metadata.feature_names)}")
+    typer.secho(
+        "  fairness.json is empty until `guardmatch audit` has run.",
+        fg=typer.colors.YELLOW,
+    )
 
 
 if __name__ == "__main__":  # pragma: no cover
