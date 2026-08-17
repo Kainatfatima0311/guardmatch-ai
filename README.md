@@ -1,51 +1,73 @@
 # GuardMatch AI
 
-Resume screening and guard job matching. Ranks security guard applicants against a job
-posting's requirements — certifications, experience, availability — and explains why each
-candidate landed where they did.
+Ranks security guard applicants against a job posting's requirements — certifications,
+experience, availability — and explains why each candidate landed where they did.
 
-> **Status: in development.** The design is complete and the project skeleton is in place;
-> the pipeline is being built phase by phase. This README is expanded into full setup and
-> usage documentation once the service runs end to end.
+[![CI](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml)
+![Python](https://img.shields.io/badge/python-3.12-blue)
+![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
+![Licence](https://img.shields.io/badge/licence-MIT-lightgrey)
 
-## What it does
+---
 
-A single guard vacancy at SAJCO can attract hundreds of applications. Screening them by hand
-is slow, inconsistent between reviewers, and leaves no record of the reasoning. GuardMatch
-parses each application, compares it against the posting, and returns a ranked shortlist with
-a per-candidate explanation.
+## The problem
 
-It is a **shortlisting aid**. It orders a queue for a human reviewer — it does not reject
+A single guard vacancy at SAJCO can attract several hundred applications. Every one has to be
+checked against the same requirements: a valid security licence, minimum experience, specific
+certifications, availability for the shift the site actually needs.
+
+Done by hand this costs days, produces different answers from different reviewers, and leaves
+no record of the reasoning. When a candidate asks why they were not shortlisted, there is
+nothing to point at.
+
+GuardMatch parses each application, compares it against the posting, and returns a ranked
+shortlist where every placement comes with an explanation.
+
+**It is a shortlisting aid.** It orders a queue for a human reviewer. It does not reject
 candidates and does not make hiring decisions.
 
-## Approach
+## How it works
 
-| Concern | Choice |
-|---|---|
-| Extraction | spaCy `EntityRuler` + regex + `rapidfuzz` — deterministic and auditable |
-| Ranking | LightGBM `lambdarank` with graded relevance 0–3 |
-| Explanations | SHAP `TreeExplainer`, exact per-feature contributions |
-| Fairness | Protected attributes architecturally unreachable from features; four-fifths rule enforced in CI at k = 10 |
-| Serving | FastAPI, with versioned and checksum-verified model artifacts |
-| Data | Synthetic and seeded — no real CVs, no PII |
+```
+CV text ──▶ Parser ──▶ Features ──▶ LambdaRank ──▶ SHAP ──▶ ranked list
+            spaCy      pairwise      LightGBM      exact     + reasons
+            + regex    12 features                 contributions
+                          │
+                          └── protected attributes cannot reach here
+```
 
-Two hard CI gates make the fairness work real rather than decorative: a **leakage gate** fails
-the build if a protected attribute reaches the feature set, and a **fairness gate** fails it if
-adverse impact drops below 0.80.
+| Concern | Choice | Why |
+|---|---|---|
+| Extraction | spaCy `EntityRuler` + regex + `rapidfuzz` | Deterministic and auditable. A match traces to a named pattern; a similarity score does not |
+| Ranking | LightGBM `lambdarank`, graded relevance 0–3 | Ranking is a set problem — who is best *for this posting*, not who is best in general |
+| Explanations | SHAP `TreeExplainer` | Exact for tree ensembles, and additive: contributions reconstruct the score |
+| Fairness | Blocked at the type level, proxies monitored, outcomes audited in CI | Prevention cannot see proxies; measurement only catches harm after it is learned |
+| Serving | FastAPI, checksum-verified versioned artifacts | A model that cannot verify itself should not answer questions |
+| Data | Synthetic and seeded | No real CVs, no PII, fully reproducible |
 
-## Documentation
+## Results
 
-| Document | Contents |
-|---|---|
-| [docs/design-doc.md](docs/design-doc.md) | Full design: data strategy, model, fairness, API, risks |
-| [docs/architecture.md](docs/architecture.md) | Component, request-flow and trust-boundary diagrams |
+Measured on 50 held-out postings, split at the posting level.
 
-Additional documents — data card, explainability write-up, fairness report and model card —
-are produced as the corresponding phases complete.
+| Metric | Rule-based baseline | LambdaRank |
+|---|---|---|
+| NDCG@10 | 0.804 | **0.904** (+12.4%) |
+| MAP | 0.804 | 0.899 |
 
-## Development
+The baseline is a twenty-line rule with no learned parameters. It is here because 0.904 means
+nothing on its own — the comparison is what shows machine learning earned its place.
 
-Requires Python 3.12 (conda recommended).
+**The measured score exceeds the 0.75–0.85 band the design doc predicted.** The target was not
+adjusted afterwards. The honest reading is that the synthetic task is easier than real hiring,
+and that is recorded as a limitation rather than presented as performance.
+
+Fairness audit at k = 10 passes on gender, age band and nationality — with the important
+caveat that the four-fifths rule missed a realistically-sized proxy bias during testing. See
+[the fairness report](docs/fairness-report.md).
+
+## Quick start
+
+Requires Python 3.12.
 
 ```bash
 conda create -n guardmatch python=3.12 -y
@@ -54,17 +76,176 @@ pip install -e ".[dev]"
 python -m spacy download en_core_web_sm
 ```
 
-Task runner — `make` on Linux and macOS, `tasks.ps1` on Windows:
+Generate data, train, audit, serve:
 
 ```bash
-make help          # list targets
-make check         # lint, typecheck and test — everything CI runs
+guardmatch generate-data --seed 42
+guardmatch train --version v0.1.0
+guardmatch audit --version v0.1.0
+uvicorn guardmatch.api.app:app --reload
+```
+
+Then open <http://localhost:8000/docs>.
+
+A trained `models/v0.1.0/` is committed, so the API runs without training anything.
+
+### Docker
+
+```bash
+docker compose up --build
+```
+
+Image is 1.37 GB, runs as a non-root user on a read-only filesystem, with the model artifacts
+baked in and a health check wired to `/ready`.
+
+### Task runner
+
+`make` on Linux and macOS, `tasks.ps1` on Windows — same targets either way.
+
+```bash
+make help      # list targets
+make check     # lint, typecheck, test — everything CI runs
+make gates     # fairness and leakage gates only
 ```
 
 ```powershell
-.\tasks.ps1 help
 .\tasks.ps1 check
 ```
+
+## Using the API
+
+```bash
+curl -X POST http://localhost:8000/rank \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "job": {
+      "job_id": "j_1",
+      "required_certifications": ["security_licence", "fire_safety"],
+      "min_years_experience": 4.0,
+      "shift_pattern": "night",
+      "site_type": "construction",
+      "driving_required": true
+    },
+    "candidates": [
+      {"candidate_id": "c_1", "cv_text": "PROFILE\nGuard with 6 years of experience.\n\nCERTIFICATIONS\n- SIA licence\n- fire marshal"}
+    ]
+  }'
+```
+
+Every ranked candidate comes back with the numbers and the words:
+
+```json
+{
+  "candidate_id": "c_1",
+  "rank": 1,
+  "relative_ranking_score": 2.9705,
+  "score_type": "relative_ranking_score",
+  "explanation": {
+    "base_value": -2.0226,
+    "contributions": [
+      {"feature": "shift_match", "value": 1.0, "contribution": 0.9412},
+      {"feature": "licence_match", "value": 1.0, "contribution": 0.5511}
+    ],
+    "reasons": [
+      "Available for the shift pattern this role needs — counted moderately in favour",
+      "Holds the required security licence — counted moderately in favour"
+    ]
+  }
+}
+```
+
+> **Scores are not probabilities.** A LambdaRank output is meaningful only as an ordering
+> within one posting. It is not comparable across postings and does not express a likelihood
+> of being hired. Every `/rank` response carries this constraint in a `disclaimer` field, so it
+> travels with the data rather than living only in documentation.
+
+| Endpoint | Purpose |
+|---|---|
+| `POST /rank` | Rank candidates for one job — the primary endpoint |
+| `POST /score` | Score one candidate (returns no rank — 1-of-1 is not a comparison) |
+| `POST /parse` | Extract structured facts from CV text |
+| `GET /health` `/ready` | Liveness and readiness — deliberately different questions |
+| `GET /model-info` `/metrics` | Provenance and Prometheus exposition |
+
+Full detail in the [API reference](docs/api-reference.md).
+
+## Fairness
+
+Three layers, deliberately redundant.
+
+**Prevention.** `ParsedProfile` — the type the whole pipeline is built on — has no name, no
+age, no gender, no demographic field of any kind. They are not filtered out later; they are
+absent from the start. A static test fails the build if any module on the scoring path imports
+the module where demographics live.
+
+The point: using a protected attribute must require *adding* an import that does not exist,
+not *forgetting* a filter that does. An addition shows up in code review.
+
+**Proxy monitoring.** Four permitted features can carry demographic information indirectly.
+Each is registered with its mitigation. `shift_match` is the known worst case — it is also the
+model's single largest input at 26.8%.
+
+**Measurement.** Adverse impact, demographic parity, equal opportunity, and an
+exposure-weighted metric that catches a group being admitted to the shortlist but placed
+consistently lower within it. Enforced in CI.
+
+Both gates are proven to fail, not merely assumed to work:
+
+```bash
+pytest -m gate -v
+```
+
+A gate that has never failed proves nothing about what it claims to detect.
+
+## Documentation
+
+| Document | Contents |
+|---|---|
+| [Design doc](docs/design-doc.md) | Full design, decisions rejected, risks |
+| [Architecture](docs/architecture.md) | Component, request-flow and trust-boundary diagrams |
+| [Model card](docs/model-card.md) | Intended use, out-of-scope uses, limitations, conditions of use |
+| [Fairness report](docs/fairness-report.md) | Metrics, what the audit caught, and what it missed |
+| [Explainability](docs/explainability.md) | Method, worked examples, global importance |
+| [Data card](docs/data-card.md) | Generation, anti-circularity design, bias injection |
+| [API reference](docs/api-reference.md) | Endpoints, schemas, errors |
+
+## Project layout
+
+```
+src/guardmatch/
+├── core/       config, structured logging, metrics
+├── schemas/    Pydantic contracts
+├── data/       synthetic generator (protected attributes held separately)
+├── parsing/    spaCy + regex extraction
+├── features/   pairwise features + protected attribute blocklist
+├── ranking/    baseline, LambdaRank, evaluation
+├── explain/    SHAP contributions and plain-language reasons
+├── fairness/   metrics and audit
+├── registry/   versioned, checksummed artifacts
+└── api/        FastAPI service
+```
+
+## Testing
+
+```bash
+pytest              # 337 tests, 95% coverage, threshold enforced at 85%
+pytest -m gate      # fairness and leakage gates only
+pytest -m "not slow"
+```
+
+CI runs lint, type checking, the full suite, the gates as a separate job, and a Docker build
+that starts the container and verifies it serves a checksum-verified model as a non-root user.
+
+## Limitations
+
+Read the [model card](docs/model-card.md) before drawing conclusions from any number here. The
+short version:
+
+- **Trained on synthetic data.** Real-world performance is unknown.
+- **The fairness audit missed a realistically-sized proxy bias** during testing. Passing the
+  four-fifths rule is not evidence of fairness.
+- **Scores are not probabilities** and are not comparable across postings.
+- **Human review is a condition of use**, not a recommendation.
 
 ## Licence
 
