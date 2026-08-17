@@ -22,11 +22,12 @@ from guardmatch.data.protected import (
     night_availability_by_gender,
 )
 from guardmatch.data.storage import load_dataset, save_dataset
+from guardmatch.fairness.audit import load_protected, run_audit
 from guardmatch.ranking.baseline import baseline_scores
 from guardmatch.ranking.dataset import build_dataset
 from guardmatch.ranking.evaluate import Comparison, evaluate
 from guardmatch.ranking.train import predict_scores, train_model
-from guardmatch.registry.artifacts import save_model
+from guardmatch.registry.artifacts import load_model, save_model, update_fairness
 from guardmatch.registry.metadata import ModelMetadata, assert_clean_tree, git_is_dirty, git_sha
 
 app = typer.Typer(
@@ -61,6 +62,14 @@ def generate_data(
         help="Correlate a protected attribute with night availability, so the fairness "
         "audit has a known bias to detect.",
     ),
+    bias_strength: float = typer.Option(
+        1.0,
+        "--bias-strength",
+        min=0.0,
+        max=3.0,
+        help="Scales the injected correlation. 1.0 is realistic but borderline against the "
+        "four-fifths threshold; 2.0 produces a breach the audit detects reliably.",
+    ),
 ) -> None:
     """Generate the synthetic dataset.
 
@@ -84,9 +93,12 @@ def generate_data(
     hidden = generate_hidden_factors([c.candidate_id for c in candidates], resolved_seed)
     pairs = generate_labels(candidates, jobs, hidden, resolved_seed)
 
-    typer.echo(f"Drawing protected attributes (inject_bias={resolved_bias})...")
+    typer.echo(
+        f"Drawing protected attributes (inject_bias={resolved_bias}, "
+        f"strength={bias_strength})..."
+    )
     protected = generate_protected_attributes(
-        candidates, resolved_seed, inject_bias=resolved_bias
+        candidates, resolved_seed, inject_bias=resolved_bias, bias_strength=bias_strength
     )
 
     manifest = save_dataset(
@@ -261,6 +273,108 @@ def train(
         "  fairness.json is empty until `guardmatch audit` has run.",
         fg=typer.colors.YELLOW,
     )
+
+
+@app.command("audit")
+def audit(
+    data: Path = typer.Option(Path("data"), "--data", "-d", help="Dataset directory."),
+    models: Path = typer.Option(Path("models"), "--models", "-m", help="Artifact root."),
+    version: str | None = typer.Option(None, "--version", "-v", help="Model version."),
+    seed: int | None = typer.Option(None, "--seed", help="Split seed. Must match training."),
+) -> None:
+    """Run the fairness audit and write the result into the model artifact."""
+    settings = get_settings()
+    resolved_version = version or settings.model_version
+    resolved_seed = seed if seed is not None else settings.random_seed
+
+    typer.echo(f"Loading model {resolved_version}...")
+    loaded = load_model(models, resolved_version)
+
+    typer.echo(f"Loading dataset and demographics from {data}...")
+    dataset = load_dataset(data)
+    protected = load_protected(data)
+
+    typer.echo("Rebuilding the held-out split...")
+    ranking_dataset = build_dataset(dataset, seed=resolved_seed)
+
+    typer.echo("Auditing...")
+    report = run_audit(
+        loaded.booster,
+        ranking_dataset,
+        protected,
+        model_version=resolved_version,
+        settings=settings,
+    )
+
+    typer.echo("")
+    typer.echo(
+        f"  k = {report.top_k}   four-fifths threshold = {report.adverse_impact_threshold:.2f}"
+        f"   max gap = {report.max_gap:.2f}"
+    )
+    typer.echo(f"  {report.n_postings} postings, {report.n_rows} candidate appearances")
+
+    for attribute in report.attributes:
+        typer.echo("")
+        status = "PASS" if attribute.passes else "FAIL"
+        colour = typer.colors.GREEN if attribute.passes else typer.colors.RED
+        typer.secho(f"  {attribute.attribute}  [{status}]", fg=colour, bold=True)
+
+        typer.echo(
+            f"    {'group':<12}{'n':>7}{'top-k rate':>12}{'qual. rate':>12}{'exposure':>11}"
+        )
+        for group in attribute.groups:
+            qualified = (
+                f"{group.qualified_selection_rate:.3f}"
+                if group.qualified_selection_rate is not None
+                else "n/a"
+            )
+            typer.echo(
+                f"    {group.group:<12}{group.n_appearances:>7}"
+                f"{group.selection_rate:>12.3f}{qualified:>12}{group.mean_exposure:>11.4f}"
+            )
+
+        if attribute.suppressed_groups:
+            typer.secho(
+                f"    suppressed (below {report.min_group_size}): "
+                f"{', '.join(attribute.suppressed_groups)}",
+                fg=typer.colors.YELLOW,
+            )
+
+        ratio = attribute.adverse_impact_ratio
+        typer.echo(
+            f"    adverse impact {ratio:.3f}   "
+            f"parity gap {attribute.demographic_parity_gap:.3f}   "
+            f"opportunity gap {attribute.equal_opportunity_gap:.3f}   "
+            f"exposure ratio {attribute.exposure_ratio:.3f}"
+            if ratio is not None
+            else "    metrics unavailable"
+        )
+
+        if attribute.selection_p_value is not None:
+            typer.echo(
+                f"    widest selection-rate difference: p = {attribute.selection_p_value:.4f}"
+                f"   threshold {attribute.significance_threshold:.4f}"
+                f"   ({attribute.n_comparisons} comparison(s), Bonferroni)"
+            )
+
+        for failure in attribute.failures:
+            typer.secho(f"    ! {failure}", fg=typer.colors.RED)
+
+        for note in attribute.inconclusive:
+            typer.secho(f"    ? {note}", fg=typer.colors.YELLOW)
+
+    update_fairness(models / resolved_version, report.to_dict())
+
+    typer.echo("")
+    if report.passes:
+        typer.secho("  AUDIT PASSED", fg=typer.colors.GREEN, bold=True)
+    else:
+        typer.secho(
+            f"  AUDIT FAILED — {len(report.failures)} threshold breach(es)",
+            fg=typer.colors.RED,
+            bold=True,
+        )
+    typer.echo(f"  Written to {(models / resolved_version / 'fairness.json').resolve()}")
 
 
 if __name__ == "__main__":  # pragma: no cover

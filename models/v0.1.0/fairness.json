@@ -1,1 +1,172 @@
-{}
+{
+  "adverse_impact_threshold": 0.8,
+  "attributes": [
+    {
+      "adverse_impact_ratio": 0.9648765360231157,
+      "attribute": "gender",
+      "demographic_parity_gap": 0.005895232385139781,
+      "equal_opportunity_gap": 0.03885427483558329,
+      "exposure_ratio": 0.9825245470478187,
+      "failures": [],
+      "groups": [
+        {
+          "group": "female",
+          "mean_exposure": 0.23912699158019346,
+          "n_appearances": 1275,
+          "n_in_top_k": 214,
+          "n_qualified": 428,
+          "n_qualified_in_top_k": 191,
+          "qualified_selection_rate": 0.4462616822429907,
+          "selection_rate": 0.16784313725490196
+        },
+        {
+          "group": "male",
+          "mean_exposure": 0.24338017029568967,
+          "n_appearances": 1766,
+          "n_in_top_k": 286,
+          "n_qualified": 648,
+          "n_qualified_in_top_k": 264,
+          "qualified_selection_rate": 0.4074074074074074,
+          "selection_rate": 0.16194790486976218
+        }
+      ],
+      "inconclusive": [],
+      "n_comparisons": 1,
+      "passes": true,
+      "qualified_p_value": 0.2066942419038484,
+      "selection_p_value": 0.6651709378516926,
+      "significance_threshold": 0.05,
+      "suppressed_groups": [],
+      "top_k": 10
+    },
+    {
+      "adverse_impact_ratio": 0.6274558490331792,
+      "attribute": "age_band",
+      "demographic_parity_gap": 0.07072736700685885,
+      "equal_opportunity_gap": 0.09591947278143903,
+      "exposure_ratio": 0.9077325391502596,
+      "failures": [],
+      "groups": [
+        {
+          "group": "25_34",
+          "mean_exposure": 0.23976635046573536,
+          "n_appearances": 893,
+          "n_in_top_k": 153,
+          "n_qualified": 311,
+          "n_qualified_in_top_k": 138,
+          "qualified_selection_rate": 0.4437299035369775,
+          "selection_rate": 0.1713325867861142
+        },
+        {
+          "group": "35_44",
+          "mean_exposure": 0.24047424378795731,
+          "n_appearances": 839,
+          "n_in_top_k": 140,
+          "n_qualified": 283,
+          "n_qualified_in_top_k": 123,
+          "qualified_selection_rate": 0.43462897526501765,
+          "selection_rate": 0.16686531585220502
+        },
+        {
+          "group": "45_54",
+          "mean_exposure": 0.2550569008849975,
+          "n_appearances": 532,
+          "n_in_top_k": 101,
+          "n_qualified": 209,
+          "n_qualified_in_top_k": 93,
+          "qualified_selection_rate": 0.4449760765550239,
+          "selection_rate": 0.18984962406015038
+        },
+        {
+          "group": "55_plus",
+          "mean_exposure": 0.2315234482681349,
+          "n_appearances": 319,
+          "n_in_top_k": 38,
+          "n_qualified": 106,
+          "n_qualified_in_top_k": 37,
+          "qualified_selection_rate": 0.3490566037735849,
+          "selection_rate": 0.11912225705329153
+        },
+        {
+          "group": "under_25",
+          "mean_exposure": 0.23860437169123405,
+          "n_appearances": 458,
+          "n_in_top_k": 68,
+          "n_qualified": 167,
+          "n_qualified_in_top_k": 64,
+          "qualified_selection_rate": 0.38323353293413176,
+          "selection_rate": 0.14847161572052403
+        }
+      ],
+      "inconclusive": [
+        "age_band: adverse impact ratio 0.627 is below the four-fifths threshold of 0.80 \u2014 but not distinguishable from noise once corrected for 10 possible group comparisons (p=0.0069, threshold 0.0050); smallest group n=319"
+      ],
+      "n_comparisons": 10,
+      "passes": true,
+      "qualified_p_value": 0.1022758025709791,
+      "selection_p_value": 0.006896157587032595,
+      "significance_threshold": 0.005,
+      "suppressed_groups": [],
+      "top_k": 10
+    },
+    {
+      "adverse_impact_ratio": 0.9563362646322286,
+      "attribute": "nationality",
+      "demographic_parity_gap": 0.0074218711331531795,
+      "equal_opportunity_gap": 0.02249335243462125,
+      "exposure_ratio": 0.972956556649021,
+      "failures": [],
+      "groups": [
+        {
+          "group": "group_a",
+          "mean_exposure": 0.23948465957334183,
+          "n_appearances": 1696,
+          "n_in_top_k": 278,
+          "n_qualified": 593,
+          "n_qualified_in_top_k": 255,
+          "qualified_selection_rate": 0.4300168634064081,
+          "selection_rate": 0.16391509433962265
+        },
+        {
+          "group": "group_b",
+          "mean_exposure": 0.24330534191279307,
+          "n_appearances": 892,
+          "n_in_top_k": 145,
+          "n_qualified": 319,
+          "n_qualified_in_top_k": 130,
+          "qualified_selection_rate": 0.40752351097178685,
+          "selection_rate": 0.1625560538116592
+        },
+        {
+          "group": "group_c",
+          "mean_exposure": 0.24614116420383217,
+          "n_appearances": 453,
+          "n_in_top_k": 77,
+          "n_qualified": 164,
+          "n_qualified_in_top_k": 70,
+          "qualified_selection_rate": 0.4268292682926829,
+          "selection_rate": 0.16997792494481237
+        }
+      ],
+      "inconclusive": [],
+      "n_comparisons": 3,
+      "passes": true,
+      "qualified_p_value": 0.5118875040842128,
+      "selection_p_value": 0.7289451164507406,
+      "significance_threshold": 0.016666666666666666,
+      "suppressed_groups": [],
+      "top_k": 10
+    }
+  ],
+  "failures": [],
+  "inconclusive": [
+    "age_band: adverse impact ratio 0.627 is below the four-fifths threshold of 0.80 \u2014 but not distinguishable from noise once corrected for 10 possible group comparisons (p=0.0069, threshold 0.0050); smallest group n=319"
+  ],
+  "max_gap": 0.1,
+  "min_group_size": 30,
+  "model_version": "v0.1.0",
+  "n_postings": 50,
+  "n_rows": 3041,
+  "passes": true,
+  "top_k": 10
+}

@@ -72,12 +72,27 @@ class ProtectedAttributes:
 # Baseline gender split when bias injection is off.
 _BASE_FEMALE_RATE = 0.42
 
-# With bias on, night availability and gender are correlated. The gap between
-# these two rates is the strength of the injected bias. Wide enough for the
-# audit to detect reliably, narrow enough that it is not visible by eye in the
-# raw data — which is the realistic case.
-_BIASED_FEMALE_RATE_NIGHT = 0.22
-_BIASED_FEMALE_RATE_NO_NIGHT = 0.61
+# With bias on, night availability and gender are correlated. These deviations
+# from the base rate are scaled by `bias_strength`.
+#
+# At strength 1.0 the rates are 0.22 and 0.61 — a 0.40 gap, which is what a
+# realistic caring-responsibilities correlation looks like. That turned out to
+# produce an adverse impact ratio of 0.875: real directional harm that sits
+# *above* the four-fifths threshold and therefore passes the audit.
+#
+# That is a finding about the threshold rather than about this generator. Proxy
+# bias reaches the model through only one feature, and only on the subset of
+# postings where that feature applies, so it is diluted twice before it shows up
+# in a selection rate. Higher strengths exist so the gate demonstration has
+# something it can actually detect, and both figures are reported in the
+# fairness write-up.
+_FEMALE_RATE_NIGHT_DELTA = -0.20
+_FEMALE_RATE_NO_NIGHT_DELTA = 0.19
+
+# Keeps scaled rates away from 0 and 1, where a group would vanish entirely and
+# the audit would have nothing to compare.
+_RATE_FLOOR = 0.02
+_RATE_CEILING = 0.98
 
 _AGE_BAND_WEIGHTS: dict[AgeBand, float] = {
     AgeBand.UNDER_25: 0.16,
@@ -95,13 +110,18 @@ _NATIONALITY_WEIGHTS: dict[Nationality, float] = {
 
 
 def _draw_gender(
-    rng: random.Random, *, available_nights: bool, inject_bias: bool
+    rng: random.Random,
+    *,
+    available_nights: bool,
+    inject_bias: bool,
+    bias_strength: float = 1.0,
 ) -> Gender:
     """Draw gender, optionally correlated with night availability."""
     if not inject_bias:
         rate = _BASE_FEMALE_RATE
     else:
-        rate = _BIASED_FEMALE_RATE_NIGHT if available_nights else _BIASED_FEMALE_RATE_NO_NIGHT
+        delta = _FEMALE_RATE_NIGHT_DELTA if available_nights else _FEMALE_RATE_NO_NIGHT_DELTA
+        rate = min(max(_BASE_FEMALE_RATE + delta * bias_strength, _RATE_FLOOR), _RATE_CEILING)
     return Gender.FEMALE if rng.random() < rate else Gender.MALE
 
 
@@ -116,6 +136,7 @@ def generate_protected_attributes(
     seed: int,
     *,
     inject_bias: bool = False,
+    bias_strength: float = 1.0,
 ) -> dict[str, ProtectedAttributes]:
     """Draw demographics for each candidate.
 
@@ -125,6 +146,10 @@ def generate_protected_attributes(
         seed: Seed for reproducibility.
         inject_bias: When true, correlate gender with night availability so the
             fairness audit has a known bias to detect.
+        bias_strength: Scales the correlation. 1.0 is a realistic
+            caring-responsibilities gap of roughly 0.40, which passes the
+            four-fifths threshold; higher values produce a breach the gate can
+            detect.
 
     Returns:
         Demographics keyed by candidate id.
@@ -138,6 +163,7 @@ def generate_protected_attributes(
                 rng,
                 available_nights=ShiftType.NIGHT in candidate.true_shift_availability,
                 inject_bias=inject_bias,
+                bias_strength=bias_strength,
             ),
             age_band=_draw_weighted(rng, _AGE_BAND_WEIGHTS),
             nationality=_draw_weighted(rng, _NATIONALITY_WEIGHTS),
