@@ -236,10 +236,7 @@ def parse_cv(candidate: Candidate) -> ParsedProfile:
 
     if len(text) > MAX_CV_LENGTH:
         parse_failures_total.labels(reason="too_long").inc()
-        msg = (
-            f"CV text for candidate {candidate.candidate_id} exceeds "
-            f"{MAX_CV_LENGTH} characters"
-        )
+        msg = f"CV text for candidate {candidate.candidate_id} exceeds {MAX_CV_LENGTH} characters"
         raise ParsingError(msg)
 
     warnings: list[str] = []

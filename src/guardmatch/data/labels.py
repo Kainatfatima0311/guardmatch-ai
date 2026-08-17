@@ -53,9 +53,7 @@ HIDDEN_FACTOR_WEIGHT = 0.20
 LABEL_NOISE_RATE = 0.12
 
 # Sites where a shift gap cannot be tolerated, so mismatch is penalised harder.
-_CRITICAL_COVER_SITES: frozenset[SiteType] = frozenset(
-    {SiteType.INDUSTRIAL, SiteType.CONSTRUCTION}
-)
+_CRITICAL_COVER_SITES: frozenset[SiteType] = frozenset({SiteType.INDUSTRIAL, SiteType.CONSTRUCTION})
 
 # Multiplier applied when a required gating certification is absent. Not zero —
 # an unlicensed candidate with a decade of experience is still a better prospect
@@ -101,9 +99,7 @@ class LabelledPair:
     grade: int
 
 
-def generate_hidden_factors(
-    candidate_ids: list[str], seed: int
-) -> dict[str, HiddenFactors]:
+def generate_hidden_factors(candidate_ids: list[str], seed: int) -> dict[str, HiddenFactors]:
     """Draw the unobservable traits for each candidate."""
     rng = random.Random(seed + 20_000)
     return {
@@ -115,9 +111,7 @@ def generate_hidden_factors(
     }
 
 
-def _fit_score(
-    candidate: GeneratedCandidate, job: Job, hidden: HiddenFactors
-) -> float:
+def _fit_score(candidate: GeneratedCandidate, job: Job, hidden: HiddenFactors) -> float:
     """Continuous fit score in roughly [0, 1] for one pair."""
     required = job.required_certifications
     held = candidate.true_certifications

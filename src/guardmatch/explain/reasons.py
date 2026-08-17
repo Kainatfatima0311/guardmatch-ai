@@ -186,9 +186,7 @@ def describe(contribution: Contribution, share: float) -> str:
     return f"{fact} — {_effect_phrase(contribution.contribution, share)}"
 
 
-def build_reasons(
-    explanation: ShapExplanation, *, top_n: int = DEFAULT_TOP_N
-) -> tuple[str, ...]:
+def build_reasons(explanation: ShapExplanation, *, top_n: int = DEFAULT_TOP_N) -> tuple[str, ...]:
     """Render the leading contributions as plain-language sentences.
 
     Args:

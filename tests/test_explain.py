@@ -39,8 +39,8 @@ def booster() -> lgb.Booster:
     rows = 120
     features = rng.random((rows, len(FEATURE_NAMES)))
     # A learnable signal, so contributions are non-trivial.
-    labels = (features[:, 2] * 2 + features[:, 6] * 1.5 + rng.random(rows) * 0.3).round().astype(
-        int
+    labels = (
+        (features[:, 2] * 2 + features[:, 6] * 1.5 + rng.random(rows) * 0.3).round().astype(int)
     )
     labels = np.clip(labels, 0, 3)
 
@@ -90,14 +90,10 @@ def test_contributions_reconstruct_the_score(
     predicted = np.asarray(booster.predict(sample_matrix)).ravel()
 
     for index, explanation in enumerate(explanations):
-        assert explanation.total == pytest.approx(
-            float(predicted[index]), abs=ADDITIVITY_TOLERANCE
-        )
+        assert explanation.total == pytest.approx(float(predicted[index]), abs=ADDITIVITY_TOLERANCE)
 
 
-def test_every_feature_is_accounted_for(
-    explainer: Explainer, sample_matrix: np.ndarray
-) -> None:
+def test_every_feature_is_accounted_for(explainer: Explainer, sample_matrix: np.ndarray) -> None:
     """A feature silently omitted from the explanation would hide its effect."""
     explanation = explainer.explain_matrix(sample_matrix)[0]
     assert tuple(c.feature for c in explanation.contributions) == FEATURE_NAMES
@@ -244,6 +240,4 @@ def test_released_model_explanations_are_additive() -> None:
     predicted = np.asarray(loaded.booster.predict(matrix)).ravel()
 
     for index, explanation in enumerate(explainer.explain_matrix(matrix)):
-        assert explanation.total == pytest.approx(
-            float(predicted[index]), abs=ADDITIVITY_TOLERANCE
-        )
+        assert explanation.total == pytest.approx(float(predicted[index]), abs=ADDITIVITY_TOLERANCE)

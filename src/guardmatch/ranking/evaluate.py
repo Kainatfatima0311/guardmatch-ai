@@ -60,10 +60,7 @@ def _dcg(grades: list[int], k: int) -> float:
     candidates would score almost as well as finding the strong ones.
     """
     return float(
-        sum(
-            (2**grade - 1) / math.log2(position + 2)
-            for position, grade in enumerate(grades[:k])
-        )
+        sum((2**grade - 1) / math.log2(position + 2) for position, grade in enumerate(grades[:k]))
     )
 
 

@@ -1,0 +1,152 @@
+name: CI
+
+# Runs on every push and pull request. The gates below are the point of this
+# workflow: a fairness regression or a protected-attribute leak has to fail a
+# build, not wait to be noticed in review.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+env:
+  PYTHON_VERSION: "3.12"
+
+# A new push supersedes an in-flight run on the same ref. Nothing is learned from
+# finishing a run against code that has already been replaced.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  lint:
+    name: Lint and type check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+
+      - name: Ruff
+        # Includes the T20 rule, so a stray print() fails here. The brief
+        # requires real logging; this is what makes that enforceable.
+        run: ruff check .
+
+      - name: Ruff format check
+        run: ruff format --check .
+
+      - name: Mypy
+        run: mypy src
+
+  test:
+    name: Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          python -m spacy download en_core_web_sm
+
+      - name: Run test suite
+        # Coverage threshold is enforced in pyproject.toml, so a drop fails here.
+        run: pytest -v
+
+      - name: Upload coverage
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+          if-no-files-found: warn
+
+  gates:
+    name: Fairness and leakage gates
+    runs-on: ubuntu-latest
+    # Run separately as well as inside the full suite. The full run reports one
+    # number; this job makes it unambiguous in the checks list whether the
+    # fairness and leakage gates specifically passed, which is the question a
+    # reviewer of a hiring system should be able to answer at a glance.
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev]"
+          python -m spacy download en_core_web_sm
+
+      - name: Gates
+        run: pytest -m gate -v --no-cov
+
+  docker:
+    name: Docker build
+    runs-on: ubuntu-latest
+    needs: [lint, test]
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: false
+          load: true
+          tags: guardmatch-ai:ci
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Verify the container serves a verified model
+        # Building an image proves it compiles. Starting it and checking /ready
+        # proves the artifacts inside it pass checksum verification, which is the
+        # failure that would otherwise surface only on deploy.
+        run: |
+          docker run -d --name guardmatch-ci -p 8000:8000 guardmatch-ai:ci
+          for attempt in $(seq 1 30); do
+            if curl -fs http://localhost:8000/ready > /dev/null; then
+              echo "ready after ${attempt}s"
+              break
+            fi
+            sleep 1
+          done
+          curl -fs http://localhost:8000/health
+          curl -fs http://localhost:8000/ready
+          curl -fs http://localhost:8000/model-info
+
+      - name: Confirm the container runs as non-root
+        run: |
+          uid=$(docker exec guardmatch-ci id -u)
+          echo "container uid: $uid"
+          test "$uid" != "0"
+
+      - name: Container logs
+        if: always()
+        run: docker logs guardmatch-ci || true
+
+      - name: Clean up
+        if: always()
+        run: docker rm -f guardmatch-ci || true

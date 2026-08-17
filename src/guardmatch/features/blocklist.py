@@ -124,8 +124,7 @@ PROXY_REGISTER: tuple[ProxyRisk, ...] = (
     ),
     ProxyRisk(
         feature="shift_match",
-        leaks="Availability correlates with caring responsibilities, which correlate "
-        "with gender.",
+        leaks="Availability correlates with caring responsibilities, which correlate with gender.",
         mitigation="Monitored closely. This is the attribute the project's own bias "
         "injection exploits, so it is the known worst case rather than a hypothetical one.",
     ),

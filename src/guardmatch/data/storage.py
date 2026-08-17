@@ -95,14 +95,10 @@ def save_dataset(
         created_at=created_at,
     )
 
-    _write_json(
-        directory / CANDIDATES_FILE, [c.model_dump(mode="json") for c in candidates]
-    )
+    _write_json(directory / CANDIDATES_FILE, [c.model_dump(mode="json") for c in candidates])
     _write_json(directory / JOBS_FILE, [j.model_dump(mode="json") for j in jobs])
     _write_json(directory / LABELS_FILE, [asdict(p) for p in pairs])
-    _write_json(
-        directory / PROTECTED_FILE, [asdict(p) for p in protected.values()]
-    )
+    _write_json(directory / PROTECTED_FILE, [asdict(p) for p in protected.values()])
     _write_json(directory / MANIFEST_FILE, asdict(manifest))
 
     return manifest

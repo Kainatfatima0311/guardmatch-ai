@@ -1,0 +1,45 @@
+# Local run of the scoring service.
+#
+#   docker compose up --build
+#   open http://localhost:8000/docs
+#
+# No volume mounts for models. The image carries its own artifacts so that a
+# running container fully describes the model it serves; mounting them would let
+# the deployed code and the deployed model drift apart.
+
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: guardmatch-ai:0.1.0
+    container_name: guardmatch-api
+    ports:
+      - "8000:8000"
+    environment:
+      MODEL_VERSION: v0.1.0
+      MODEL_DIR: /app/models
+      LOG_LEVEL: INFO
+      # json in a container: logs are collected by the platform, not read by a
+      # person watching a terminal.
+      LOG_FORMAT: json
+      MAX_RANK_BATCH: 500
+      FAIRNESS_TOP_K: 10
+    healthcheck:
+      test:
+        - CMD
+        - python
+        - -c
+        - |
+          import urllib.request, sys
+          sys.exit(0 if urllib.request.urlopen("http://127.0.0.1:8000/ready", timeout=4).status == 200 else 1)
+      interval: 30s
+      timeout: 5s
+      start_period: 40s
+      retries: 3
+    restart: unless-stopped
+    # The service writes nothing to disk. Making that explicit means a bug that
+    # tries to is caught here rather than in production.
+    read_only: true
+    security_opt:
+      - no-new-privileges:true

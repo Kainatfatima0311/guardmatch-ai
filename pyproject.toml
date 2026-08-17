@@ -135,6 +135,11 @@ addopts = [
     "--cov=guardmatch",
     "--cov-report=term-missing",
     "--cov-report=xml",
+    # Enforced rather than merely reported. A coverage number nobody acts on is
+    # a statistic; a threshold that fails the build is a constraint. Set below
+    # the current 95% so ordinary work is not blocked by a one-line dip, but
+    # high enough that a whole untested module cannot land.
+    "--cov-fail-under=85",
 ]
 markers = [
     "gate: fairness or leakage gate — must fail the build when violated",

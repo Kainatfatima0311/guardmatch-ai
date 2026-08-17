@@ -1,0 +1,55 @@
+# Everything under data/ is regenerable from a seed and runs to several
+# megabytes. It also has no place in a serving image — the service scores
+# incoming candidates, it does not read the training set.
+#
+# models/ is deliberately NOT ignored: the artifacts are what the container
+# serves.
+data/
+
+# Internal working files
+PLAN.md
+PROGRESS.md
+
+# Secrets. Configuration reaches the container through environment variables.
+.env
+.env.local
+*.pem
+*.key
+
+# Version control and CI
+.git/
+.github/
+.gitignore
+
+# Tests and tooling are not needed to serve. CI runs them before the image is
+# built; running them inside the runtime image would only add weight.
+tests/
+notebooks/
+scripts/
+Makefile
+tasks.ps1
+docker-compose.yml
+Dockerfile
+.dockerignore
+
+# Caches
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+coverage.xml
+htmlcov/
+*.egg-info/
+build/
+dist/
+.venv/
+venv/
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+desktop.ini

@@ -33,9 +33,7 @@ from guardmatch.core.config import get_settings
 # Correlation id for the current request, set by the API middleware and read by
 # the log processor below. A context variable rather than a global so that
 # concurrent requests do not overwrite each other's id.
-_request_id: contextvars.ContextVar[str | None] = contextvars.ContextVar(
-    "request_id", default=None
-)
+_request_id: contextvars.ContextVar[str | None] = contextvars.ContextVar("request_id", default=None)
 
 # Keys whose values must never reach a log line. Matching is on the key name, so
 # a caller passing cv_text=... gets it redacted regardless of where it came from.
@@ -134,9 +132,7 @@ def configure_logging() -> None:
             structlog.processors.format_exc_info,
             renderer,
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            getattr(logging, settings.log_level)
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(getattr(logging, settings.log_level)),
         logger_factory=structlog.stdlib.LoggerFactory(),
         cache_logger_on_first_use=True,
     )

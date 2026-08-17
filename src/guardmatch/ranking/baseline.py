@@ -48,7 +48,9 @@ def baseline_score(features: Mapping[str, float | None]) -> float:
     return score
 
 
-def baseline_scores(rows: Sequence[Sequence[float | None]], feature_names: Sequence[str]) -> list[float]:
+def baseline_scores(
+    rows: Sequence[Sequence[float | None]], feature_names: Sequence[str]
+) -> list[float]:
     """Score a positional feature matrix.
 
     Takes the same matrix the model receives, so both are evaluated on identical

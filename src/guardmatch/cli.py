@@ -94,8 +94,7 @@ def generate_data(
     pairs = generate_labels(candidates, jobs, hidden, resolved_seed)
 
     typer.echo(
-        f"Drawing protected attributes (inject_bias={resolved_bias}, "
-        f"strength={bias_strength})..."
+        f"Drawing protected attributes (inject_bias={resolved_bias}, strength={bias_strength})..."
     )
     protected = generate_protected_attributes(
         candidates, resolved_seed, inject_bias=resolved_bias, bias_strength=bias_strength
@@ -186,9 +185,7 @@ def train(
     result = train_model(ranking_dataset)
 
     model_scores = predict_scores(result.booster, ranking_dataset.valid)
-    base_scores = baseline_scores(
-        ranking_dataset.valid.features, ranking_dataset.feature_names
-    )
+    base_scores = baseline_scores(ranking_dataset.valid.features, ranking_dataset.feature_names)
 
     comparison = Comparison(
         model=evaluate(
@@ -319,9 +316,7 @@ def audit(
         colour = typer.colors.GREEN if attribute.passes else typer.colors.RED
         typer.secho(f"  {attribute.attribute}  [{status}]", fg=colour, bold=True)
 
-        typer.echo(
-            f"    {'group':<12}{'n':>7}{'top-k rate':>12}{'qual. rate':>12}{'exposure':>11}"
-        )
+        typer.echo(f"    {'group':<12}{'n':>7}{'top-k rate':>12}{'qual. rate':>12}{'exposure':>11}")
         for group in attribute.groups:
             qualified = (
                 f"{group.qualified_selection_rate:.3f}"

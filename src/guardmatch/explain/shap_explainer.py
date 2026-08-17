@@ -132,6 +132,4 @@ class Explainer:
             values = values[..., 0]
 
         means = np.abs(values).mean(axis=0)
-        return {
-            name: float(means[column]) for column, name in enumerate(self._feature_names)
-        }
+        return {name: float(means[column]) for column, name in enumerate(self._feature_names)}

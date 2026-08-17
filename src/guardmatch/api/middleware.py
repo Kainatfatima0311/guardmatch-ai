@@ -49,9 +49,7 @@ class ObservabilityMiddleware(BaseHTTPMiddleware):
                 response = await call_next(request)
             except Exception:
                 elapsed = time.perf_counter() - started
-                requests_total.labels(
-                    endpoint=endpoint, method=request.method, status="500"
-                ).inc()
+                requests_total.labels(endpoint=endpoint, method=request.method, status="500").inc()
                 request_duration_seconds.labels(endpoint=endpoint).observe(elapsed)
                 logger.exception(
                     "request_failed",

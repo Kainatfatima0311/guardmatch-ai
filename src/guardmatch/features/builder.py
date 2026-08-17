@@ -83,7 +83,9 @@ def build_features(profile: ParsedProfile, job: Job) -> dict[str, float | None]:
     # An empty availability set means the CV never stated a working pattern, so
     # the match is unknown rather than false.
     shift_match = (
-        None if not profile.shift_availability else float(job.shift_pattern in profile.shift_availability)
+        None
+        if not profile.shift_availability
+        else float(job.shift_pattern in profile.shift_availability)
     )
 
     # -- History ----------------------------------------------------------

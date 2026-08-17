@@ -118,9 +118,7 @@ def score(
 
 
 @router.post("/rank", response_model=RankResponse, summary="Rank candidates for one job")
-def rank(
-    payload: RankRequest, service: ServiceState = Depends(get_ready_service)
-) -> RankResponse:
+def rank(payload: RankRequest, service: ServiceState = Depends(get_ready_service)) -> RankResponse:
     """Rank candidates against one job posting, best fit first.
 
     The batch size is capped by configuration and enforced by the request schema,
@@ -164,9 +162,7 @@ def rank(
     )
 
 
-def _explain_ranked(
-    explainer: Explainer, ranked: Sequence[RankedCandidate]
-) -> list[Explanation]:
+def _explain_ranked(explainer: Explainer, ranked: Sequence[RankedCandidate]) -> list[Explanation]:
     """Explain a ranked batch in one SHAP call.
 
     Batched rather than looped: TreeSHAP is vectorised, and a per-candidate call

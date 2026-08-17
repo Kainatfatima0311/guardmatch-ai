@@ -92,9 +92,7 @@ def _draw_experience(rng: random.Random) -> float:
     return round(rng.uniform(low, high), 1)
 
 
-def _draw_subset[T](
-    rng: random.Random, prevalence: dict[T, float]
-) -> frozenset[T]:
+def _draw_subset[T](rng: random.Random, prevalence: dict[T, float]) -> frozenset[T]:
     """Draw a subset by independent per-item probability."""
     return frozenset(item for item, p in prevalence.items() if rng.random() < p)
 
@@ -279,7 +277,9 @@ def generate_candidates(n: int, seed: int) -> list[GeneratedCandidate]:
         # Most applicants are currently or recently employed; a long gap is the
         # informative minority.
         months_since_last = (
-            None if role_count == 0 else rng.choices([0, 3, 9, 24], weights=[0.55, 0.25, 0.13, 0.07])[0]
+            None
+            if role_count == 0
+            else rng.choices([0, 3, 9, 24], weights=[0.55, 0.25, 0.13, 0.07])[0]
         )
 
         driving = rng.random() < 0.62

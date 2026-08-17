@@ -159,9 +159,7 @@ def snapshot_feature_distributions(
             continue
         feature_mean.labels(feature=name).set(statistics.fmean(values))
         # stdev is undefined for a single observation; report 0 rather than raise.
-        feature_stdev.labels(feature=name).set(
-            statistics.stdev(values) if len(values) > 1 else 0.0
-        )
+        feature_stdev.labels(feature=name).set(statistics.stdev(values) if len(values) > 1 else 0.0)
 
 
 def render_metrics() -> bytes:

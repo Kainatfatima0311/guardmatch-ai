@@ -128,8 +128,6 @@ class GeneratedCandidate(Candidate):
     true_previous_role_count: int
     true_months_since_last_role: int | None
 
-    @field_serializer(
-        "true_certifications", "true_shift_availability", "true_site_experience"
-    )
+    @field_serializer("true_certifications", "true_shift_availability", "true_site_experience")
     def _serialise_true_sets(self, value: Iterable[str]) -> list[str]:
         return sorted_values(value)

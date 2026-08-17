@@ -140,17 +140,13 @@ def test_unknown_driving_produces_none_only_when_required() -> None:
     not_required = build_features(make_profile(driving_licence=None), make_job())
     assert not_required["driving_required_match"] == 1.0
 
-    required = build_features(
-        make_profile(driving_licence=None), make_job(driving_required=True)
-    )
+    required = build_features(make_profile(driving_licence=None), make_job(driving_required=True))
     assert required["driving_required_match"] is None
 
 
 def test_stated_no_driving_is_zero_not_none() -> None:
     """False and None must stay distinct all the way to the model."""
-    features = build_features(
-        make_profile(driving_licence=False), make_job(driving_required=True)
-    )
+    features = build_features(make_profile(driving_licence=False), make_job(driving_required=True))
     assert features["driving_required_match"] == 0.0
 
 
@@ -189,9 +185,7 @@ def test_every_registered_proxy_is_a_real_feature() -> None:
 
 
 def test_job_with_no_requirements_gives_full_overlap() -> None:
-    features = build_features(
-        make_profile(), make_job(required_certifications=frozenset())
-    )
+    features = build_features(make_profile(), make_job(required_certifications=frozenset()))
     assert features["cert_overlap_ratio"] == 1.0
     assert features["licence_match"] == 1.0
 

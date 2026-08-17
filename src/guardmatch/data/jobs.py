@@ -197,9 +197,7 @@ def generate_jobs(n: int, seed: int) -> list[Job]:
         # Always require the licence — it gates the role — then draw one or two
         # further requirements from what this site type plausibly wants.
         required = {CertificationCode.SECURITY_LICENCE}
-        optional_pool = [
-            c for c in profile.likely_certs if c != CertificationCode.SECURITY_LICENCE
-        ]
+        optional_pool = [c for c in profile.likely_certs if c != CertificationCode.SECURITY_LICENCE]
         required.update(rng.sample(optional_pool, k=min(len(optional_pool), rng.randint(1, 2))))
 
         if rng.random() < _P_SPECIALIST_POSTING:

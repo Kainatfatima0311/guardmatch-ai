@@ -122,7 +122,7 @@ def test_phrase_wrapped_in_extra_words_still_resolves() -> None:
 
 
 def test_shift_matching_respects_word_boundaries() -> None:
-    """"Saturdays" must not register as the "days" variant of a day shift."""
+    """ "Saturdays" must not register as the "days" variant of a day shift."""
     found = find_shifts("Available for Saturdays and Sundays.")
     assert found == frozenset({ShiftType.WEEKEND})
     assert ShiftType.DAY not in found
@@ -181,12 +181,14 @@ def test_driving_stated_positive() -> None:
 
 
 def test_driving_stated_negative() -> None:
-    """"No driving licence" contains "driving licence".
+    """ "No driving licence" contains "driving licence".
 
     A matcher checking positives first would report the exact opposite of what
     the CV says.
     """
-    assert parse_cv(cv("PROFILE\nGuard.\n\nADDITIONAL\nNo driving licence")).driving_licence is False
+    assert (
+        parse_cv(cv("PROFILE\nGuard.\n\nADDITIONAL\nNo driving licence")).driving_licence is False
+    )
 
 
 def test_driving_unstated_is_none_not_false() -> None:
@@ -230,7 +232,9 @@ def test_site_not_taken_from_job_title() -> None:
     "Retail Security Officer" posted to a stadium must not be credited with
     retail experience — that is a fabricated qualification, not a missed one.
     """
-    text = "PROFILE\nGuard.\n\nEMPLOYMENT\nRetail Security Officer, Acme Ltd (2022 - 2024) - stadium\n"
+    text = (
+        "PROFILE\nGuard.\n\nEMPLOYMENT\nRetail Security Officer, Acme Ltd (2022 - 2024) - stadium\n"
+    )
     sites = parse_cv(cv(text)).site_experience
     assert SiteType.EVENT in sites
     assert SiteType.RETAIL not in sites
@@ -284,7 +288,10 @@ def test_recovers_ground_truth_across_the_corpus() -> None:
             and abs(profile.years_experience - candidate.true_years_experience) >= 0.55
         ):
             experience_mismatches += 1
-        if profile.shift_availability and profile.shift_availability != candidate.true_shift_availability:
+        if (
+            profile.shift_availability
+            and profile.shift_availability != candidate.true_shift_availability
+        ):
             shift_mismatches += 1
         if (
             profile.previous_role_count is not None
