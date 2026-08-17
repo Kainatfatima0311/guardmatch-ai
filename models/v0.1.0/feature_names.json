@@ -1,0 +1,14 @@
+[
+  "exp_gap",
+  "exp_ratio",
+  "licence_match",
+  "cert_overlap_ratio",
+  "cert_overlap_count",
+  "missing_critical_cert",
+  "shift_match",
+  "site_type_match",
+  "driving_required_match",
+  "extra_cert_count",
+  "role_count",
+  "recency_months"
+]

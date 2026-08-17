@@ -1,0 +1,56 @@
+{
+  "best_iteration": 78,
+  "data_seed": 42,
+  "feature_names": [
+    "exp_gap",
+    "exp_ratio",
+    "licence_match",
+    "cert_overlap_ratio",
+    "cert_overlap_count",
+    "missing_critical_cert",
+    "shift_match",
+    "site_type_match",
+    "driving_required_match",
+    "extra_cert_count",
+    "role_count",
+    "recency_months"
+  ],
+  "generator_version": "1.0.0",
+  "git_dirty": false,
+  "git_sha": "32db2090e8a160caf2ccbf10a728ae721a3d3b0c",
+  "hyperparameters": {
+    "bagging_fraction": 0.9,
+    "bagging_freq": 1,
+    "boosting_type": "gbdt",
+    "deterministic": true,
+    "feature_fraction": 0.9,
+    "force_row_wise": true,
+    "lambdarank_truncation_level": 10,
+    "learning_rate": 0.05,
+    "metric": "ndcg",
+    "min_data_in_leaf": 50,
+    "ndcg_eval_at": [
+      5,
+      10
+    ],
+    "num_leaves": 15,
+    "objective": "lambdarank",
+    "seed": 42,
+    "verbosity": -1
+  },
+  "libraries": {
+    "lightgbm": "4.7.0",
+    "numpy": "2.5.2",
+    "python": "3.12.13",
+    "scikit-learn": "1.9.0",
+    "shap": "0.52.0",
+    "spacy": "3.8.15"
+  },
+  "model_version": "v0.1.0",
+  "n_candidates": 5000,
+  "n_jobs": 200,
+  "n_pairs": 12040,
+  "n_train_groups": 150,
+  "n_valid_groups": 50,
+  "trained_at": "2026-08-17T17:38:31.692768+00:00"
+}

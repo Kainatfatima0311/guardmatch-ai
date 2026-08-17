@@ -1,0 +1,15 @@
+{
+  "baseline_mean_average_precision": 0.8034891642172033,
+  "baseline_mean_reciprocal_rank": 0.9640000000000001,
+  "baseline_n_groups": 50.0,
+  "baseline_ndcg_at_10": 0.80426588620743,
+  "baseline_ndcg_at_5": 0.8166617325711262,
+  "model_beats_baseline": true,
+  "model_mean_average_precision": 0.8987182939031603,
+  "model_mean_reciprocal_rank": 1.0,
+  "model_n_groups": 50.0,
+  "model_ndcg_at_10": 0.904225521219122,
+  "model_ndcg_at_5": 0.921948135355589,
+  "ndcg_at_10_delta": 0.09995963501169203,
+  "ndcg_at_10_lift": 0.12428680207121356
+}
