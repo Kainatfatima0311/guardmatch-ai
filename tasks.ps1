@@ -1,8 +1,12 @@
-# GuardMatch AI — task runner for Windows
+# GuardMatch AI - task runner for Windows
 #
-# The Makefile is the canonical task list and is what CI uses, but `make` is not
-# available on a default Windows install. This script mirrors those targets so
-# the same commands are available locally.
+# The Makefile is the canonical task list and is what CI mirrors, but `make` is
+# not available on a default Windows install. This script mirrors those targets
+# so the same commands are available locally.
+#
+# The repository holds two runtimes. Every task changes into the directory it
+# belongs to, so a contributor never has to know whether a command is a backend
+# or a frontend concern.
 #
 #   .\tasks.ps1 help
 #   .\tasks.ps1 install
@@ -15,14 +19,45 @@ param(
 
 $ErrorActionPreference = "Stop"
 $CondaEnv = "guardmatch"
+$RepoRoot = $PSScriptRoot
+$Backend  = Join-Path $RepoRoot "backend"
+$Frontend = Join-Path $RepoRoot "frontend"
 
 function Invoke-InEnv {
+    # Backend task: run inside the conda environment, from backend/.
     param([string[]]$CommandArgs)
-    Write-Host "> conda run -n $CondaEnv $($CommandArgs -join ' ')" -ForegroundColor DarkGray
-    & conda run -n $CondaEnv --no-capture-output @CommandArgs
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
-        exit $LASTEXITCODE
+    Write-Host "> [backend] conda run -n $CondaEnv $($CommandArgs -join ' ')" -ForegroundColor DarkGray
+    Push-Location $Backend
+    try {
+        & conda run -n $CondaEnv --no-capture-output @CommandArgs
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+            exit $LASTEXITCODE
+        }
+    }
+    finally {
+        Pop-Location
+    }
+}
+
+function Invoke-InWeb {
+    # Frontend task: run from frontend/, no conda involved.
+    param([string]$Exe, [string[]]$CommandArgs)
+    Write-Host "> [frontend] $Exe $($CommandArgs -join ' ')" -ForegroundColor DarkGray
+    if (-not (Test-Path $Frontend)) {
+        Write-Host "frontend/ does not exist yet - skipping." -ForegroundColor Yellow
+        return
+    }
+    Push-Location $Frontend
+    try {
+        & $Exe @CommandArgs
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "FAILED (exit $LASTEXITCODE)" -ForegroundColor Red
+            exit $LASTEXITCODE
+        }
+    }
+    finally {
+        Pop-Location
     }
 }
 
@@ -30,27 +65,41 @@ switch ($Task.ToLower()) {
 
     "help" {
         Write-Host ""
-        Write-Host "GuardMatch AI — available tasks" -ForegroundColor Cyan
+        Write-Host "GuardMatch AI - available tasks" -ForegroundColor Cyan
         Write-Host ""
-        Write-Host "  install         Install the package with dev extras and the spaCy model"
+        Write-Host "  Backend" -ForegroundColor Cyan
+        Write-Host "  install         Install the backend with dev extras and the spaCy model"
         Write-Host "  lint            Run ruff checks"
         Write-Host "  format          Apply ruff formatting and auto-fixes"
         Write-Host "  typecheck       Run mypy in strict mode"
         Write-Host "  test            Run the full test suite with coverage"
         Write-Host "  test-fast       Run the test suite without slow tests"
         Write-Host "  gates           Run only the fairness and leakage gates"
-        Write-Host "  check           lint + typecheck + test (everything CI runs)"
         Write-Host ""
         Write-Host "  generate-data   Generate the synthetic dataset"
         Write-Host "  train           Train the ranker and write versioned artifacts"
         Write-Host "  audit           Run the fairness audit against the active model"
         Write-Host "  serve           Run the API locally with reload"
         Write-Host ""
-        Write-Host "  docker-build    Build the container image"
-        Write-Host "  docker-up       Run the service via docker compose"
+        Write-Host "  Frontend" -ForegroundColor Cyan
+        Write-Host "  web-install     Install frontend dependencies from the lockfile"
+        Write-Host "  web-dev         Run the dev server against a local API on :8000"
+        Write-Host "  web-lint        Run eslint"
+        Write-Host "  web-typecheck   Type check without emitting"
+        Write-Host "  web-test        Run the frontend unit tests"
+        Write-Host "  web-build       Produce the standalone production build"
+        Write-Host ""
+        Write-Host "  Everything" -ForegroundColor Cyan
+        Write-Host "  check           Every check CI runs, both runtimes"
+        Write-Host "  docker-build    Build both container images"
+        Write-Host "  docker-up       Run the full stack via docker compose"
         Write-Host "  clean           Remove caches and build artifacts"
         Write-Host ""
     }
+
+    # -----------------------------------------------------------------------
+    # Backend
+    # -----------------------------------------------------------------------
 
     "install" {
         Invoke-InEnv @("pip", "install", "-e", ".[dev]")
@@ -69,14 +118,6 @@ switch ($Task.ToLower()) {
     "test-fast" { Invoke-InEnv @("pytest", "-m", "not slow") }
     "gates"     { Invoke-InEnv @("pytest", "-m", "gate", "-v") }
 
-    "check" {
-        Invoke-InEnv @("ruff", "check", ".")
-        Invoke-InEnv @("mypy", "src")
-        Invoke-InEnv @("pytest")
-        Write-Host ""
-        Write-Host "All checks passed." -ForegroundColor Green
-    }
-
     "generate-data" { Invoke-InEnv @("guardmatch", "generate-data") }
     "train"         { Invoke-InEnv @("guardmatch", "train") }
     "audit"         { Invoke-InEnv @("guardmatch", "audit") }
@@ -85,8 +126,38 @@ switch ($Task.ToLower()) {
         Invoke-InEnv @("uvicorn", "guardmatch.api.app:app", "--reload", "--host", "0.0.0.0", "--port", "8000")
     }
 
+    # -----------------------------------------------------------------------
+    # Frontend
+    # -----------------------------------------------------------------------
+
+    "web-install"   { Invoke-InWeb "npm" @("ci") }
+    "web-dev"       { Invoke-InWeb "npm" @("run", "dev") }
+    "web-lint"      { Invoke-InWeb "npm" @("run", "lint") }
+    "web-typecheck" { Invoke-InWeb "npx" @("tsc", "--noEmit") }
+    "web-test"      { Invoke-InWeb "npm" @("test") }
+    "web-build"     { Invoke-InWeb "npm" @("run", "build") }
+
+    # -----------------------------------------------------------------------
+    # Everything
+    # -----------------------------------------------------------------------
+
+    "check" {
+        Invoke-InEnv @("ruff", "check", ".")
+        Invoke-InEnv @("mypy", "src")
+        Invoke-InEnv @("pytest")
+        Invoke-InWeb "npm" @("run", "lint")
+        Invoke-InWeb "npx" @("tsc", "--noEmit")
+        Invoke-InWeb "npm" @("test")
+        Invoke-InWeb "npm" @("run", "build")
+        Write-Host ""
+        Write-Host "All checks passed." -ForegroundColor Green
+    }
+
     "docker-build" {
-        & docker build -t guardmatch-ai:0.1.0 .
+        & docker build -t guardmatch-ai:0.1.0 $Backend
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+        & docker build -t guardmatch-web:0.1.0 $Frontend
+        if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
     }
 
     "docker-up" {
@@ -94,15 +165,24 @@ switch ($Task.ToLower()) {
     }
 
     "clean" {
-        $targets = @(".pytest_cache", ".mypy_cache", ".ruff_cache", "htmlcov",
-                     ".coverage", "coverage.xml", "build", "dist")
-        foreach ($t in $targets) {
-            if (Test-Path $t) {
-                Remove-Item -Recurse -Force $t
-                Write-Host "removed $t"
+        $backendTargets = @(".pytest_cache", ".mypy_cache", ".ruff_cache", "htmlcov",
+                            ".coverage", "coverage.xml", "build", "dist")
+        foreach ($t in $backendTargets) {
+            $path = Join-Path $Backend $t
+            if (Test-Path $path) {
+                Remove-Item -Recurse -Force $path
+                Write-Host "removed backend/$t"
             }
         }
-        Get-ChildItem -Recurse -Directory -Filter "__pycache__" |
+        $frontendTargets = @(".next", "out", "coverage")
+        foreach ($t in $frontendTargets) {
+            $path = Join-Path $Frontend $t
+            if (Test-Path $path) {
+                Remove-Item -Recurse -Force $path
+                Write-Host "removed frontend/$t"
+            }
+        }
+        Get-ChildItem -Path $Backend -Recurse -Directory -Filter "__pycache__" |
             ForEach-Object { Remove-Item -Recurse -Force $_.FullName }
         Write-Host "Clean." -ForegroundColor Green
     }

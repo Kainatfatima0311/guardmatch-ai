@@ -1,7 +1,13 @@
-# Local run of the scoring service.
+# Local run of the full stack.
 #
 #   docker compose up --build
-#   open http://localhost:8000/docs
+#   open http://localhost:3000     the Rank workspace
+#   open http://localhost:8000/docs  the API directly
+#
+# Two services, built from two contexts. `api` is built from ./backend so its
+# build context carries the source and the model artifacts but not the frontend;
+# `web` is built from ./frontend for the mirror-image reason. Neither image can
+# accidentally grow by picking up the other half of the repository.
 #
 # No volume mounts for models. The image carries its own artifacts so that a
 # running container fully describes the model it serves; mounting them would let
@@ -10,7 +16,7 @@
 services:
   api:
     build:
-      context: .
+      context: ./backend
       dockerfile: Dockerfile
     image: guardmatch-ai:0.1.0
     container_name: guardmatch-api
@@ -40,6 +46,40 @@ services:
     restart: unless-stopped
     # The service writes nothing to disk. Making that explicit means a bug that
     # tries to is caught here rather than in production.
+    read_only: true
+    security_opt:
+      - no-new-privileges:true
+
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    image: guardmatch-web:0.1.0
+    container_name: guardmatch-web
+    ports:
+      - "3000:3000"
+    environment:
+      # The browser never talks to the API directly. This is the address the
+      # Next.js server uses for its own server-side calls, which is why no CORS
+      # configuration exists anywhere in the backend.
+      BACKEND_URL: http://api:8000
+      NODE_ENV: production
+      PORT: 3000
+    depends_on:
+      api:
+        # Waits for /ready, not merely for the process to start. Coming up
+        # against an API that has not verified its model would show the user an
+        # error that has nothing to do with anything they did.
+        condition: service_healthy
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - node -e "require('http').get('http://127.0.0.1:3000/',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 30s
+      timeout: 5s
+      start_period: 20s
+      retries: 3
+    restart: unless-stopped
     read_only: true
     security_opt:
       - no-new-privileges:true

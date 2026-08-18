@@ -3,6 +3,13 @@ name: CI
 # Runs on every push and pull request. The gates below are the point of this
 # workflow: a fairness regression or a protected-attribute leak has to fail a
 # build, not wait to be noticed in review.
+#
+# The repository holds two runtimes. Python jobs set `working-directory: backend`
+# through a job-level default rather than repeating `cd backend` in every step,
+# which keeps the step bodies identical to the commands a contributor runs by
+# hand. Note that `working-directory` does not apply to action inputs — an
+# artifact `path` stays relative to the workspace root, which is why the coverage
+# upload names `backend/coverage.xml` explicitly.
 
 on:
   push:
@@ -13,6 +20,7 @@ on:
 
 env:
   PYTHON_VERSION: "3.12"
+  NODE_VERSION: "22"
 
 # A new push supersedes an in-flight run on the same ref. Nothing is learned from
 # finishing a run against code that has already been replaced.
@@ -24,6 +32,9 @@ jobs:
   lint:
     name: Lint and type check
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
@@ -31,6 +42,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install
         run: |
@@ -51,6 +63,9 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
@@ -58,6 +73,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install
         run: |
@@ -74,7 +90,8 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: coverage
-          path: coverage.xml
+          # Action inputs ignore the job's working-directory default.
+          path: backend/coverage.xml
           if-no-files-found: warn
 
   gates:
@@ -84,6 +101,9 @@ jobs:
     # number; this job makes it unambiguous in the checks list whether the
     # fairness and leakage gates specifically passed, which is the question a
     # reviewer of a hiring system should be able to answer at a glance.
+    defaults:
+      run:
+        working-directory: backend
     steps:
       - uses: actions/checkout@v4
 
@@ -91,6 +111,7 @@ jobs:
         with:
           python-version: ${{ env.PYTHON_VERSION }}
           cache: pip
+          cache-dependency-path: backend/pyproject.toml
 
       - name: Install
         run: |
@@ -101,24 +122,69 @@ jobs:
       - name: Gates
         run: pytest -m gate -v --no-cov
 
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        # `npm ci` rather than `npm install`: it installs exactly the lockfile
+        # and fails if the two have drifted, which is the same argument as
+        # generating the dataset from a fixed seed.
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Type check
+        # Separate from the build. Next.js can emit a working bundle while types
+        # are wrong, so the type check has to be its own gate to mean anything.
+        run: npx tsc --noEmit
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build
+        run: npm run build
+
   docker:
     name: Docker build
     runs-on: ubuntu-latest
-    needs: [lint, test]
+    needs: [lint, test, frontend]
     steps:
       - uses: actions/checkout@v4
 
       - uses: docker/setup-buildx-action@v3
 
-      - name: Build image
+      - name: Build the API image
         uses: docker/build-push-action@v6
         with:
-          context: .
+          context: ./backend
           push: false
           load: true
           tags: guardmatch-ai:ci
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          cache-from: type=gha,scope=api
+          cache-to: type=gha,mode=max,scope=api
+
+      - name: Build the web image
+        uses: docker/build-push-action@v6
+        with:
+          context: ./frontend
+          push: false
+          load: true
+          tags: guardmatch-web:ci
+          cache-from: type=gha,scope=web
+          cache-to: type=gha,mode=max,scope=web
 
       - name: Verify the container serves a verified model
         # Building an image proves it compiles. Starting it and checking /ready
@@ -137,16 +203,42 @@ jobs:
           curl -fs http://localhost:8000/ready
           curl -fs http://localhost:8000/model-info
 
-      - name: Confirm the container runs as non-root
+      - name: Confirm the API container runs as non-root
         run: |
           uid=$(docker exec guardmatch-ci id -u)
-          echo "container uid: $uid"
+          echo "api container uid: $uid"
+          test "$uid" != "0"
+
+      - name: Verify the web container serves the workspace
+        # Started against the running API so the proxy path is exercised, not
+        # just the static bundle.
+        run: |
+          docker run -d --name guardmatch-web-ci --network host \
+            -e BACKEND_URL=http://localhost:8000 guardmatch-web:ci
+          for attempt in $(seq 1 30); do
+            if curl -fs http://localhost:3000/ > /dev/null; then
+              echo "web ready after ${attempt}s"
+              break
+            fi
+            sleep 1
+          done
+          curl -fs http://localhost:3000/ > /dev/null
+          curl -fs http://localhost:3000/api/ready
+
+      - name: Confirm the web container runs as non-root
+        run: |
+          uid=$(docker exec guardmatch-web-ci id -u)
+          echo "web container uid: $uid"
           test "$uid" != "0"
 
       - name: Container logs
         if: always()
-        run: docker logs guardmatch-ci || true
+        run: |
+          docker logs guardmatch-ci || true
+          docker logs guardmatch-web-ci || true
 
       - name: Clean up
         if: always()
-        run: docker rm -f guardmatch-ci || true
+        run: |
+          docker rm -f guardmatch-ci || true
+          docker rm -f guardmatch-web-ci || true

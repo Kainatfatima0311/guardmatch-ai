@@ -10,15 +10,16 @@ PROGRESS.md
 # ---------------------------------------------------------------------------
 # Generated data
 # ---------------------------------------------------------------------------
-# Everything under the top-level data/ is reproducible from a seed via
+# Everything under backend/data/ is reproducible from a seed via
 # `guardmatch generate-data`, so committing it would add weight without adding
-# information. Model artifacts under models/ are NOT ignored — versioned
+# information. Model artifacts under backend/models/ are NOT ignored — versioned
 # artifacts are a project deliverable.
 #
 # The leading slash anchors this to the repository root. Without it, the pattern
-# would also match src/guardmatch/data/ — the synthetic data generator package —
-# and silently exclude source code from every commit.
-/data/
+# would also match backend/src/guardmatch/data/ — the synthetic data generator
+# package — and silently exclude source code from every commit. That is not
+# hypothetical: it happened once and was fixed in commit efff6ce.
+/backend/data/
 *.parquet
 *.feather
 
@@ -44,7 +45,7 @@ dist/
 downloads/
 eggs/
 .eggs/
-lib60/
+lib64/
 parts/
 sdist/
 var/
@@ -75,6 +76,27 @@ htmlcov/
 # ---------------------------------------------------------------------------
 .ipynb_checkpoints/
 notebooks/*.ipynb
+
+# ---------------------------------------------------------------------------
+# Node and Next.js
+# ---------------------------------------------------------------------------
+# Lockfiles are NOT ignored. `npm ci` in CI needs package-lock.json, and a
+# reproducible frontend build is the same argument as a seeded dataset.
+node_modules/
+.next/
+out/
+next-env.d.ts
+.turbo/
+*.tsbuildinfo
+.vercel/
+npm-debug.log*
+yarn-error.log*
+
+# Vitest coverage output, mirroring the Python side.
+/frontend/coverage/
+
+# Local overrides only. .env.example stays committed as documentation.
+.env*.local
 
 # ---------------------------------------------------------------------------
 # Editors and OS
