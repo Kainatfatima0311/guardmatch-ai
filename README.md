@@ -8,7 +8,6 @@ experience, availability — and explains why each candidate landed where they d
 ![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
 ![Licence](https://img.shields.io/badge/licence-MIT-lightgrey)
 
----
 
 ## The problem
 
