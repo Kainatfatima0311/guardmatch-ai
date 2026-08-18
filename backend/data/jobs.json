@@ -1,0 +1,2529 @@
+[
+  {
+    "job_id": "j_0000",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Static Guard required for a building site site. Night shift pattern. Minimum 4 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0001",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Night Security Officer required for a distribution centre site. Rotating shift pattern. Minimum 3 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0002",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Site Security Officer required for a office building site. Rotating shift pattern. Minimum 6 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0003",
+    "required_certifications": [
+      "dog_handling",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Static Guard required for a industrial site. Rotating shift pattern. Minimum 4 years of experience. Required: dog handling, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0004",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "retail",
+    "driving_required": true,
+    "description": "Night Security Officer required for a high street store site. Weekend shift pattern. Minimum 1 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0005",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a high street store site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0006",
+    "required_certifications": [
+      "cpr",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a stadium site. Rotating shift pattern. Minimum 1 years of experience. Required: cpr, first aid, security licence."
+  },
+  {
+    "job_id": "j_0007",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Static Guard required for a department store site. Weekend shift pattern. Minimum 1 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0008",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "weekend",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Officer required for a gated community site. Weekend shift pattern. Minimum 3 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0009",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Retail Security Officer required for a construction site site. Rotating shift pattern. Minimum 5 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0010",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Control Room Operator required for a business park site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0011",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a building site site. Rotating shift pattern. Minimum 1 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0012",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Night Security Officer required for a office building site. Rotating shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0013",
+    "required_certifications": [
+      "conflict_management",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Guard required for a large events site. Rotating shift pattern. Minimum 1 years of experience. Required: conflict management, first aid, security licence."
+  },
+  {
+    "job_id": "j_0014",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Officer required for a corporate headquarters site. Day shift pattern. Minimum 4 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0015",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Night Security Officer required for a residential site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0016",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a apartment complex site. Rotating shift pattern. Minimum 2 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0017",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Night Security Officer required for a high street store site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0018",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a residential estate site. Day shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0019",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a office building site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0020",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "weekend",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Guard required for a corporate headquarters site. Weekend shift pattern. Minimum 4 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0021",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Retail Security Officer required for a construction site. Rotating shift pattern. Minimum 1 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0022",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a residential estate site. Night shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0023",
+    "required_certifications": [
+      "dog_handling",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Security Guard required for a manufacturing plant site. Weekend shift pattern. Minimum 2 years of experience. Required: dog handling, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0024",
+    "required_certifications": [
+      "cctv_operation",
+      "close_protection",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Static Guard required for a retail site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, close protection, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0025",
+    "required_certifications": [
+      "dog_handling",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a warehouse site. Rotating shift pattern. Minimum 7 years of experience. Required: dog handling, security licence."
+  },
+  {
+    "job_id": "j_0026",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a high street store site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0027",
+    "required_certifications": [
+      "dog_handling",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a manufacturing plant site. Night shift pattern. Minimum 6 years of experience. Required: dog handling, security licence."
+  },
+  {
+    "job_id": "j_0028",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a corporate site. Day shift pattern. Minimum 4 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0029",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Guard required for a stadium site. Rotating shift pattern. Minimum 1 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0030",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Site Security Officer required for a apartment complex site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0031",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Guard required for a corporate headquarters site. Day shift pattern. Minimum 4 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0032",
+    "required_certifications": [
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Control Room Operator required for a large events site. Rotating shift pattern. Minimum 2 years of experience. Required: cpr, security licence."
+  },
+  {
+    "job_id": "j_0033",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Door Supervisor required for a reception and front of house site. Rotating shift pattern. Minimum 4 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0034",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Guard required for a apartment complex site. Rotating shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0035",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Site Security Officer required for a reception and front of house site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0036",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Night Security Officer required for a industrial site. Day shift pattern. Minimum 5 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0037",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a event security site. Weekend shift pattern. Minimum 2 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0038",
+    "required_certifications": [
+      "close_protection",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Control Room Operator required for a logistics depot site. Rotating shift pattern. Minimum 3 years of experience. Required: close protection, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0039",
+    "required_certifications": [
+      "close_protection",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Officer required for a crowd control at events site. Night shift pattern. Minimum 0 years of experience. Required: close protection, first aid, security licence."
+  },
+  {
+    "job_id": "j_0040",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Mobile Patrol Officer required for a construction site site. Night shift pattern. Minimum 2 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0041",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Night Security Officer required for a reception and front of house site. Night shift pattern. Minimum 4 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0042",
+    "required_certifications": [
+      "dog_handling",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a warehouse site. Night shift pattern. Minimum 4 years of experience. Required: dog handling, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0043",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Guard required for a corporate site. Day shift pattern. Minimum 4 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0044",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Site Security Officer required for a apartment complex site. Rotating shift pattern. Minimum 0 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0045",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Officer required for a large events site. Weekend shift pattern. Minimum 2 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0046",
+    "required_certifications": [
+      "close_protection",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Static Guard required for a industrial site. Rotating shift pattern. Minimum 2 years of experience. Required: close protection, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0047",
+    "required_certifications": [
+      "close_protection",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Night Security Officer required for a site security site. Night shift pattern. Minimum 4 years of experience. Required: close protection, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0048",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Control Room Operator required for a apartment complex site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0049",
+    "required_certifications": [
+      "cpr",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Guard required for a event security site. Weekend shift pattern. Minimum 1 years of experience. Required: cpr, first aid, security licence."
+  },
+  {
+    "job_id": "j_0050",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a apartment complex site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0051",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Night Security Officer required for a retail site. Weekend shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0052",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a residential site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0053",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a apartment complex site. Day shift pattern. Minimum 1 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0054",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Site Security Officer required for a corporate site. Night shift pattern. Minimum 4 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0055",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Security Officer required for a manufacturing plant site. Night shift pattern. Minimum 6 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0056",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Control Room Operator required for a building site site. Day shift pattern. Minimum 2 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0057",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Night Security Officer required for a apartment complex site. Weekend shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0058",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Door Supervisor required for a concerts and festivals site. Weekend shift pattern. Minimum 2 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0059",
+    "required_certifications": [
+      "close_protection",
+      "cpr",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Officer required for a concerts and festivals site. Rotating shift pattern. Minimum 1 years of experience. Required: close protection, cpr, first aid, security licence."
+  },
+  {
+    "job_id": "j_0060",
+    "required_certifications": [
+      "dog_handling",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Static Guard required for a warehouse site. Night shift pattern. Minimum 7 years of experience. Required: dog handling, security licence."
+  },
+  {
+    "job_id": "j_0061",
+    "required_certifications": [
+      "close_protection",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Door Supervisor required for a stadium site. Rotating shift pattern. Minimum 1 years of experience. Required: close protection, first aid, security licence."
+  },
+  {
+    "job_id": "j_0062",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Night Security Officer required for a high street store site. Day shift pattern. Minimum 4 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0063",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Officer required for a residential site. Rotating shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0064",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Static Guard required for a office building site. Day shift pattern. Minimum 5 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0065",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Static Guard required for a corporate headquarters site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0066",
+    "required_certifications": [
+      "dog_handling",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "day",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Door Supervisor required for a manufacturing plant site. Day shift pattern. Minimum 6 years of experience. Required: dog handling, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0067",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "weekend",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a department store site. Weekend shift pattern. Minimum 3 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0068",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Night Security Officer required for a distribution centre site. Night shift pattern. Minimum 3 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0069",
+    "required_certifications": [
+      "dog_handling",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 8.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Night Security Officer required for a industrial site. Rotating shift pattern. Minimum 8 years of experience. Required: dog handling, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0070",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "weekend",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Static Guard required for a warehouse site. Weekend shift pattern. Minimum 5 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0071",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "day",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a apartment complex site. Day shift pattern. Minimum 0 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0072",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Night Security Officer required for a corporate site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0073",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Security Officer required for a construction site site. Rotating shift pattern. Minimum 4 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0074",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Site Security Officer required for a construction site. Night shift pattern. Minimum 1 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0075",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a corporate site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0076",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": true,
+    "description": "Site Security Officer required for a residential estate site. Night shift pattern. Minimum 1 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0077",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": true,
+    "description": "Security Officer required for a stadium site. Weekend shift pattern. Minimum 1 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0078",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Static Guard required for a site security site. Day shift pattern. Minimum 3 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0079",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "rotating",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Security Officer required for a shopping centre site. Rotating shift pattern. Minimum 0 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0080",
+    "required_certifications": [
+      "cpr",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a large events site. Weekend shift pattern. Minimum 2 years of experience. Required: cpr, first aid, security licence."
+  },
+  {
+    "job_id": "j_0081",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a gated community site. Rotating shift pattern. Minimum 4 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0082",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Static Guard required for a shopping centre site. Weekend shift pattern. Minimum 2 years of experience. Required: cctv operation, dog handling, security licence."
+  },
+  {
+    "job_id": "j_0083",
+    "required_certifications": [
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a crowd control at events site. Weekend shift pattern. Minimum 3 years of experience. Required: cpr, security licence."
+  },
+  {
+    "job_id": "j_0084",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a large events site. Night shift pattern. Minimum 1 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0085",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a retail park site. Day shift pattern. Minimum 3 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0086",
+    "required_certifications": [
+      "dog_handling",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Security Guard required for a manufacturing plant site. Rotating shift pattern. Minimum 6 years of experience. Required: dog handling, security licence."
+  },
+  {
+    "job_id": "j_0087",
+    "required_certifications": [
+      "dog_handling",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Door Supervisor required for a manufacturing plant site. Day shift pattern. Minimum 4 years of experience. Required: dog handling, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0088",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a apartment complex site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0089",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Door Supervisor required for a industrial site. Rotating shift pattern. Minimum 6 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0090",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Site Security Officer required for a residential site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0091",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Corporate Security Officer required for a site security site. Day shift pattern. Minimum 2 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0092",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Officer required for a corporate headquarters site. Day shift pattern. Minimum 5 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0093",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Officer required for a corporate site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0094",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Guard required for a corporate headquarters site. Day shift pattern. Minimum 2 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0095",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "weekend",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Corporate Security Officer required for a construction site. Weekend shift pattern. Minimum 5 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0096",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Security Officer required for a building site site. Night shift pattern. Minimum 4 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0097",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Security Guard required for a building site site. Night shift pattern. Minimum 3 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0098",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Door Supervisor required for a site security site. Night shift pattern. Minimum 2 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0099",
+    "required_certifications": [
+      "dog_handling",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Control Room Operator required for a logistics depot site. Night shift pattern. Minimum 4 years of experience. Required: dog handling, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0100",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a retail park site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0101",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a stadium site. Night shift pattern. Minimum 1 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0102",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Security Guard required for a construction site site. Night shift pattern. Minimum 2 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0103",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": true,
+    "description": "Control Room Operator required for a stadium site. Weekend shift pattern. Minimum 2 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0104",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a corporate headquarters site. Day shift pattern. Minimum 5 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0105",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Security Guard required for a reception and front of house site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, dog handling, security licence."
+  },
+  {
+    "job_id": "j_0106",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Night Security Officer required for a office building site. Weekend shift pattern. Minimum 2 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0107",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Control Room Operator required for a apartment complex site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, dog handling, first aid, security licence."
+  },
+  {
+    "job_id": "j_0108",
+    "required_certifications": [
+      "close_protection",
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Night Security Officer required for a industrial site. Rotating shift pattern. Minimum 3 years of experience. Required: close protection, fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0109",
+    "required_certifications": [
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a concerts and festivals site. Night shift pattern. Minimum 3 years of experience. Required: cpr, security licence."
+  },
+  {
+    "job_id": "j_0110",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Door Supervisor required for a high street store site. Day shift pattern. Minimum 4 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0111",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Door Supervisor required for a site security site. Night shift pattern. Minimum 2 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0112",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a gated community site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, dog handling, first aid, security licence."
+  },
+  {
+    "job_id": "j_0113",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Retail Security Officer required for a construction site site. Night shift pattern. Minimum 3 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0114",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a building site site. Rotating shift pattern. Minimum 3 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0115",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a reception and front of house site. Rotating shift pattern. Minimum 4 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0116",
+    "required_certifications": [
+      "dog_handling",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Night Security Officer required for a industrial site. Night shift pattern. Minimum 7 years of experience. Required: dog handling, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0117",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Retail Security Officer required for a logistics depot site. Night shift pattern. Minimum 7 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0118",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Security Officer required for a building site site. Night shift pattern. Minimum 2 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0119",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 8.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Site Security Officer required for a warehouse site. Night shift pattern. Minimum 8 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0120",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Site Security Officer required for a department store site. Weekend shift pattern. Minimum 1 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0121",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a gated community site. Night shift pattern. Minimum 0 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0122",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a large events site. Rotating shift pattern. Minimum 0 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0123",
+    "required_certifications": [
+      "close_protection",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Security Officer required for a distribution centre site. Night shift pattern. Minimum 5 years of experience. Required: close protection, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0124",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": true,
+    "description": "Site Security Officer required for a gated community site. Night shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0125",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Control Room Operator required for a logistics depot site. Rotating shift pattern. Minimum 7 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0126",
+    "required_certifications": [
+      "close_protection",
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Control Room Operator required for a logistics depot site. Rotating shift pattern. Minimum 7 years of experience. Required: close protection, fire safety, security licence."
+  },
+  {
+    "job_id": "j_0127",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": true,
+    "description": "Door Supervisor required for a shopping centre site. Day shift pattern. Minimum 3 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0128",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Guard required for a corporate site. Rotating shift pattern. Minimum 6 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0129",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Site Security Officer required for a warehouse site. Rotating shift pattern. Minimum 4 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0130",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a crowd control at events site. Weekend shift pattern. Minimum 2 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0131",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Control Room Operator required for a residential estate site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0132",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "retail",
+    "driving_required": true,
+    "description": "Control Room Operator required for a retail park site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0133",
+    "required_certifications": [
+      "dog_handling",
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Night Security Officer required for a building site site. Night shift pattern. Minimum 2 years of experience. Required: dog handling, fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0134",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a site security site. Night shift pattern. Minimum 3 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0135",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Door Supervisor required for a department store site. Day shift pattern. Minimum 0 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0136",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Control Room Operator required for a building site site. Night shift pattern. Minimum 4 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0137",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Control Room Operator required for a office building site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0138",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a stadium site. Weekend shift pattern. Minimum 3 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0139",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a residential estate site. Night shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0140",
+    "required_certifications": [
+      "conflict_management",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Door Supervisor required for a crowd control at events site. Night shift pattern. Minimum 1 years of experience. Required: conflict management, first aid, security licence."
+  },
+  {
+    "job_id": "j_0141",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Static Guard required for a reception and front of house site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, dog handling, first aid, security licence."
+  },
+  {
+    "job_id": "j_0142",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a concerts and festivals site. Rotating shift pattern. Minimum 1 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0143",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Guard required for a residential estate site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0144",
+    "required_certifications": [
+      "close_protection",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Security Officer required for a shopping centre site. Day shift pattern. Minimum 4 years of experience. Required: close protection, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0145",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Officer required for a business park site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0146",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Officer required for a crowd control at events site. Weekend shift pattern. Minimum 1 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0147",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Static Guard required for a crowd control at events site. Rotating shift pattern. Minimum 2 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0148",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Site Security Officer required for a residential estate site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0149",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Night Security Officer required for a apartment complex site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, dog handling, first aid, security licence."
+  },
+  {
+    "job_id": "j_0150",
+    "required_certifications": [
+      "cctv_operation",
+      "close_protection",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Night Security Officer required for a corporate site. Day shift pattern. Minimum 3 years of experience. Required: cctv operation, close protection, security licence."
+  },
+  {
+    "job_id": "j_0151",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a concerts and festivals site. Night shift pattern. Minimum 2 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0152",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Static Guard required for a corporate headquarters site. Day shift pattern. Minimum 5 years of experience. Required: cctv operation, dog handling, first aid, security licence."
+  },
+  {
+    "job_id": "j_0153",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a residential estate site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0154",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "rotating",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Site Security Officer required for a logistics depot site. Rotating shift pattern. Minimum 5 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0155",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a large events site. Weekend shift pattern. Minimum 0 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0156",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a construction site site. Night shift pattern. Minimum 3 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0157",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Static Guard required for a crowd control at events site. Rotating shift pattern. Minimum 1 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0158",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Static Guard required for a concerts and festivals site. Weekend shift pattern. Minimum 1 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0159",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Guard required for a large events site. Night shift pattern. Minimum 1 years of experience. Required: conflict management, cpr, security licence."
+  },
+  {
+    "job_id": "j_0160",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a residential site. Night shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0161",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a gated community site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0162",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Door Supervisor required for a construction site site. Rotating shift pattern. Minimum 1 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0163",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Corporate Security Officer required for a corporate site. Day shift pattern. Minimum 5 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0164",
+    "required_certifications": [
+      "close_protection",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Static Guard required for a shopping centre site. Day shift pattern. Minimum 4 years of experience. Required: close protection, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0165",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Site Security Officer required for a site security site. Night shift pattern. Minimum 4 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0166",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": false,
+    "description": "Site Security Officer required for a site security site. Rotating shift pattern. Minimum 4 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0167",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Retail Security Officer required for a retail site. Day shift pattern. Minimum 3 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0168",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Mobile Patrol Officer required for a retail park site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0169",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Door Supervisor required for a gated community site. Rotating shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0170",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Night Security Officer required for a residential estate site. Night shift pattern. Minimum 0 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0171",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": true,
+    "description": "Site Security Officer required for a corporate headquarters site. Day shift pattern. Minimum 1 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0172",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Site Security Officer required for a retail site. Rotating shift pattern. Minimum 3 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0173",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a concerts and festivals site. Rotating shift pattern. Minimum 0 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0174",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "night",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Security Officer required for a office building site. Night shift pattern. Minimum 6 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0175",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 7.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Door Supervisor required for a manufacturing plant site. Night shift pattern. Minimum 7 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0176",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Retail Security Officer required for a distribution centre site. Night shift pattern. Minimum 3 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0177",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Door Supervisor required for a residential site. Rotating shift pattern. Minimum 1 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0178",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 4.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Night Security Officer required for a apartment complex site. Night shift pattern. Minimum 4 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0179",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a gated community site. Night shift pattern. Minimum 1 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0180",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Guard required for a residential estate site. Rotating shift pattern. Minimum 3 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0181",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Door Supervisor required for a construction site site. Night shift pattern. Minimum 5 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0182",
+    "required_certifications": [
+      "conflict_management",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Night Security Officer required for a crowd control at events site. Day shift pattern. Minimum 2 years of experience. Required: conflict management, first aid, security licence."
+  },
+  {
+    "job_id": "j_0183",
+    "required_certifications": [
+      "cctv_operation",
+      "dog_handling",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Guard required for a apartment complex site. Rotating shift pattern. Minimum 2 years of experience. Required: cctv operation, dog handling, first aid, security licence."
+  },
+  {
+    "job_id": "j_0184",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Security Officer required for a warehouse site. Day shift pattern. Minimum 5 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0185",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a corporate site. Day shift pattern. Minimum 6 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0186",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 6.0,
+    "shift_pattern": "weekend",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Control Room Operator required for a business park site. Weekend shift pattern. Minimum 6 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0187",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "residential",
+    "driving_required": true,
+    "description": "Security Officer required for a apartment complex site. Day shift pattern. Minimum 2 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0188",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "rotating",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Static Guard required for a site security site. Rotating shift pattern. Minimum 2 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0189",
+    "required_certifications": [
+      "cctv_operation",
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "night",
+    "site_type": "residential",
+    "driving_required": false,
+    "description": "Security Guard required for a residential site. Night shift pattern. Minimum 3 years of experience. Required: cctv operation, first aid, security licence."
+  },
+  {
+    "job_id": "j_0190",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Site Security Officer required for a site security site. Night shift pattern. Minimum 5 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0191",
+    "required_certifications": [
+      "fire_safety",
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 8.0,
+    "shift_pattern": "night",
+    "site_type": "industrial",
+    "driving_required": false,
+    "description": "Night Security Officer required for a warehouse site. Night shift pattern. Minimum 8 years of experience. Required: fire safety, health and safety, security licence."
+  },
+  {
+    "job_id": "j_0192",
+    "required_certifications": [
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "rotating",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Guard required for a crowd control at events site. Rotating shift pattern. Minimum 3 years of experience. Required: conflict management, security licence."
+  },
+  {
+    "job_id": "j_0193",
+    "required_certifications": [
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 1.0,
+    "shift_pattern": "weekend",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Door Supervisor required for a event security site. Weekend shift pattern. Minimum 1 years of experience. Required: cpr, security licence."
+  },
+  {
+    "job_id": "j_0194",
+    "required_certifications": [
+      "cctv_operation",
+      "conflict_management",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a high street store site. Night shift pattern. Minimum 2 years of experience. Required: cctv operation, conflict management, security licence."
+  },
+  {
+    "job_id": "j_0195",
+    "required_certifications": [
+      "cctv_operation",
+      "security_licence"
+    ],
+    "min_years_experience": 0.0,
+    "shift_pattern": "day",
+    "site_type": "retail",
+    "driving_required": false,
+    "description": "Site Security Officer required for a high street store site. Day shift pattern. Minimum 0 years of experience. Required: cctv operation, security licence."
+  },
+  {
+    "job_id": "j_0196",
+    "required_certifications": [
+      "first_aid",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "day",
+    "site_type": "corporate",
+    "driving_required": false,
+    "description": "Corporate Security Officer required for a corporate headquarters site. Day shift pattern. Minimum 2 years of experience. Required: first aid, security licence."
+  },
+  {
+    "job_id": "j_0197",
+    "required_certifications": [
+      "fire_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 2.0,
+    "shift_pattern": "night",
+    "site_type": "construction",
+    "driving_required": true,
+    "description": "Security Officer required for a construction site site. Night shift pattern. Minimum 2 years of experience. Required: fire safety, security licence."
+  },
+  {
+    "job_id": "j_0198",
+    "required_certifications": [
+      "health_and_safety",
+      "security_licence"
+    ],
+    "min_years_experience": 5.0,
+    "shift_pattern": "day",
+    "site_type": "industrial",
+    "driving_required": true,
+    "description": "Site Security Officer required for a distribution centre site. Day shift pattern. Minimum 5 years of experience. Required: health and safety, security licence."
+  },
+  {
+    "job_id": "j_0199",
+    "required_certifications": [
+      "conflict_management",
+      "cpr",
+      "security_licence"
+    ],
+    "min_years_experience": 3.0,
+    "shift_pattern": "day",
+    "site_type": "event",
+    "driving_required": false,
+    "description": "Security Guard required for a event security site. Day shift pattern. Minimum 3 years of experience. Required: conflict management, cpr, security licence."
+  }
+]
