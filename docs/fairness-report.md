@@ -217,6 +217,12 @@ catches a harm the selection-based ones miss.
 4. Establish ongoing monitoring. A model that is fair at release can stop being fair as the
    applicant population shifts — the drift hook in `core/metrics.py` exists to make that
    measurable, but the review process is not built.
+9. **The audit is now readable without opening this file.** `GET /fairness` serves it and the
+   product renders it at `/fairness`, with three verdict states rather than two: a ratio below
+   threshold that is not distinguishable from noise reads as *cannot tell*, not as a pass. A pass
+   renders quietly and carries its qualification beside it — the injected proxy bias that passed
+   at 0.875, the synthetic demographics, and that 0.80 is a floor rather than a target. This
+   document remains the substance; the page exists so that the substance is not optional reading.
 
 ## 10. If a threshold is breached
 

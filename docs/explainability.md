@@ -166,6 +166,43 @@ there is nothing to trade off.
 Global importance is what surfaces both of these. Neither is visible from any individual
 explanation.
 
+### Served by the API, and why the figure moves slightly
+
+`GET /feature-importance` reports this same measure from the running service, and the product
+draws it at `/model` with the four monitored proxies in amber — so the fact that the largest
+input is also the largest fairness exposure is visible in one glance rather than assembled from two
+documents.
+
+**It returns 26.3% for `shift_match` where the table above says 26.8%, and the difference is the
+sample, not the model.** The table is computed over the full 3,041-row validation set during the
+audit. The endpoint computes over a fixed 200-row sample against one fixed reference posting,
+because it answers on request and a few hundred SHAP evaluations is the most that can be justified
+inside a request. Both are stable — the endpoint's sample and posting are fixed, so a given model
+version always returns the same figures — and neither is an estimate of the other.
+
+**The ordering agrees at the ends and swaps in the middle**, and that is worth more than a
+reassurance would be. `shift_match` leads in both. `recency_months` is last in both, at
+effectively zero. But positions two and three trade places: over the validation set
+`licence_match` and `cert_overlap_ratio` are effectively tied (15.8% against 15.7%), whereas
+against the endpoint's single fixed posting `cert_overlap_ratio` is clearly ahead (20.6% against
+13.5%).
+
+The reason is the fixed posting rather than anything about the model. How far a feature can move
+outputs depends on how much it varies across the candidates being compared, and that depends on
+what the posting asks for. A posting requiring several certifications gives certification overlap
+room to spread across applicants; `licence_match` is close to constant when nearly everyone holds
+the licence. Across fifty postings those effects average out, and against one they do not.
+
+So the two figures answer slightly different questions. **The validation-set table above is the one
+to cite** — it is computed over everything, and it is what the audit used. The endpoint's value
+is that it is answerable from the running service for the model actually loaded, which no document
+can be.
+
+Mean absolute SHAP contribution is deliberately not LightGBM's split gain. Gain counts how often
+the trees used a feature; this counts how far it actually moved outputs. And it is absolute
+because a feature pushing some candidates up as hard as it pushes others down is influential —
+averaging signed values would hide it completely.
+
 ## 7. How a reviewer actually sees this
 
 Everything above describes what the service produces. What a reviewer reads is the

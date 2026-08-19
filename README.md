@@ -3,9 +3,13 @@
 Ranks security guard applicants against a job posting's requirements — certifications,
 experience, availability — and explains why each candidate landed where they did.
 
+Drop a folder of CVs, or generate a couple of hundred to see the volume the problem actually has.
+Every placement comes with the twelve numbers behind it, and the interface refuses the things it
+cannot read rather than ranking them badly.
+
 [![CI](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![Coverage](https://img.shields.io/badge/coverage-94.75%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-94.80%25-brightgreen)
 ![Licence](https://img.shields.io/badge/licence-MIT-lightgrey)
 
 
@@ -27,7 +31,7 @@ candidates and does not make hiring decisions.
 
 ## How it works
 
-End to end, from a pasted CV to a ranked shortlist on screen:
+End to end, from a dropped CV to a ranked shortlist on screen:
 
 ```
  BROWSER                    NEXT.JS                 FASTAPI
@@ -115,7 +119,9 @@ docker compose up --build
 
 | | |
 |---|---|
-| <http://localhost:3000> | the Rank workspace — **Generate** a batch or drop files, then **Rank applications** |
+| <http://localhost:3000> | **Rank** — drop CVs or **Generate** a batch, then **Rank applications** |
+| <http://localhost:3000/fairness> | **Fairness** — the audit, its verdicts, and what it could not tell |
+| <http://localhost:3000/model> | **Model** — which model is serving, whether it verified, what the ranking rests on |
 | <http://localhost:8000/docs> | the API directly, via Swagger UI |
 
 First build takes a few minutes; the API image compiles LightGBM and downloads the spaCy model.
@@ -163,11 +169,18 @@ Then <http://localhost:3000>. The API is expected on port 8000; point elsewhere 
 
 Three ways to get applications in:
 
-- **Drop files** — `.txt`, `.text`, `.md`, read in the browser, so the file itself is never
-  uploaded. `.pdf` and `.docx` are a later phase.
+- **Drop files.** `.txt`, `.text` and `.md` are read in the browser, so the file itself is never
+  uploaded. `.pdf` and `.docx` go to `POST /extract` and come back as text you can read and edit
+  before anything is ranked.
 - **Generate a batch** — 10 to 250 synthetic applications, which is how to see the hiring volume
-  the brief describes.
+  the brief describes. Labelled synthetic everywhere it appears.
 - **Paste** — for one or two, or to correct text read from a file.
+
+**A scanned PDF is refused when you drop it, not ranked.** It has no text layer, so it would
+extract to nothing, and an empty CV ranks last — the system would place a candidate at the
+bottom because their file could not be read, and you would see a weak candidate instead of an
+unreadable document. `.doc` and `.rtf` are refused too, naming the conversion. OCR was considered
+and rejected: mis-read text produces the same wrong ranking with nothing signalling it.
 
 File names are shown on screen and **never sent**: `name` is a blocked attribute in this system,
 so the display name and the request payload are separate types. See
@@ -275,6 +288,21 @@ Every ranked candidate comes back with the numbers and the words:
 
 Full detail in the [API reference](docs/api-reference.md).
 
+Ten more endpoints sit beside it. The ones worth knowing:
+
+| | |
+|---|---|
+| `GET /sample-candidates?count=100` | Generated applications, for exercising the ranking at size |
+| `POST /extract` | Text out of one uploaded PDF, Word or plain-text document |
+| `GET /fairness` | The audit carried by the loaded model — **three states, not two** |
+| `GET /feature-importance` | What the ranking rests on, measured over a fixed sample |
+| `GET /ready` | `200` only once the model has loaded *and* its checksums verified |
+
+`/extract` and `/sample-candidates` need no model, so they answer while it is still verifying.
+`/fairness` and `/feature-importance` report what the loaded artifact already carries and compute
+no new claim about it. Full reference, including both `422` shapes a client has to handle: [API
+reference](docs/api-reference.md).
+
 ## Fairness
 
 Three layers, deliberately redundant.
@@ -293,7 +321,15 @@ model's single largest input at 26.8%.
 
 **Measurement.** Adverse impact, demographic parity, equal opportunity, and an
 exposure-weighted metric that catches a group being admitted to the shortlist but placed
-consistently lower within it. Enforced in CI.
+consistently lower within it. Enforced in CI, and readable at
+<http://localhost:3000/fairness> rather than only in a JSON file.
+
+**A pass is not evidence of fairness, and the page says so where the verdict is.** A
+deliberately injected, realistically sized proxy bias **passed at 0.875**; four-fifths is a floor,
+not a target. So the page reports three states rather than two — `age_band` sits at **0.627**,
+well under the line, and reads as *cannot tell* rather than as a pass, because after correcting
+for ten possible group comparisons it is not distinguishable from noise. Calling that a pass would
+be false; calling it a failure would be a claim the data does not support.
 
 Both gates are proven to fail, not merely assumed to work:
 
@@ -333,18 +369,20 @@ guardmatch-ai/
 │   │   ├── registry/            versioned, checksummed artifacts
 │   │   ├── api/                 FastAPI service
 │   │   └── cli.py               generate-data · train · audit
-│   ├── tests/                   341 tests, 80 of them gates
+│   ├── tests/                   399 tests, 80 of them gates
 │   ├── models/v0.1.0/           committed artifacts, six files, all checksummed
 │   ├── data/                    generated from a seed, not committed
 │   ├── pyproject.toml · Dockerfile · .dockerignore · .env.example
 │   └── README.md
-├── frontend/                    the Rank workspace
+├── frontend/                    three pages over one boundary
 │   ├── src/app/
-│   │   ├── page.tsx             the workspace
+│   │   ├── page.tsx             Rank — intake, shortlist, explanations
+│   │   ├── fairness/            the audit, with what it could not tell
+│   │   ├── model/               provenance, baseline, global importance
 │   │   ├── globals.css          design tokens, with measured contrast ratios
 │   │   └── api/[...path]/       server-side proxy — why no CORS config exists
-│   ├── src/components/          form, results, contribution bars, disclosure
-│   ├── src/lib/                 typed contract, error normalisation, samples
+│   ├── src/components/          form, results, contribution bars, verdicts
+│   ├── src/lib/                 typed contract, file intake, filters, CSV, 83 tests
 │   ├── package.json · Dockerfile · .dockerignore
 │   └── README.md
 ├── docs/                        the eight documents below
@@ -363,9 +401,14 @@ Paths quoted inside `docs/architecture.md` diagrams are relative to `backend/`.
 
 ```bash
 cd backend
-pytest              # 341 tests, 94.75% coverage, threshold enforced at 85%
-pytest -m gate      # fairness and leakage gates only
+pytest              # 399 tests, 94.80% coverage, threshold enforced at 85%
+pytest -m gate      # 80 fairness and leakage gates
 pytest -m "not slow"
+```
+
+```bash
+cd frontend
+npm test            # 83 tests: the API contract, file intake, filters, CSV, the proxy
 ```
 
 CI runs lint, type checking, the full suite, the gates as a separate job, and a Docker build

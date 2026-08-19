@@ -35,6 +35,9 @@ A human reviewer remains responsible for every hiring outcome.
 | POST | `/score` | Score one candidate against one job |
 | POST | `/parse` | Extract structured facts from CV text |
 | GET | `/sample-candidates` | Generate synthetic applications, for trying the service at volume |
+| POST | `/extract` | Text out of one uploaded PDF, Word or plain-text document |
+| GET | `/fairness` | The fairness audit carried by the active model |
+| GET | `/feature-importance` | Which inputs move the ranking, across a sample |
 | GET | `/health` | Liveness |
 | GET | `/ready` | Readiness |
 | GET | `/model-info` | Active model provenance |
@@ -254,6 +257,219 @@ prepare a batch before the service is able to score it.
 
 **`count` above the batch limit is refused here** rather than at `/rank`, so a caller is never
 handed more candidates than it is allowed to submit.
+
+---
+
+## POST /extract
+
+Text out of one uploaded document, so a CV can be dropped rather than pasted.
+
+`multipart/form-data`, one field named `file`.
+
+**One file per request, deliberately.** A reviewer dropping twenty documents needs to know
+*which* three failed and why each one did; a batch endpoint either fails wholesale or returns a
+mixed result the caller has to unpick anyway.
+
+| Extension | Read by | Notes |
+|---|---|---|
+| `.txt` `.text` `.md` | Decoded directly | Accepted for completeness — the browser reads these without a request |
+| `.pdf` | `pypdf` | Only with a text layer. See below |
+| `.docx` | `python-docx` | Paragraphs **and table cells** |
+
+```bash
+curl -F file=@cv.pdf http://localhost:8000/extract
+```
+
+```json
+{
+  "filename": "cv.pdf",
+  "cv_text": "SUMMARY\nSecurity officer with 6 years...",
+  "characters": 1284,
+  "source": "pdf"
+}
+```
+
+**Notes**
+
+**A scanned PDF is refused, and that refusal is why this endpoint has the shape it does.** A
+scanned PDF has no text layer, so `pypdf` returns an empty string and raises nothing — because
+nothing went wrong, there simply is no text. Passing that on produces an *empty CV*, and an empty
+CV ranks last. The service would confidently place a candidate at the bottom of a shortlist
+because their file could not be read, and the reviewer would see a weak candidate rather than an
+unreadable document. That is precisely the silent failure this project exists to prevent, so it is
+refused where the file arrives:
+
+> `no text layer found — this PDF looks scanned. Paste the text, or upload a .docx instead.`
+
+**OCR was considered and rejected.** It is a large dependency, and mis-read text reproduces the
+same silent wrong ranking in a new form — a CV whose certifications were garbled scores like one
+that could not be read at all, except now nothing signals it. A refusal a caller can act on is
+worth more than an extraction nobody can check.
+
+**Validated by extension *and* by content.** An extension is a claim made by whoever named the
+file; the first bytes are a claim made by the file itself. A `.docx` that is really a PDF never
+reaches a zip parser.
+
+**Older formats are refused separately from unsupported ones.** A caller told "unsupported"
+converts nothing; a caller told "save it as .docx" does.
+
+**Table cells are read as well as paragraphs.** `python-docx` excludes table cells from
+`paragraphs`, and in a formatted CV the certification list is usually a table — so reading only
+paragraphs would silently drop the single most important thing the parser looks for.
+
+**`source` travels with the text**, so a caller knows whether to expect layout damage. A PDF's
+reading order is a reconstruction; a `.txt` is exactly itself.
+
+**No model required.** Like `/sample-candidates`, this reads a file and touches nothing the model
+owns, so it answers while the model is still verifying rather than returning `503`.
+
+**Limits**
+
+| | Limit | On breach |
+|---|---|---|
+| Upload size | 5 MB | Refused, stating the actual size |
+| Extracted text | `MAX_CV_LENGTH`, 20,000 characters | **Refused, not truncated** — a CV cut mid-document parses as a CV missing whatever fell past the cut |
+
+**Failures.** All `422` with a **string** `detail` — the `ParsingError` shape rather than the
+array shape. See [Errors](#errors).
+
+| Cause | `detail` |
+|---|---|
+| Empty file | `this file is empty` |
+| PDF with no text layer | `no text layer found — this PDF looks scanned...` |
+| Unsupported type | `.png is not supported. Accepted: .docx, .md, .pdf, .text, .txt.` |
+| Older format | `.doc is an older format this cannot read. Save it as .docx or .txt and upload again.` |
+| Content not matching the extension | Names the mismatch |
+
+A missing `file` field is the *other* `422`: request validation, so `detail` is an array. A client
+handling uploads has to read both shapes.
+
+---
+
+## Transparency endpoints
+
+Two endpoints exist because the brief asks for a fairness check and for explainability, and
+neither is worth much sitting in a file nobody opens. Both report what the active model already
+carries; they compute no new claim about it.
+
+### GET /fairness
+
+The audit recorded against the loaded model version.
+
+```bash
+curl http://localhost:8000/fairness
+```
+
+```json
+{
+  "model_version": "v0.1.0",
+  "top_k": 10,
+  "adverse_impact_threshold": 0.8,
+  "max_gap": 0.1,
+  "min_group_size": 30,
+  "n_postings": 50,
+  "n_rows": 3041,
+  "passes": true,
+  "failures": [],
+  "inconclusive": [
+    "age_band: adverse impact ratio 0.627 is below the four-fifths threshold of 0.80 — but not distinguishable from noise once corrected for 10 possible group comparisons (p=0.0069, threshold 0.0050); smallest group n=319"
+  ],
+  "attributes": [
+    {
+      "attribute": "gender",
+      "groups": [
+        {
+          "group": "female",
+          "n_appearances": 1275,
+          "n_in_top_k": 214,
+          "n_qualified": 428,
+          "n_qualified_in_top_k": 191,
+          "selection_rate": 0.1678,
+          "qualified_selection_rate": 0.4463,
+          "mean_exposure": 0.2391
+        }
+      ],
+      "suppressed_groups": [],
+      "adverse_impact_ratio": 0.9649,
+      "demographic_parity_gap": 0.0059,
+      "equal_opportunity_gap": 0.0389
+    }
+  ]
+}
+```
+
+**Notes**
+
+**Three states, not two.** `passes` alone is not enough to read this response, and a client that
+branches on it will misreport. A non-empty `failures` is a fail; an empty `failures` with a
+non-empty `inconclusive` means *cannot tell*, which is neither of the other two. `age_band` sits
+at 0.627 — well below the 0.80 line — and is reported inconclusive rather than failing, because
+after Bonferroni correction for ten possible group comparisons it is not distinguishable from
+noise. Calling it a pass would be false; calling it a fail would be a claim the data does not
+support.
+
+**A pass is not evidence of fairness, and the audit's own numbers say so.** A deliberately
+injected, realistically sized proxy bias passed at 0.875. The four-fifths rule is a floor, not a
+target. Anything rendering this response should carry that beside the verdict rather than beneath
+it.
+
+**Demographics are synthetic and were never model inputs.** They exist in the evaluation set so
+selection rates can be compared at all. Protected attributes are blocked at the request boundary
+and again before the feature builder, so no result here can be read as the model having been told
+and behaved well anyway.
+
+**Suppressed groups are reported as suppressed**, not dropped. A group under `min_group_size` is
+named in `suppressed_groups`, because a group too small to measure and a group that was never
+there look identical if only the measurable ones are shipped.
+
+| Status | When |
+|---|---|
+| `200` | Model loaded and the artifact carries an audit |
+| `404` | The artifact carries no audit — `detail` names the command that produces one |
+| `503` | Model not loaded, or checksums not yet verified |
+
+### GET /feature-importance
+
+Which inputs move the ranking, measured over a sample rather than asserted.
+
+```bash
+curl http://localhost:8000/feature-importance
+```
+
+```json
+{
+  "model_version": "v0.1.0",
+  "sample_size": 200,
+  "features": [
+    { "feature": "shift_match", "mean_absolute_contribution": 0.9262, "share": 0.2627 },
+    { "feature": "cert_overlap_ratio", "mean_absolute_contribution": 0.7265, "share": 0.2061 }
+  ]
+}
+```
+
+**Notes**
+
+**Mean absolute SHAP contribution, not LightGBM split gain.** Gain counts how often the trees used
+a feature; the SHAP mean counts how far it actually moved outputs. The second is the one that
+answers "what is this ranking resting on".
+
+**Absolute, so this is magnitude and not direction.** A feature that pushes some candidates up as
+hard as it pushes others down is influential, and averaging signed values would hide it entirely.
+Direction is a per-candidate question, and `/rank` answers it per candidate.
+
+**All twelve features are returned, ordered by share**, including the ones that barely register. A
+list trimmed to the top few would read as the whole model.
+
+**The sample and the reference posting are fixed**, so two calls against a given model version
+return the same figures. This is a property of the model, not of whatever traffic happened to
+arrive.
+
+**`shift_match` leads at 26.3%**, which is also the largest fairness exposure in the model — shift
+availability correlates with caring responsibilities. Worth reading beside `/fairness` rather than
+on its own.
+
+**Computed once and cached** on first request. It is a few hundred SHAP evaluations, so the first
+call is slower than the rest.
 
 ---
 

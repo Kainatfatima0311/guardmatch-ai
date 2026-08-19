@@ -1,11 +1,20 @@
 # GuardMatch AI — Frontend
 
 **Companion to:** [architecture.md](architecture.md) · [api-reference.md](api-reference.md)
-**Date:** 2026-08-19
+**Date:** 2026-08-20
 
-This document covers the Rank workspace: what it is for, the constraints it enforces in code
-rather than in prose, the colour system, the accessibility decisions, and what was deliberately
-left unbuilt.
+This document covers three pages — Rank, Fairness and Model — and, more than any of them,
+the constraints this interface enforces in code rather than in prose. It also covers the colour
+system, the accessibility decisions, and what was deliberately left unbuilt.
+
+| Page | What it answers |
+|---|---|
+| **Rank** (`/`) | Who fits this posting, and why each one placed where they did |
+| **Fairness** (`/fairness`) | Whether the ranking behaves differently across groups — and what the audit could not tell |
+| **Model** (`/model`) | Which model produced this, whether its artifacts verified, and what the ranking rests on |
+
+The Rank page is the product. The other two exist because the brief asks for a fairness check and
+for versioned artifacts, and neither is worth much sitting in a file nobody opens.
 
 Paths are relative to `frontend/`.
 
@@ -254,13 +263,30 @@ Three paths now, and only one of them was expensive:
 
 | Path | What it is for | Cost to build |
 |---|---|---|
-| **Drop files** | Real applications, `.txt` / `.text` / `.md` | None — `File.text()` reads them in the browser |
-| **Generate a batch** | Seeing volume: 10 / 50 / 100 / 250 | A small endpoint, `GET /sample-candidates` |
+| **Drop files** | Real applications | `.txt` / `.text` / `.md` in the browser, `.pdf` / `.docx` through the service |
+| **Generate a batch** | Seeing volume: 10 / 50 / 100 / 250 | `GET /sample-candidates`, labelled synthetic wherever it appears |
 | **Paste** | One or two, or correcting extracted text | Already there |
 
-`.pdf` and `.docx` need server-side extraction and are a later phase. A dropped `.pdf` is
-described as *coming* rather than *unsupported*, because a reviewer told "unsupported" would go
-and convert files they will not need to convert.
+### Two ways to read a file, and the reviewer sees neither
+
+`.txt` needs nothing: `File.text()` reads it in the browser, so no request is made and no file
+leaves the machine. `.pdf` and `.docx` cannot be read that way, so each one is sent to
+`POST /extract` on drop and comes back as text.
+
+`readAnyFiles` routes by extension across both paths and returns one list of candidates and one
+list of problems. The split is invisible to whoever dropped the files, and it should be — they
+dropped documents, and what they get back is candidates and, where something went wrong, the
+reason.
+
+**Extraction happens on drop, per file, not at ranking.** That is a design consequence of the
+scanned-PDF case rather than an implementation detail: a reviewer needs to learn that a file is
+unreadable while they are still handling files, not after submitting a batch of a hundred. The
+cost is one request per document; the alternative is a batch result someone has to unpick.
+
+**The extracted text is shown and editable before ranking.** A reviewer has to be able to see
+what the extractor understood, and correct it, before a number is attached to a person. `source`
+comes back with the text for the same reason — a PDF's reading order is a reconstruction, a
+`.txt` is exactly itself, so one of them deserves a second look and the other does not.
 
 ### The display name never leaves the browser
 
@@ -289,16 +315,32 @@ marker does not, and so the name cannot move the mark.
 |---|---|
 | Empty file | **Refused.** An empty CV ranks last, so accepting one would show a confident bottom placement for a blank document |
 | Over 20,000 characters | Refused, against the limit the service enforces |
-| Too large to be a CV | Refused before it is read |
-| `.pdf`, `.docx` | Refused for now, described as coming |
+| Too large to be a CV | Refused before it is read, against the same 5 MB limit the service enforces |
+| **A scanned `.pdf`** | **Refused at the moment of upload.** See below |
+| `.doc`, `.rtf`, `.odt`, `.pages` | Refused as **older formats, with the conversion named** — a reviewer told "unsupported" converts nothing |
+| A file whose content does not match its name | Refused. The extension is a claim by whoever named the file; the first bytes are a claim by the file itself |
 
 Failures are reported **per file**, not per drop: being told only that "something failed" after
 dropping twenty files is not usable, and a reviewer needs to know which one to fix while they are
 still holding it.
 
-The empty-file case is the small version of a trap waiting in the PDF work — a scanned PDF
-extracts to an empty string, which would flow on as an empty CV and rank last. The system would
-confidently place a candidate bottom because their file could not be read.
+### The scanned PDF, which is the whole reason upload is careful
+
+A scanned PDF has no text layer. `pypdf` returns an empty string from it and raises nothing —
+because nothing went wrong, there simply is no text. Pass that on and it becomes an *empty CV*,
+and an empty CV ranks last. The interface would show a confident bottom placement for a document
+that could not be read, and the reviewer would see a weak candidate rather than an unreadable
+file.
+
+So it is refused where the file arrives, naming the cause and the way out: *"no text layer found
+— this PDF looks scanned. Paste the text, or upload a .docx instead."*
+
+**OCR was considered and rejected.** It is a large dependency, and mis-read text reproduces the
+same silent wrong ranking in a new form: a CV whose certifications were garbled scores like one
+that could not be read at all, except now nothing signals it. A refusal a reviewer can act on
+beats an extraction nobody can check.
+
+The empty-file refusal is the same argument at smaller scale, and it was written first.
 
 ### A list built for a hundred, not for three
 
@@ -317,7 +359,113 @@ to them.
 
 ---
 
-## 7. Boundary limits, mirrored client-side
+## 7. Reading the shortlist
+
+Past eight candidates the results gain a filter, a sort and an export. All three are ways of
+reading a ranking, and the interface is explicit that none of them is a way of *making* one.
+
+### Filtering never renumbers a rank
+
+The service ranked the whole batch. Hiding rows does not re-rank what is left, so row one of a
+filtered list still reports its real position. A reviewer who narrows two hundred and fifty down
+to twelve and reads "1" must not take it as "best of these twelve", so the count says it outright:
+
+> *"Showing 12 of 250. Ranks are positions in the full shortlist, not in this view. Export writes
+> all 250."*
+
+Sorting by score is only a re-presentation of the order the service already assigned. The gap sort
+tie-breaks by rank, so the same shortlist always presents the same way rather than depending on
+whatever order the filter happened to produce. There is deliberately **no control that would
+invite comparing across postings**, because the scores do not support it.
+
+Filtering searches the display name as well as the reference — the reference is what the service
+saw, the file name is what the reviewer recognises, and searching has to work on the one they can
+read. The name still never leaves the browser.
+
+### The export carries its own constraint
+
+CSV export leads with the **disclaimer as its first row**, then the posting, the model version and
+the request id. Same argument as the service shipping the disclaimer in every response: a
+constraint that travels with the data cannot be left behind — and a CSV is exactly where a
+ranking stops being a screen someone read carefully and becomes a column someone else sorts.
+
+**It writes the whole shortlist, not the filtered view.** A file named "shortlist" that silently
+held a fifth of one would be a different document wearing the same name. The filter note says so,
+so the behaviour is not a surprise discovered after opening the file.
+
+Fields are quoted per RFC 4180, because a reason containing a comma would otherwise shift every
+later column by one and quietly corrupt the file it was exported to.
+
+---
+
+## 8. The fairness dashboard
+
+The brief's first production-ready condition is *"a basic bias and fairness check"*. That check
+existed from Phase 12 — it runs in CI, gates the build, and writes `fairness.json` beside the
+model. It had no screen presence at all. This page reads `GET /fairness` and renders what is
+already recorded; it computes nothing.
+
+### A pass is rendered quietly, on purpose
+
+The obvious design is a green tick. It would be wrong, and the audit's own numbers are the reason:
+a deliberately injected, realistically sized proxy bias **passed at 0.875**. The four-fifths rule
+is a floor, not a target.
+
+So a pass renders in muted type rather than in green, and the panel beside the verdict states the
+three things that qualify it: the injected bias that passed, that the demographics are synthetic,
+and that 0.80 is a floor. A dashboard reporting only its passes would be worse than no dashboard,
+because it would convert an absence of detected disparity into a claim of fairness.
+
+### Three verdict states, because two would misreport
+
+| Verdict | Rendered as | When |
+|---|---|---|
+| Fail | Disparity detected | Any failure recorded for the attribute |
+| **Inconclusive** | **Cannot tell** | No failure, but a ratio below threshold that is not distinguishable from noise |
+| Pass | No disparity detected | Neither |
+
+`auditVerdict` is a single function over one attribute, and every component reads it rather than
+reading `passes` directly. That matters for `age_band`, which sits at **0.627** — well under the
+0.80 line — and is nevertheless inconclusive, because after Bonferroni correction for ten
+possible group comparisons the effect is not distinguishable from noise. Calling that a pass would
+be false. Calling it a fail would be a claim the data does not support.
+
+**Below-threshold and failing are kept separate in the code** (`belowThreshold` is its own
+function) so a bar can render below the line while the verdict says "cannot tell". Collapsing them
+would have been simpler and would have made the page lie in one direction or the other.
+
+### Groups, including the ones too small to measure
+
+Every group is listed with its appearances, its selection rate and its qualified selection rate.
+Suppressed groups are shown **as suppressed**, not omitted: a group too small to measure and a
+group that was never there look identical if only the measurable ones are drawn.
+
+---
+
+## 9. Model provenance
+
+The brief's third production-ready condition is *"versioned model artifacts, not just a pickle
+file"*. `GET /model-info` and `GET /feature-importance` already held the evidence.
+
+**The checksum guarantee is stated as a consequence, not as a feature.** The page does not claim
+that checksums are verified; it says that because this page is being served, every artifact file
+matched its recorded hash at startup — the service refuses to become ready otherwise. That
+phrasing is the point. A page asserting "verified: yes" is a sentence someone wrote; this one is
+an observation about the process answering the request.
+
+That is not hypothetical. A defect found in Phase 15 meant the released v0.1.0 artifacts would not
+load on Linux at all, for eleven days, because the recorded checksums had been taken from
+CRLF-normalised files. A page like this one catches that on day one instead.
+
+The rest is the ranking's own foundations: NDCG@10 of **0.9042** against a rules baseline of
+**0.8043**, side by side rather than as a single number, and global feature importance as bars.
+**The four monitored proxy features are drawn in amber wherever they appear**, including here,
+where `shift_match` is both the largest input at **26.3%** and the largest fairness exposure in
+the model. Those two facts belong next to each other, and on this page they are.
+
+---
+
+## 10. Boundary limits, mirrored client-side
 
 The server enforces these; the client repeats them so a reviewer meets the ceiling while typing
 rather than after a submit comes back `422`.
@@ -339,7 +487,7 @@ the model's largest single input.
 
 ---
 
-## 8. Errors
+## 11. Errors
 
 `422` arrives in two incompatible shapes and both are handled in one place
 (`src/lib/errors.ts`), because they mean different things:
@@ -363,7 +511,7 @@ message for six situations.
 
 ---
 
-## 9. Dependencies
+## 12. Dependencies
 
 Next.js, React, and `clsx`. That is the whole runtime list.
 
@@ -379,22 +527,22 @@ three highs and an explanation. Next 16.3 reports zero.
 
 ---
 
-## 10. Deliberately not built
+## 13. Deliberately not built
 
 Scope, not oversight.
 
 | Not built | Why |
 |---|---|
 | Parse playground | `POST /parse` exists and is worth showing, but the ranking flow already exercises the parser and surfaces its warnings |
-| Model provenance page | `/model-info` returns checksums, metrics and feature importance. Valuable, and not needed to demonstrate the ranking |
-| Fairness dashboard | Being built next. The audit output needs a small endpoint of its own; the [fairness report](fairness-report.md) covers the substance meanwhile |
-| `.pdf` / `.docx` upload | Needs server-side extraction, and a scanned PDF extracts to nothing — which would rank as an empty CV. A later phase, handled properly rather than quickly. `.txt` upload works today, see section 6 |
+| OCR for scanned PDFs | A large dependency whose failure mode is the one this project exists to prevent: mis-read text ranks confidently and wrongly, with nothing signalling it. Refused at upload instead — see section 6 |
 | Authentication | No endpoint has any. Adding it to the frontend alone would imply protection that does not exist |
-| Saving or exporting shortlists | Nothing here is a record of a decision. Persisting a ranking would make it look like one |
+| Persisting a shortlist | Still not built, and the export does not change this. A CSV a reviewer chose to download is a working file; a stored ranking would be a record of a decision, and nothing here is one |
+| Comparing two candidates side by side | Not in the brief, and it invites reading a score gap as a margin. The per-candidate contributions already answer "why this one and not that one" |
+| Comparing across postings | Structurally excluded. The scores are relative to one posting, so a control offering it would imply a comparison the numbers cannot carry |
 
 ---
 
-## 11. Known limitations
+## 14. Known limitations
 
 - **No end-to-end browser tests.** The API client, error normalisation, feature metadata and
   warning phrasings are unit tested; the rendered components are verified by hand. A Playwright
@@ -403,6 +551,12 @@ Scope, not oversight.
   sign-and-glyph encoding removes the dependency on hue, but no simulation was run.
 - **One posting at a time.** No comparison across postings, which is consistent with the scores
   not being comparable across postings.
+- **Upload is one request per document.** Twenty files means twenty round trips. That is the price
+  of per-file refusal, and it was judged worth paying; a batch endpoint would be faster and would
+  report failures worse.
+- **The fairness page reads a recorded audit, not a live one.** It shows what was true of the
+  evaluation set when the model was audited. It says nothing about the applications a reviewer
+  ranked today, and does not claim to.
 - **The thin sample CV reveals a model behaviour worth knowing.** A candidate who states a
   genuine mismatch can rank *below* one who states almost nothing, because a known-negative
   value is penalised harder than an unknown. See the model card's limitations.

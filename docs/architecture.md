@@ -18,7 +18,9 @@ shown inside the container are the container's own, not the repository's.
 ```mermaid
 flowchart TB
     subgraph Browser["Browser"]
-        UI["Rank workspace<br/>posting form, applications,<br/>ranked list + explanations"]
+        UI["Rank<br/>posting, applications,<br/>ranked list + explanations"]
+        FAIR["Fairness<br/>audit verdicts,<br/>and what it could not tell"]
+        PROV["Model<br/>provenance, baseline,<br/>global importance"]
     end
 
     subgraph Web["Next.js server"]
@@ -27,7 +29,10 @@ flowchart TB
 
     subgraph API["FastAPI service"]
         MW["Middleware<br/>request_id, timing, logging"]
-        RT["Routes<br/>/rank /score /parse /health /metrics"]
+        RT["Scoring routes<br/>/rank /score /parse"]
+        INTK["Intake routes<br/>/extract /sample-candidates<br/>no model dependency"]
+        TRAN["Transparency routes<br/>/fairness /feature-importance /model-info"]
+        OPS["Operational routes<br/>/health /ready /metrics"]
     end
 
     subgraph Pipeline["Scoring pipeline"]
@@ -46,9 +51,14 @@ flowchart TB
         MET["Prometheus<br/>/metrics"]
     end
 
-    UI -->|"POST /api/rank<br/>same origin"| PROXY
-    PROXY -->|"POST /rank<br/>server-side"| MW
+    UI -->|"POST /api/rank, /api/extract<br/>GET /api/sample-candidates<br/>same origin"| PROXY
+    FAIR -->|"GET /api/fairness"| PROXY
+    PROV -->|"GET /api/model-info<br/>/api/feature-importance"| PROXY
+    PROXY -->|"server-side"| MW
     MW --> RT
+    MW --> INTK
+    MW --> TRAN
+    MW --> OPS
     RT --> PARSE --> FEAT --> RANK --> EXPL
     EXPL -->|"ranked list + reasons"| RT
     RT -->|"JSON response"| PROXY
@@ -56,6 +66,7 @@ flowchart TB
 
     REG -.->|"loaded once at startup"| RANK
     REG -.->|"feature contract check"| FEAT
+    REG -.->|"audit and metadata, read not computed"| TRAN
 
     MW -.-> LOG
     RT -.-> MET
@@ -68,6 +79,17 @@ not sit on the request path.
 
 The pipeline is strictly linear. Each stage has one responsibility and hands a typed object
 to the next, so any stage can be tested in isolation.
+
+**The routes are grouped by what they depend on, not by what they are about.** Scoring routes
+need a verified model and return `503` without one. Intake routes — `/extract` and
+`/sample-candidates` — read a file or generate text, so they answer while the model is still
+verifying; a caller can prepare a batch before the service is able to score it. Transparency
+routes report what the loaded artifact already carries and compute no new claim about it, which is
+why the registry has a dotted arrow to them rather than a solid one.
+
+**Every page goes through the same handler.** The three browser pages are three views over the
+same boundary, not three integrations — which is why adding the fairness and provenance pages
+added two allowlist entries and no new trust surface.
 
 **The browser has no arrow to the FastAPI service.** Every call it makes goes to the Next.js
 route handler on its own origin, which makes the onward call server-side. That is the whole
