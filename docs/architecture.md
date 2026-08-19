@@ -7,6 +7,10 @@ This document holds the structural view of the system: how components fit togeth
 request flows, how the model is trained, and where the boundaries that protect fairness are
 drawn.
 
+Module and test paths in the diagrams below are written in shorthand and are relative to
+`backend/` — `features/builder.py` means `backend/src/guardmatch/features/builder.py`. Paths
+shown inside the container are the container's own, not the repository's.
+
 ---
 
 ## 1. System Overview

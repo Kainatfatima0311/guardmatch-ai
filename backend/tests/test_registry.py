@@ -26,6 +26,7 @@ from guardmatch.core.exceptions import (
     FeatureContractError,
 )
 from guardmatch.features.registry import FEATURE_NAMES
+from guardmatch.registry import metadata
 from guardmatch.registry.artifacts import (
     CHECKSUMS_FILE,
     METADATA_FILE,
@@ -340,3 +341,23 @@ def test_library_versions_are_recorded() -> None:
 def test_dirty_tree_bypass_is_available() -> None:
     """The guard must be escapable for throwaway experiments, but only explicitly."""
     assert_clean_tree(allow_dirty=True)
+
+
+def test_dirty_tree_is_refused_without_the_bypass(monkeypatch: pytest.MonkeyPatch) -> None:
+    """Proven to fire, rather than assumed to.
+
+    The dirtiness is forced instead of inherited from whatever tree the suite
+    happens to run in. A guard tested against ambient state is only tested on
+    the machines where that state happens to hold.
+    """
+    monkeypatch.setattr(metadata, "git_is_dirty", lambda: True)
+
+    with pytest.raises(ArtifactError):
+        assert_clean_tree(allow_dirty=False)
+
+
+def test_clean_tree_passes_without_the_bypass(monkeypatch: pytest.MonkeyPatch) -> None:
+    """The other direction: a guard that always refused would also pass the test above."""
+    monkeypatch.setattr(metadata, "git_is_dirty", lambda: False)
+
+    assert_clean_tree(allow_dirty=False)

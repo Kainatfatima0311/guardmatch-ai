@@ -1,0 +1,153 @@
+@import "tailwindcss";
+
+/* ===========================================================================
+   Night Watch — the GuardMatch colour system
+   ===========================================================================
+
+   Colour here is a carrier of meaning, not decoration. Three families are
+   reserved, and nothing else may use them:
+
+     --amber          a constraint on how the output may be used. Disclaimers
+                      and nothing else. If amber appears, the reader is being
+                      told what this result is not.
+     --pos / --neg    the direction of a SHAP contribution, and only that.
+                      Never generic success/error styling.
+     --primary        interactive affordances, and the leading candidate.
+
+   Reserving them is what lets a reader learn the language once. A green badge
+   that sometimes means "saved" and sometimes means "counted in favour" teaches
+   nothing.
+
+   Every foreground/background pair below was measured, not estimated:
+
+     DARK      on --bg   on --surface        LIGHT     on --bg   on --surface
+     text      15.89       14.45             text      16.25       17.28
+     muted      7.32        6.65             muted      5.09        5.42
+     primary    7.52        6.84             primary    5.14        5.47
+     amber      8.72        7.93             amber      4.72        5.02
+     pos        9.74        8.86             pos        5.15        5.48
+     neg        6.96        6.33             neg        5.91        6.29
+
+   All clear WCAG AA for body text (4.5:1). --border is a decorative separator
+   and is deliberately low contrast; --border-strong is the one used for control
+   boundaries, and it clears the 3:1 that WCAG 1.4.11 requires of them
+   (dark 3.14 on surface, light 3.58).
+
+   Three theme states are supported. An explicit choice sets data-theme on the
+   root element; the default "system" sets nothing, so prefers-color-scheme is
+   the only signal. Each palette is therefore declared twice on purpose — once
+   for the media query and once for the attribute — so a toggle wins in both
+   directions rather than only when it agrees with the OS.
+   ------------------------------------------------------------------------- */
+
+:root {
+  --bg: #f6f8fb;
+  --surface: #ffffff;
+  --surface-2: #eef2f8;
+  --border: #d9e1ec;
+  --border-strong: #7e8899;
+  --text: #0f1b2d;
+  --muted: #5a6b85;
+  --primary: #0f766e;
+  --primary-contrast: #ffffff;
+  --amber: #b45309;
+  --amber-surface: #fef6ec;
+  --pos: #047857;
+  --neg: #be123c;
+  --shadow: 0 1px 2px rgb(15 27 45 / 0.06), 0 8px 24px rgb(15 27 45 / 0.06);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0b1220;
+    --surface: #131c2e;
+    --surface-2: #1b2740;
+    --border: #24314a;
+    --border-strong: #566a92;
+    --text: #e6edf7;
+    --muted: #93a3bc;
+    --primary: #14b8a6;
+    --primary-contrast: #04211d;
+    --amber: #f59e0b;
+    --amber-surface: #26200f;
+    --pos: #34d399;
+    --neg: #fb7185;
+    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  }
+}
+
+:root[data-theme="dark"] {
+  --bg: #0b1220;
+  --surface: #131c2e;
+  --surface-2: #1b2740;
+  --border: #24314a;
+  --border-strong: #566a92;
+  --text: #e6edf7;
+  --muted: #93a3bc;
+  --primary: #14b8a6;
+  --primary-contrast: #04211d;
+  --amber: #f59e0b;
+  --amber-surface: #26200f;
+  --pos: #34d399;
+  --neg: #fb7185;
+  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+  --color-text: var(--text);
+  --color-muted: var(--muted);
+  --color-primary: var(--primary);
+  --color-primary-contrast: var(--primary-contrast);
+  --color-amber: var(--amber);
+  --color-amber-surface: var(--amber-surface);
+  --color-pos: var(--pos);
+  --color-neg: var(--neg);
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+html {
+  color-scheme: light dark;
+}
+
+body {
+  background-color: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Scores, contributions and counts are read down a column and compared. With
+   proportional digits a 1 is narrower than a 7, so the columns misalign and the
+   eye has to re-find the decimal point on every row. */
+.tabular {
+  font-variant-numeric: tabular-nums;
+  font-family: var(--font-mono);
+}
+
+/* One focus treatment everywhere, and it is never removed — only restyled.
+   :focus-visible so a mouse click does not leave a ring behind, while keyboard
+   navigation always shows where it is. */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

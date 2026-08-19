@@ -108,8 +108,22 @@ depends on who else applied — so this is where the real answer comes from.
 Candidates are ordered best fit first. Ties break by `candidate_id`, so an identical pair
 does not reorder based on upload sequence.
 
-`contributions` is the auditable numeric record, ordered by absolute effect. `reasons` is the
-plain-language rendering. Both ship on every candidate; there is no flag to disable either.
+>  **The `contributions` array above is abridged for readability. A real response is not.**
+>  Every response carries **all 12 features, every time**, including those that contributed
+>  nothing. Only `reasons` is a selection.
+
+`contributions` is the auditable numeric record: all 12 features, ordered by absolute effect,
+never filtered. A feature that scored zero is reported as zero rather than omitted, because
+"this did not matter" and "this was not considered" are different claims and a reader cannot
+tell them apart from an absence.
+
+`reasons` is the plain-language rendering, and it *is* a selection: at most the top 5, with
+any factor accounting for less than 2% of total absolute effect dropped as noise. So a
+response can legitimately carry 12 contributions and 0 reasons — that happens when nothing
+moved the candidate away from the average, and the array is then replaced by a single
+sentence saying exactly that.
+
+Both ship on every candidate; there is no flag to disable either.
 
 `base_value + Σ contributions = relative_ranking_score`, exactly. Verified in tests to 1e-6.
 
@@ -247,6 +261,19 @@ labelled gauge, and feature distribution snapshots for later drift comparison.
 
 Rejection happens at the boundary, before any work begins.
 
+**A `422` arrives in one of two shapes, and a client must handle both.** They come from
+different layers, which is why they do not share a format:
+
+| Source | `detail` is | Example |
+|---|---|---|
+| Request validation — malformed body, unknown enum, unknown field | an **array** of objects with `loc`, `msg`, `type` | `{"detail": [{"loc": ["body", "job", "shift_pattern"], "msg": "Input should be 'day', 'night', 'weekend' or 'rotating'", "type": "enum"}]}` |
+| `ParsingError` — CV empty after stripping, or over 20,000 characters | a **string** | `{"detail": "CV text for candidate c_1 exceeds 20000 characters"}` |
+
+The first is FastAPI reporting that the request never matched the contract. The second is the
+contract having been met and the content still being unusable. Collapsing them would lose
+that distinction, which is the one a caller needs in order to know whether to fix the payload
+or fix the CV.
+
 `extra="forbid"` on every request model means an unrecognised field is refused rather than
 silently ignored. That is what stops a caller from attaching a demographic field to a
 candidate payload and assuming it was considered — or assuming it was not.
@@ -274,7 +301,7 @@ describe.
 
 ## Configuration
 
-Set by environment variable; see `.env.example`.
+Set by environment variable; see `backend/.env.example`.
 
 | Variable | Default | Effect |
 |---|---|---|

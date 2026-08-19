@@ -39,7 +39,7 @@ every group to the shortlist at equal rates and still bury one of them inside it
 Exposure is the ranking-specific one, using the standard `1/log2(rank+1)` discount so that
 rank 1 counts for roughly 2.6 times rank 10.
 
-`tests/test_fairness.py` contains a case built to prove exposure earns its place: two groups
+`backend/tests/test_fairness.py` contains a case built to prove exposure earns its place: two groups
 shortlisted at *exactly* equal rates, one always at positions 1–5 and the other always at
 6–10. Adverse impact reads 1.000 and the parity gap reads 0.000 — perfect fairness by every
 selection-based measure. Only exposure catches it, and the audit fails as it should.
@@ -209,6 +209,8 @@ that moves when it becomes inconvenient was never one.
 ## 10. Reproducing this
 
 ```bash
+cd backend
+
 guardmatch generate-data --seed 42                          # clean
 guardmatch train --version v0.1.0
 guardmatch audit --version v0.1.0                           # -> models/v0.1.0/fairness.json
@@ -227,8 +229,8 @@ pytest -m gate -v          # fairness and leakage gates only
 
 | Concern | Location |
 |---|---|
-| Metric implementations | `src/guardmatch/fairness/metrics.py` |
-| Audit runner | `src/guardmatch/fairness/audit.py` |
-| Gate tests | `tests/test_fairness.py` |
-| Leakage barrier tests | `tests/test_leakage.py` |
-| Per-model record | `models/v0.1.0/fairness.json` |
+| Metric implementations | `backend/src/guardmatch/fairness/metrics.py` |
+| Audit runner | `backend/src/guardmatch/fairness/audit.py` |
+| Gate tests | `backend/tests/test_fairness.py` |
+| Leakage barrier tests | `backend/tests/test_leakage.py` |
+| Per-model record | `backend/models/v0.1.0/fairness.json` |

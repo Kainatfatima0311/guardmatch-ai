@@ -69,13 +69,14 @@ caveat that the four-fifths rule missed a realistically-sized proxy bias during 
 Requires Python 3.12.
 
 ```bash
+cd backend
 conda create -n guardmatch python=3.12 -y
 conda activate guardmatch
 pip install -e ".[dev]"
 python -m spacy download en_core_web_sm
 ```
 
-Generate data, train, audit, serve:
+Generate data, train, audit, serve — all from `backend/`:
 
 ```bash
 guardmatch generate-data --seed 42
@@ -86,16 +87,46 @@ uvicorn guardmatch.api.app:app --reload
 
 Then open <http://localhost:8000/docs>.
 
-A trained `models/v0.1.0/` is committed, so the API runs without training anything.
+A trained `backend/models/v0.1.0/` is committed, so the API runs without training anything.
+
+### The workspace
+
+Requires Node 22. In a second terminal, with the API already running:
+
+```bash
+cd frontend
+npm ci
+npm run dev
+```
+
+Then open <http://localhost:3000>, press **Load samples** and rank them. Expanding a
+candidate shows all twelve feature contributions and checks, in the browser, that they add
+back up to the score.
+
+The browser never calls the API directly — requests go through a route handler in the
+Next.js server. That is why there is no CORS configuration anywhere in the backend: there is
+no cross-origin request to permit.
 
 ### Docker
+
+From the repository root:
 
 ```bash
 docker compose up --build
 ```
 
-Image is 1.37 GB, runs as a non-root user on a read-only filesystem, with the model artifacts
-baked in and a health check wired to `/ready`.
+<http://localhost:3000> for the workspace, <http://localhost:8000/docs> for the API.
+
+| Image | Size | Built from |
+|---|---|---|
+| `guardmatch-ai` | 1.37 GB | `backend/` |
+| `guardmatch-web` | 325 MB | `frontend/` |
+
+Two build contexts rather than one, so neither image can grow by picking up the other half
+of the repository. Both run as uid 1001 on a read-only root filesystem with
+`no-new-privileges`; the API bakes its model artifacts in rather than mounting them, so a
+running container fully describes the model it serves. `web` waits on the API's `/ready`
+health check, not merely on its process starting.
 
 ### Task runner
 
@@ -211,22 +242,37 @@ A gate that has never failed proves nothing about what it claims to detect.
 ## Project layout
 
 ```
-src/guardmatch/
-├── core/       config, structured logging, metrics
-├── schemas/    Pydantic contracts
-├── data/       synthetic generator (protected attributes held separately)
-├── parsing/    spaCy + regex extraction
-├── features/   pairwise features + protected attribute blocklist
-├── ranking/    baseline, LambdaRank, evaluation
-├── explain/    SHAP contributions and plain-language reasons
-├── fairness/   metrics and audit
-├── registry/   versioned, checksummed artifacts
-└── api/        FastAPI service
+guardmatch-ai/
+├── backend/                 the service and the pipeline behind it
+│   ├── src/guardmatch/
+│   │   ├── core/            config, structured logging, metrics
+│   │   ├── schemas/         Pydantic contracts and closed vocabularies
+│   │   ├── data/            synthetic generator (protected attributes held separately)
+│   │   ├── parsing/         spaCy + regex extraction
+│   │   ├── features/        pairwise features + protected attribute blocklist
+│   │   ├── ranking/         baseline, LambdaRank, evaluation
+│   │   ├── explain/         SHAP contributions and plain-language reasons
+│   │   ├── fairness/        metrics and audit
+│   │   ├── registry/        versioned, checksummed artifacts
+│   │   └── api/             FastAPI service
+│   ├── tests/               337 tests
+│   ├── models/v0.1.0/       committed artifacts, six files, all checksummed
+│   └── data/                generated from a seed, not committed
+├── docs/                    the documents below
+├── docker-compose.yml
+├── Makefile · tasks.ps1     one task list for the whole repository
+└── .github/workflows/
 ```
+
+`docs/` sits at the root rather than inside `backend/` because those documents describe the
+project — its design, its fairness position, its limitations — not one runtime within it.
+
+Paths quoted inside `docs/architecture.md` diagrams are relative to `backend/`.
 
 ## Testing
 
 ```bash
+cd backend
 pytest              # 337 tests, 95% coverage, threshold enforced at 85%
 pytest -m gate      # fairness and leakage gates only
 pytest -m "not slow"

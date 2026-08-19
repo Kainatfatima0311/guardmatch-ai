@@ -42,7 +42,7 @@ read:
   `score_type` alongside it.
 - Every `/rank` response carries a `disclaimer` field stating the constraint, so it travels
   with the data.
-- `tests/test_explain.py` asserts that no generated sentence contains probability language,
+- `backend/tests/test_explain.py` asserts that no generated sentence contains probability language,
   and that raw contribution figures never appear in reviewer-facing text.
 
 ## 3. Method
@@ -190,7 +190,7 @@ the ordering would differ, and the audit would need re-running.
 
 | Concern | Module |
 |---|---|
-| SHAP computation, additivity | `src/guardmatch/explain/shap_explainer.py` |
-| Sentence generation, wording rules | `src/guardmatch/explain/reasons.py` |
-| Response contract | `src/guardmatch/schemas/scoring.py` |
-| Tests, including the wording assertions | `tests/test_explain.py` |
+| SHAP computation, additivity | `backend/src/guardmatch/explain/shap_explainer.py` |
+| Sentence generation, wording rules | `backend/src/guardmatch/explain/reasons.py` |
+| Response contract | `backend/src/guardmatch/schemas/scoring.py` |
+| Tests, including the wording assertions | `backend/tests/test_explain.py` |

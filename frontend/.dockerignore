@@ -1,0 +1,27 @@
+# Build inputs only. Anything reproducible from them, or specific to a
+# developer's machine, stays out of the context.
+
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Local environment and editor state
+.env
+.env.local
+.env*.local
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Nothing here is needed to build or run the server. Tests are run by CI and by
+# `npm test`, not inside the image — a runtime image that carries its own test
+# suite is carrying code it will never execute.
+**/*.test.ts
+**/*.test.tsx
+vitest.config.ts
+README.md
+Dockerfile
+.dockerignore

@@ -145,7 +145,7 @@ This is how discrimination normally enters a hiring model: not because someone a
 feature, but because a defensible feature quietly carries demographic information.
 
 The switch exists to prove the fairness audit works. A bias detector that has only ever run
-on clean data has never been shown to detect anything. `tests/test_fairness.py` asserts that
+on clean data has never been shown to detect anything. `backend/tests/test_fairness.py` asserts that
 the audit catches this injected bias.
 
 ## 6. Protected attributes

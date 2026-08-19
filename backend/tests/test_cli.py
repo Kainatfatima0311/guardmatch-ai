@@ -19,6 +19,7 @@ from typer.testing import CliRunner
 
 from guardmatch.cli import app
 from guardmatch.data.storage import MANIFEST_FILE, PROTECTED_FILE
+from guardmatch.registry import metadata
 from guardmatch.registry.artifacts import CHECKSUMS_FILE, FAIRNESS_FILE, MODEL_FILE
 
 runner = CliRunner()
@@ -63,7 +64,8 @@ def trained_dir(dataset_dir: Path, tmp_path_factory: pytest.TempPathFactory) -> 
             str(models),
             "--version",
             "v0.0.1",
-            # The working tree is dirty during a test run by definition.
+            # Passed unconditionally: whether the tree is dirty depends on where
+            # the suite runs, and this fixture must not.
             "--allow-dirty",
         ],
     )
@@ -220,12 +222,22 @@ def test_train_refuses_to_overwrite_a_version(dataset_dir: Path, trained_dir: Pa
     assert result.exit_code != 0
 
 
-def test_train_refuses_a_dirty_tree_without_the_flag(dataset_dir: Path, tmp_path: Path) -> None:
+def test_train_refuses_a_dirty_tree_without_the_flag(
+    dataset_dir: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
     """The guard that keeps a recorded git SHA truthful.
 
-    Without `--allow-dirty` this must fail during a test run, because the working
-    tree is necessarily dirty while tests execute.
+    The dirty state is forced rather than assumed. An earlier version of this
+    test relied on the working tree being dirty "by definition during a test
+    run", which is true on a developer's machine mid-change and false in CI,
+    where the checkout is pristine — so the guard never fired and the test
+    failed there while passing locally for the wrong reason.
+
+    `assert_clean_tree` resolves `git_is_dirty` from its own module globals at
+    call time, so patching it there is what the code under test actually sees.
     """
+    monkeypatch.setattr(metadata, "git_is_dirty", lambda: True)
+
     result = runner.invoke(
         app,
         [

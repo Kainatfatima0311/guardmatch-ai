@@ -4,7 +4,7 @@
 **Version:** v0.1.0
 **Released:** 2026-08-17
 **Git SHA:** `32db2090e8a160caf2ccbf10a728ae721a3d3b0c`
-**Artifact:** `models/v0.1.0/`
+**Artifact:** `backend/models/v0.1.0/`
 **Owner:** Kainat Fatima
 
 ---

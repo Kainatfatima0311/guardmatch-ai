@@ -6,6 +6,9 @@
 **Status:** Draft for review — submitted before implementation begins
 **Repository:** https://github.com/Kainatfatima0311/guardmatch-ai
 
+Module and test paths in this document are shorthand relative to `backend/` —
+`features/blocklist.py` means `backend/src/guardmatch/features/blocklist.py`.
+
 ---
 
 ## 1. Problem Statement and Goals
@@ -778,7 +781,20 @@ Python 3.12, in a dedicated conda environment.
 | Binary classifier instead of LambdaRank | The task is ranking; graded relevance carries more signal than a hire/no-hire flag |
 | Pickle for model storage | No provenance, version-fragile, arbitrary code execution risk |
 | Real or scraped CV data | PII, no labels, and inherited historical bias |
-| A frontend | Not requested in the brief; Swagger UI is sufficient for demonstration |
+| A frontend | Not requested in the brief; Swagger UI is sufficient for demonstration — **reversed 2026-08-19, see below** |
+
+**On the frontend reversal.** The original reasoning was sound for the brief as written, and
+it is left in the table above rather than edited away. What changed is not the brief but an
+observation about this system in particular: its most distinctive output is a per-candidate
+explanation that reconstructs the score it explains, and a reviewer who is not reading JSON
+cannot see that at all. Swagger UI demonstrates that the endpoint answers; it does not
+demonstrate what the answer is for. A shortlisting aid whose explanations are unreadable by
+the person doing the shortlisting is only half-delivered.
+
+The reversal is deliberately narrow. One workspace for the ranking flow was added; the
+service contract, the model and the fairness machinery are untouched, and the browser never
+speaks to the API directly, so the audited service keeps the trust boundary it was reviewed
+with.
 
 ---
 
