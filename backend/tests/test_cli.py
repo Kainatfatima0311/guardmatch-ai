@@ -205,7 +205,17 @@ def test_train_reports_the_baseline_comparison(dataset_dir: Path, tmp_path: Path
 
 
 def test_train_refuses_to_overwrite_a_version(dataset_dir: Path, trained_dir: Path) -> None:
-    """Versions are immutable, so a repeat write must fail rather than replace."""
+    """Versions are immutable, so a repeat write must fail rather than replace.
+
+    It must also fail *before* training rather than after. `save_model` refuses
+    the overwrite, but it runs last — so the refusal alone left a repeated
+    `--version` training for several minutes before reporting that the directory
+    had existed the whole time. The guard was correct and in a position where it
+    could not help.
+
+    Asserted through the message rather than only the exit code, because a failure
+    for some unrelated reason would satisfy `exit_code != 0` just as well.
+    """
     result = runner.invoke(
         app,
         [
@@ -220,6 +230,34 @@ def test_train_refuses_to_overwrite_a_version(dataset_dir: Path, trained_dir: Pa
         ],
     )
     assert result.exit_code != 0
+    assert "already exists" in result.output
+    # Nothing expensive ran: the dataset was never opened.
+    assert "Loading dataset" not in result.output
+
+
+def test_train_accepts_an_unused_version(dataset_dir: Path, trained_dir: Path) -> None:
+    """The immutability guard must not block a genuinely new version.
+
+    A guard that refused everything would satisfy the test above, so the other
+    direction is asserted too. This gets past the version check and fails later on
+    a deliberately absent dataset, which is enough to prove the guard let it
+    through.
+    """
+    result = runner.invoke(
+        app,
+        [
+            "train",
+            "--data",
+            str(dataset_dir / "does-not-exist"),
+            "--models",
+            str(trained_dir),
+            "--version",
+            "v0.0.9",
+            "--allow-dirty",
+        ],
+    )
+    assert result.exit_code != 0
+    assert "already exists" not in result.output
 
 
 def test_train_refuses_a_dirty_tree_without_the_flag(

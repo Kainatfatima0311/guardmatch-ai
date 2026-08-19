@@ -96,9 +96,36 @@ Fairness audit at k = 10 passes on gender, age band and nationality — with the
 caveat that the four-fifths rule missed a realistically-sized proxy bias during testing. See
 [the fairness report](docs/fairness-report.md).
 
-## Quick start
+## Running it
 
-Requires Python 3.12.
+Three ways, fastest first. **A trained `backend/models/v0.1.0/` is committed**, so nothing needs
+training to see the system work.
+
+### 1. Everything, one command
+
+Requires Docker.
+
+```bash
+docker compose up --build
+```
+
+| | |
+|---|---|
+| <http://localhost:3000> | the Rank workspace — press **Load samples**, then **Rank applications** |
+| <http://localhost:8000/docs> | the API directly, via Swagger UI |
+
+First build takes a few minutes; the API image compiles LightGBM and downloads the spaCy model.
+`web` waits for the API's `/ready`, which passes only once the model has loaded *and* its
+checksums have verified — so if the workspace comes up, the model it is serving is the one that
+was evaluated and audited.
+
+Stop with `docker compose down`.
+
+### 2. Locally, for development
+
+Two terminals. Requires **Python 3.12** and **Node 22**.
+
+**Terminal 1 — the API:**
 
 ```bash
 cd backend
@@ -106,24 +133,20 @@ conda create -n guardmatch python=3.12 -y
 conda activate guardmatch
 pip install -e ".[dev]"
 python -m spacy download en_core_web_sm
-```
-
-Generate data, train, audit, serve — all from `backend/`:
-
-```bash
-guardmatch generate-data --seed 42
-guardmatch train --version v0.1.0
-guardmatch audit --version v0.1.0
 uvicorn guardmatch.api.app:app --reload
 ```
 
-Then open <http://localhost:8000/docs>.
+Confirm it came up:
 
-A trained `backend/models/v0.1.0/` is committed, so the API runs without training anything.
+```bash
+curl http://localhost:8000/ready
+# {"ready":true,"model_version":"v0.1.0","detail":null}
+```
 
-### The workspace
+If `ready` is `false`, `detail` says why — and the service refuses to serve rather than
+answering from a model it could not verify.
 
-Requires Node 22. In a second terminal, with the API already running:
+**Terminal 2 — the workspace:**
 
 ```bash
 cd frontend
@@ -131,43 +154,48 @@ npm ci
 npm run dev
 ```
 
-Then open <http://localhost:3000>, press **Load samples** and rank them. Expanding a
-candidate shows all twelve feature contributions and checks, in the browser, that they add
-back up to the score.
+Then <http://localhost:3000>. The API is expected on port 8000; point elsewhere with
+`BACKEND_URL=http://host:port npm run dev`.
 
-The browser never calls the API directly — requests go through a route handler in the
-Next.js server. That is why there is no CORS configuration anywhere in the backend: there is
-no cross-origin request to permit. See [the frontend notes](docs/frontend.md).
+The browser never calls the API directly — requests go to a route handler inside the Next.js
+server, which makes the onward call itself. That is why there is no CORS configuration anywhere
+in the backend: there is no cross-origin request to permit. See
+[the frontend notes](docs/frontend.md).
 
-### Docker
+### 3. Regenerating the data and the model
 
-From the repository root:
+Only needed to reproduce the artifact from scratch. From `backend/`, with the environment active:
 
 ```bash
-docker compose up --build
+guardmatch generate-data --seed 42        # writes data/, ~30 s
+guardmatch train --version v0.2.0         # a NEW version — see below
+guardmatch audit --version v0.2.0         # writes fairness.json into the artifact
 ```
 
-<http://localhost:3000> for the workspace, <http://localhost:8000/docs> for the API.
+**Two guards will stop you, and both are deliberate.**
 
-| Image | Size | Built from |
-|---|---|---|
-| `guardmatch-ai` | 1.37 GB | `backend/` |
-| `guardmatch-web` | 325 MB | `frontend/` |
+`--version v0.1.0` is refused, because that version already exists and versions are immutable —
+overwriting one would leave every metric already reported for `v0.1.0` describing a different
+model. Pass a version that is not in use.
 
-Two build contexts rather than one, so neither image can grow by picking up the other half
-of the repository. Both run as uid 1001 on a read-only root filesystem with
-`no-new-privileges`; the API bakes its model artifacts in rather than mounting them, so a
-running container fully describes the model it serves. `web` waits on the API's `/ready`
-health check, not merely on its process starting.
+Training is also refused from a working tree with uncommitted changes, because the git SHA
+recorded in the artifact would describe code that never existed. Commit first, or pass
+`--allow-dirty` for a throwaway experiment and accept that the provenance is then a fiction.
+
+Serve a different version with `MODEL_VERSION=v0.2.0 uvicorn guardmatch.api.app:app`. Rollback
+is that environment variable, not a rebuild.
 
 ### Task runner
 
-`make` on Linux and macOS, `tasks.ps1` on Windows — same targets either way.
+`make` on Linux and macOS, `tasks.ps1` on Windows — same targets either way, run from the
+repository root, and this is the file CI mirrors.
 
 ```bash
-make help      # list targets
-make check     # lint, typecheck, test — everything CI runs
-make gates     # fairness and leakage gates only
+make help          # list every target
+make check         # lint, typecheck and test both halves — everything CI runs
+make gates         # the fairness and leakage gates only
+make serve         # the API
+make web-dev       # the workspace
 ```
 
 ```powershell

@@ -19,7 +19,6 @@ data/
 # The suite runs in CI and locally, never inside the runtime image. An image that
 # carries its own tests carries code it will never execute.
 tests/
-notebooks/
 
 # Caches and build leftovers. Copying a host cache into a Linux image at best
 # wastes layers and at worst confuses a tool into trusting a stale result.

@@ -25,8 +25,7 @@ backend/
 │   └── cli.py      generate-data, train, audit
 ├── tests/          341 tests, 94.75% coverage, 80 of them gates
 ├── models/v0.1.0/  committed artifacts — six files, all checksummed
-├── data/           generated from a seed, not committed
-└── notebooks/
+└── data/           generated from a seed, not committed
 ```
 
 ## Setup
@@ -54,6 +53,27 @@ Interactive docs at <http://localhost:8000/docs>.
 
 There is no `guardmatch serve` command — the CLI covers the pipeline, and the service is
 started by an ASGI server, which is the thing that owns host, port and worker count.
+
+## Callers, and the missing CORS configuration
+
+Two kinds of caller reach this service, and only one of them is a browser.
+
+A server-side integration — an HR system, a script, a scheduled job — calls the endpoints
+directly. The [Rank workspace](../frontend/README.md) does not: it calls a route handler inside
+its own Next.js server, which makes the onward call server-side.
+
+```
+browser ──► /api/rank  (Next.js, same origin) ──► FastAPI /rank
+```
+
+**There is therefore no `CORSMiddleware` anywhere in this service, and its absence is
+deliberate.** Adding it would mean maintaining a list of every origin permitted to reach a
+hiring model, and a wrong list fails silently — access widens while nothing appears broken. The
+proxy removes the question rather than answering it.
+
+If you are looking for that configuration because a browser call is being blocked: the call is
+supposed to be blocked. Proxy it server-side, or add CORS deliberately and treat the origin list
+as a security decision. See [the frontend notes](../docs/frontend.md).
 
 ## Configuration
 

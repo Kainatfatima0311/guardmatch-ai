@@ -90,6 +90,12 @@ htmlcov/
 # The intent is "notebook files are not a deliverable here", which is a statement
 # about the file type and not about one directory, so the rule no longer names a
 # directory at all.
+#
+# `backend/notebooks/` has since been deleted, which is the other half of the same
+# realisation: a directory whose only possible contents are ignored is a directory
+# that implies a workflow the repository does not support. This rule stays anyway,
+# and is now purely preventive — a notebook committed anywhere would carry its
+# outputs and any data embedded in them.
 *.ipynb
 
 # ---------------------------------------------------------------------------

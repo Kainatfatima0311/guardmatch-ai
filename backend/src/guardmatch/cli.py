@@ -167,6 +167,20 @@ def train(
     # rather than after several minutes of training.
     assert_clean_tree(allow_dirty=allow_dirty)
 
+    # Same argument, for the same reason. `save_model` refuses to overwrite a
+    # version, but it is the last thing to run — so without this check a repeated
+    # `--version v0.1.0` trains for minutes and only then reports that the
+    # directory already existed. The guard was doing its job in the wrong place
+    # to be useful.
+    target = models / version
+    if target.exists():
+        msg = (
+            f"{target} already exists. Model versions are immutable — pass a new "
+            f"--version rather than overwriting, or a metric already reported for "
+            f"{version} would come to describe a different model."
+        )
+        raise typer.BadParameter(msg, param_hint="--version")
+
     typer.echo(f"Loading dataset from {data}...")
     dataset = load_dataset(data)
 

@@ -572,6 +572,50 @@ specific ranking decision can be reconstructed later from the logs.
 Request and response bodies are validated by Pydantic. Malformed input is rejected at the
 boundary with a clear error rather than reaching the feature builder.
 
+### 8.3 The interface, and the trust boundary it preserves
+
+Added in Phase 15, after the reversal recorded in the appendix. A Next.js workspace serves the
+ranking flow: the posting form, the applications, and the ranked shortlist with its explanations.
+
+**The browser never calls this service.** Every request goes to a route handler inside the
+Next.js server, which makes the onward call itself:
+
+```
+browser --> /api/rank  (Next.js, same origin) --> FastAPI /rank
+```
+
+That is a decision about the trust boundary rather than about convenience. The alternative was
+`CORSMiddleware` on this service, which means maintaining a list of every origin permitted to
+reach a hiring model, and a wrong list fails silently: access widens while nothing appears
+broken. The proxy removes the question instead of answering it, and this service therefore keeps
+the boundary it was reviewed with. There is no CORS configuration anywhere in the repository.
+
+The handler carries an endpoint allowlist rather than forwarding whatever it is handed. Without
+one it is an open relay to everything in 8.1 from any page able to reach it, `/metrics` included.
+It forwards status and body unchanged, because a proxy that flattened a `503` into a `500` would
+destroy the distinction between "wait and retry" and "fix your input".
+
+A server-side integration -- an HR system, a script, a scheduled job -- remains a supported
+caller and reaches 8.1 directly. Only the browser is routed.
+
+### 8.4 What the interface refuses to render
+
+Three constraints are enforced in the client for reasons that come from this design rather than
+from visual preference. They are the interface's share of the honesty argued for elsewhere in
+this document:
+
+- **The score is never shown as a proportion.** No percentages, rings or progress bars. Section 5
+  establishes that a LambdaRank output is an ordering within one posting; every one of those
+  idioms implies a quantity it does not carry, and a reviewer reads a filled ring as "83 per cent
+  suitable" regardless of the caption beneath it.
+- **A missing value is never shown as zero.** Section 3 establishes that the parser records an
+  unstated fact as `None` and refuses to infer a negative from silence. The interface renders
+  "not stated", because collapsing the two would reintroduce exactly that inference.
+- **The disclaimer is rendered from the response body**, never from a copy held client-side, so
+  the constraint cannot drift from the service that issues it.
+
+Full detail in [frontend.md](frontend.md).
+
 ---
 
 ## 9. Model Versioning and Artifacts
@@ -656,6 +700,8 @@ applicant population shifts.
 | `test_explain.py` | Contributions sum to the score, reason mapping |
 | `test_fairness.py` | **Gate** — threshold breach fails the build |
 | `test_api.py` | Contract, validation, error handling, batch limits |
+| `test_registry.py` | Checksums, feature contract, immutability, **artifact bytes are LF on every platform** |
+| `frontend/src/lib/*.test.ts` | Both `422` body shapes, `503` retryability, the additivity check, and that a rejected CV cannot reach an error message |
 
 The two gates are the tests that make this project production-ready rather than merely
 functional. They are the mechanism by which a fairness regression becomes a build failure
@@ -666,11 +712,26 @@ instead of a discovery made months later.
 GitHub Actions on every push and pull request:
 
 ```
-ruff  ->  mypy  ->  pytest (with coverage)  ->  docker build
+lint      ruff + mypy
+tests     pytest with coverage, threshold enforced
+gates     pytest -m gate, as its own job
+frontend  eslint + tsc + vitest + next build
+docker    both images built, both started, both checked non-root
 ```
+
+The gates run as their own job as well as inside the full suite, so the checks list answers "did
+the fairness gate pass" directly rather than by inference.
 
 The Docker build runs in CI from the start. GitHub runners provide Docker, so the image is
 validated before Docker is installed on the development machine.
+
+**A caution recorded here because it is a CI design point rather than an anecdote.** A pipeline
+is worth only what the person reading it does with the result. This one ran red for eleven days
+over two real defects -- a test asserting a false premise about the working tree, and artifact
+checksums recorded over Windows line endings -- while every local run stayed green. The
+machinery worked exactly as designed. The missing step was the one that reads the outcome, and
+it was a step in the plan that had never been completed. Section 13 carries the generalised
+form.
 
 ---
 
@@ -684,6 +745,13 @@ running container is fully self-describing. `docker-compose.yml` provides the lo
 
 The health and readiness endpoints are wired to container health checks, so an orchestrator
 does not route traffic to an instance whose model failed to load.
+
+**Two images since Phase 15**, built from two contexts -- `backend/` and `frontend/` -- so
+neither can grow by picking up the other half of the repository. Both run as uid 1001 on a
+read-only root filesystem with `no-new-privileges`: the same posture on both sides, because a
+stack is only as constrained as its least constrained container. The web service waits on the
+API's `/ready` rather than on its process starting, so a reviewer never arrives at a workspace
+whose backend cannot answer.
 
 ---
 
@@ -774,6 +842,25 @@ disclosure requirements.
 Dependencies are strictly sequential from Phase 3 onward, with one exception: the fairness
 metric implementations (9.1) depend only on the data generator and can be written in parallel
 with the model work.
+
+### 14.1 Phases added after this plan was written
+
+Phases 0-13 delivered the brief as written. Four more followed. They are listed here rather than
+left out, so this document describes the project that exists rather than the one that was
+predicted.
+
+| Phase | Content | Why it was not in the original plan |
+|---|---|---|
+| 14 | Split into `backend/` and `frontend/` | A single runtime needed no split |
+| 15 | Rank workspace frontend | A frontend was a locked decision against -- reversed, see the appendix |
+| 16 | The frontend written into every document | Five documents described a system that stopped at the API, because when they were written it did |
+| 17 | Frontend redesign, re-measured for WCAG AA on every surface | The first pass was correct and plain; the constraints it enforces were the valuable part and did not change |
+
+Phase 16 exists because of a failure mode worth naming. The interface was built, and the
+documents describing the system were not revisited. Each one remained internally consistent and
+collectively they were wrong: this section, section 8 and section 12 all described a system with
+no browser in it. **A component added late does not announce itself in the diagrams that predate
+it**, and nothing in a test suite fails when a document goes stale.
 
 ---
 
