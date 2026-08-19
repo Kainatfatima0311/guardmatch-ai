@@ -1,8 +1,6 @@
 import { normaliseError, type NormalisedError } from "./errors";
 import type {
   ExtractResponse,
-  FairnessResponse,
-  FeatureImportanceResponse,
   ModelInfoResponse,
   RankRequest,
   RankResponse,
@@ -127,24 +125,6 @@ export async function extractDocument(file: File): Promise<Result<ExtractRespons
 export function ready(): Promise<Result<ReadyResponse>> {
   return call<ReadyResponse>("ready");
 }
-
-/**
- * The fairness audit for the model being served.
- *
- * 503 while the model is loading — the audit is part of the artifact bundle, so
- * its absence then means "not ready" rather than "no such data". 404 when the
- * artifact loaded but carries no audit, which happens for a model trained before
- * `guardmatch audit` ran against it.
- */
-export function fairness(): Promise<Result<FairnessResponse>> {
-  return call<FairnessResponse>("fairness");
-}
-
-/** Global SHAP importance. First call costs ~1 s server-side, then cached. */
-export function featureImportance(): Promise<Result<FeatureImportanceResponse>> {
-  return call<FeatureImportanceResponse>("feature-importance");
-}
-
 export function modelInfo(): Promise<Result<ModelInfoResponse>> {
   return call<ModelInfoResponse>("model-info");
 }

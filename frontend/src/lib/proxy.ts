@@ -21,8 +21,6 @@ export const ALLOWED = new Map<string, "GET" | "POST">([
   ["ready", "GET"],
   ["health", "GET"],
   ["model-info", "GET"],
-  ["fairness", "GET"],
-  ["feature-importance", "GET"],
 ]);
 
 export const REQUEST_ID_HEADER = "X-Request-ID";

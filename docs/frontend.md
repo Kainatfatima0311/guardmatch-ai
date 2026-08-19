@@ -3,18 +3,17 @@
 **Companion to:** [architecture.md](architecture.md) · [api-reference.md](api-reference.md)
 **Date:** 2026-08-20
 
-This document covers three pages — Rank, Fairness and Model — and, more than any of them,
-the constraints this interface enforces in code rather than in prose. It also covers the colour
+This document covers the Rank workspace — one page, and the only page — and, more than the
+page itself, the constraints it enforces in code rather than in prose. It also covers the colour
 system, the accessibility decisions, and what was deliberately left unbuilt.
 
-| Page | What it answers |
-|---|---|
-| **Rank** (`/`) | Who fits this posting, and why each one placed where they did |
-| **Fairness** (`/fairness`) | Whether the ranking behaves differently across groups — and what the audit could not tell |
-| **Model** (`/model`) | Which model produced this, whether its artifacts verified, and what the ranking rests on |
-
-The Rank page is the product. The other two exist because the brief asks for a fairness check and
-for versioned artifacts, and neither is worth much sitting in a file nobody opens.
+**It was briefly three pages.** A fairness dashboard and a model provenance page were built,
+used, and then removed, because they were aimed at the wrong reader: this interface is for the
+reviewer building a shortlist, and a reviewer does not consult an adverse impact ratio to do that.
+The fairness position and the provenance evidence are still deliverables of this project — they
+live in [the fairness report](fairness-report.md), [the model card](model-card.md), and two API
+endpoints that a reviewer *of the project* can call. Section 11 records what that cost and what it
+did not.
 
 Paths are relative to `frontend/`.
 
@@ -398,74 +397,7 @@ later column by one and quietly corrupt the file it was exported to.
 
 ---
 
-## 8. The fairness dashboard
-
-The brief's first production-ready condition is *"a basic bias and fairness check"*. That check
-existed from Phase 12 — it runs in CI, gates the build, and writes `fairness.json` beside the
-model. It had no screen presence at all. This page reads `GET /fairness` and renders what is
-already recorded; it computes nothing.
-
-### A pass is rendered quietly, on purpose
-
-The obvious design is a green tick. It would be wrong, and the audit's own numbers are the reason:
-a deliberately injected, realistically sized proxy bias **passed at 0.875**. The four-fifths rule
-is a floor, not a target.
-
-So a pass renders in muted type rather than in green, and the panel beside the verdict states the
-three things that qualify it: the injected bias that passed, that the demographics are synthetic,
-and that 0.80 is a floor. A dashboard reporting only its passes would be worse than no dashboard,
-because it would convert an absence of detected disparity into a claim of fairness.
-
-### Three verdict states, because two would misreport
-
-| Verdict | Rendered as | When |
-|---|---|---|
-| Fail | Disparity detected | Any failure recorded for the attribute |
-| **Inconclusive** | **Cannot tell** | No failure, but a ratio below threshold that is not distinguishable from noise |
-| Pass | No disparity detected | Neither |
-
-`auditVerdict` is a single function over one attribute, and every component reads it rather than
-reading `passes` directly. That matters for `age_band`, which sits at **0.627** — well under the
-0.80 line — and is nevertheless inconclusive, because after Bonferroni correction for ten
-possible group comparisons the effect is not distinguishable from noise. Calling that a pass would
-be false. Calling it a fail would be a claim the data does not support.
-
-**Below-threshold and failing are kept separate in the code** (`belowThreshold` is its own
-function) so a bar can render below the line while the verdict says "cannot tell". Collapsing them
-would have been simpler and would have made the page lie in one direction or the other.
-
-### Groups, including the ones too small to measure
-
-Every group is listed with its appearances, its selection rate and its qualified selection rate.
-Suppressed groups are shown **as suppressed**, not omitted: a group too small to measure and a
-group that was never there look identical if only the measurable ones are drawn.
-
----
-
-## 9. Model provenance
-
-The brief's third production-ready condition is *"versioned model artifacts, not just a pickle
-file"*. `GET /model-info` and `GET /feature-importance` already held the evidence.
-
-**The checksum guarantee is stated as a consequence, not as a feature.** The page does not claim
-that checksums are verified; it says that because this page is being served, every artifact file
-matched its recorded hash at startup — the service refuses to become ready otherwise. That
-phrasing is the point. A page asserting "verified: yes" is a sentence someone wrote; this one is
-an observation about the process answering the request.
-
-That is not hypothetical. A defect found in Phase 15 meant the released v0.1.0 artifacts would not
-load on Linux at all, for eleven days, because the recorded checksums had been taken from
-CRLF-normalised files. A page like this one catches that on day one instead.
-
-The rest is the ranking's own foundations: NDCG@10 of **0.9042** against a rules baseline of
-**0.8043**, side by side rather than as a single number, and global feature importance as bars.
-**The four monitored proxy features are drawn in amber wherever they appear**, including here,
-where `shift_match` is both the largest input at **26.3%** and the largest fairness exposure in
-the model. Those two facts belong next to each other, and on this page they are.
-
----
-
-## 10. Boundary limits, mirrored client-side
+## 8. Boundary limits, mirrored client-side
 
 The server enforces these; the client repeats them so a reviewer meets the ceiling while typing
 rather than after a submit comes back `422`.
@@ -487,7 +419,7 @@ the model's largest single input.
 
 ---
 
-## 11. Errors
+## 9. Errors
 
 `422` arrives in two incompatible shapes and both are handled in one place
 (`src/lib/errors.ts`), because they mean different things:
@@ -511,7 +443,7 @@ message for six situations.
 
 ---
 
-## 12. Dependencies
+## 10. Dependencies
 
 Next.js, React, and `clsx`. That is the whole runtime list.
 
@@ -527,12 +459,14 @@ three highs and an explanation. Next 16.3 reports zero.
 
 ---
 
-## 13. Deliberately not built
+## 11. Deliberately not built
 
 Scope, not oversight.
 
 | Not built | Why |
 |---|---|
+| **Fairness dashboard** | **Built, then removed.** It rendered `GET /fairness` faithfully, including the three verdict states and the caveats a pass needs. The problem was the audience: a recruiter working a shortlist does not need it, and a reviewer of the project is better served by [the fairness report](fairness-report.md), which can argue rather than only display. The endpoint remains, so nothing about the fairness position depends on the page having existed |
+| **Model provenance page** | **Built, then removed**, for the same reason. `GET /model-info` and `GET /feature-importance` still answer from the running service, which is where the value actually was — the page was a rendering of it, not the thing itself |
 | Parse playground | `POST /parse` exists and is worth showing, but the ranking flow already exercises the parser and surfaces its warnings |
 | OCR for scanned PDFs | A large dependency whose failure mode is the one this project exists to prevent: mis-read text ranks confidently and wrongly, with nothing signalling it. Refused at upload instead — see section 6 |
 | Authentication | No endpoint has any. Adding it to the frontend alone would imply protection that does not exist |
@@ -542,7 +476,7 @@ Scope, not oversight.
 
 ---
 
-## 14. Known limitations
+## 12. Known limitations
 
 - **No end-to-end browser tests.** The API client, error normalisation, feature metadata and
   warning phrasings are unit tested; the rendered components are verified by hand. A Playwright
@@ -551,6 +485,11 @@ Scope, not oversight.
   sign-and-glyph encoding removes the dependency on hue, but no simulation was run.
 - **One posting at a time.** No comparison across postings, which is consistent with the scores
   not being comparable across postings.
+- **Two endpoints are no longer reachable from a browser.** `/fairness` and
+  `/feature-importance` were removed from the proxy allowlist when the pages that used them were
+  removed. They still answer on the API, and a server-side caller can still reach them. The
+  allowlist is the browser's surface, and it should hold what a page needs rather than what the
+  service happens to offer.
 - **Upload is one request per document.** Twenty files means twenty round trips. That is the price
   of per-file refusal, and it was judged worth paying; a batch endpoint would be faster and would
   report failures worse.

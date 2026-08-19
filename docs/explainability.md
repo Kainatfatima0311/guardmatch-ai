@@ -168,10 +168,10 @@ explanation.
 
 ### Served by the API, and why the figure moves slightly
 
-`GET /feature-importance` reports this same measure from the running service, and the product
-draws it at `/model` with the four monitored proxies in amber — so the fact that the largest
-input is also the largest fairness exposure is visible in one glance rather than assembled from two
-documents.
+`GET /feature-importance` reports this same measure from the running service, so the figures can
+be read against the model actually loaded rather than against this document. A page rendering it
+was built and then removed as aimed at the wrong reader; the endpoint stayed, because the value was
+in being able to ask the service rather than in the chart.
 
 **It returns 26.3% for `shift_match` where the table above says 26.8%, and the difference is the
 sample, not the model.** The table is computed over the full 3,041-row validation set during the

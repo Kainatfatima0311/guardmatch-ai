@@ -119,9 +119,7 @@ docker compose up --build
 
 | | |
 |---|---|
-| <http://localhost:3000> | **Rank** — drop CVs or **Generate** a batch, then **Rank applications** |
-| <http://localhost:3000/fairness> | **Fairness** — the audit, its verdicts, and what it could not tell |
-| <http://localhost:3000/model> | **Model** — which model is serving, whether it verified, what the ranking rests on |
+| <http://localhost:3000> | the Rank workspace — drop CVs or **Generate** a batch, then **Rank applications** |
 | <http://localhost:8000/docs> | the API directly, via Swagger UI |
 
 First build takes a few minutes; the API image compiles LightGBM and downloads the spaCy model.
@@ -321,15 +319,16 @@ model's single largest input at 26.8%.
 
 **Measurement.** Adverse impact, demographic parity, equal opportunity, and an
 exposure-weighted metric that catches a group being admitted to the shortlist but placed
-consistently lower within it. Enforced in CI, and readable at
-<http://localhost:3000/fairness> rather than only in a JSON file.
+consistently lower within it. Enforced in CI, and answerable from the running service at
+`GET /fairness` rather than only from a file in the repository.
 
-**A pass is not evidence of fairness, and the page says so where the verdict is.** A
+**A pass is not evidence of fairness.** A
 deliberately injected, realistically sized proxy bias **passed at 0.875**; four-fifths is a floor,
 not a target. So the page reports three states rather than two — `age_band` sits at **0.627**,
-well under the line, and reads as *cannot tell* rather than as a pass, because after correcting
-for ten possible group comparisons it is not distinguishable from noise. Calling that a pass would
-be false; calling it a failure would be a claim the data does not support.
+well under the line, and is reported as *cannot tell* rather than as a pass, because after
+correcting for ten possible group comparisons it is not distinguishable from noise. Calling that a
+pass would be false; calling it a failure would be a claim the data does not support. The
+[fairness report](docs/fairness-report.md) is where this is argued rather than asserted.
 
 Both gates are proven to fail, not merely assumed to work:
 
@@ -374,15 +373,13 @@ guardmatch-ai/
 │   ├── data/                    generated from a seed, not committed
 │   ├── pyproject.toml · Dockerfile · .dockerignore · .env.example
 │   └── README.md
-├── frontend/                    three pages over one boundary
+├── frontend/                    the Rank workspace
 │   ├── src/app/
-│   │   ├── page.tsx             Rank — intake, shortlist, explanations
-│   │   ├── fairness/            the audit, with what it could not tell
-│   │   ├── model/               provenance, baseline, global importance
+│   │   ├── page.tsx             intake, shortlist, explanations
 │   │   ├── globals.css          design tokens, with measured contrast ratios
 │   │   └── api/[...path]/       server-side proxy — why no CORS config exists
-│   ├── src/components/          form, results, contribution bars, verdicts
-│   ├── src/lib/                 typed contract, file intake, filters, CSV, 83 tests
+│   ├── src/components/          form, results, contribution bars, disclosure
+│   ├── src/lib/                 typed contract, file intake, filters, CSV, 69 tests
 │   ├── package.json · Dockerfile · .dockerignore
 │   └── README.md
 ├── docs/                        the eight documents below
@@ -408,7 +405,7 @@ pytest -m "not slow"
 
 ```bash
 cd frontend
-npm test            # 83 tests: the API contract, file intake, filters, CSV, the proxy
+npm test            # 69 tests: the API contract, file intake, filters, CSV, the proxy
 ```
 
 CI runs lint, type checking, the full suite, the gates as a separate job, and a Docker build

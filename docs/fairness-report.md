@@ -217,12 +217,14 @@ catches a harm the selection-based ones miss.
 4. Establish ongoing monitoring. A model that is fair at release can stop being fair as the
    applicant population shifts — the drift hook in `core/metrics.py` exists to make that
    measurable, but the review process is not built.
-9. **The audit is now readable without opening this file.** `GET /fairness` serves it and the
-   product renders it at `/fairness`, with three verdict states rather than two: a ratio below
-   threshold that is not distinguishable from noise reads as *cannot tell*, not as a pass. A pass
-   renders quietly and carries its qualification beside it — the injected proxy bias that passed
-   at 0.875, the synthetic demographics, and that 0.80 is a floor rather than a target. This
-   document remains the substance; the page exists so that the substance is not optional reading.
+9. **The audit is answerable from the running service, not only from this file.**
+   `GET /fairness` serves it for the model actually loaded. A dashboard over it was built and then
+   removed — the recruiter working a shortlist is the wrong reader for an adverse impact ratio,
+   and this document can argue where a chart can only display. What the dashboard got right is
+   worth keeping in prose: the audit has **three** states, not two. A ratio below the threshold
+   that is not distinguishable from noise is *cannot tell*, not a pass — which is exactly
+   `age_band` at 0.627. And a pass needs its qualification attached: the injected proxy bias that
+   passed at 0.875, the synthetic demographics, and that 0.80 is a floor rather than a target.
 
 ## 10. If a threshold is breached
 

@@ -349,8 +349,13 @@ handling uploads has to read both shapes.
 ## Transparency endpoints
 
 Two endpoints exist because the brief asks for a fairness check and for explainability, and
-neither is worth much sitting in a file nobody opens. Both report what the active model already
-carries; they compute no new claim about it.
+neither is much use if the only way to see it is to open a file in the repository. Both report what
+the active model already carries; they compute no new claim about it.
+
+**Neither is reachable from a browser through the shipped frontend.** A dashboard over them was
+built and removed as aimed at the wrong reader, so they left the proxy's allowlist with it. They
+are for a server-side caller, or for anyone inspecting the service directly — which is the
+audience that was asking the question in the first place.
 
 ### GET /fairness
 
@@ -543,9 +548,12 @@ Consequences a caller should know:
 - **Calling the API directly from browser JavaScript will be blocked**, and this is intended.
   Either proxy it server-side, or add CORS deliberately, with the origin list treated as a
   security decision rather than a configuration detail.
-- **The proxy carries an endpoint allowlist**: `/rank`, `/score`, `/parse`, `/ready`, `/health`,
-  `/model-info`. `/metrics` is deliberately not reachable through it — operational data has no
-  business being exposed to a browser. An unlisted path returns `404`; a wrong method `405`.
+- **The proxy carries an endpoint allowlist**: `/rank`, `/score`, `/parse`, `/extract`,
+  `/sample-candidates`, `/ready`, `/health`, `/model-info`. `/metrics` is deliberately not
+  reachable through it — operational data has no business being exposed to a browser, and
+  neither are `/fairness` and `/feature-importance`, which no page renders. An unlisted path
+  returns `404`; a wrong method `405`. **The list holds what a page needs, not what the service
+  offers** — which is why removing two pages removed two entries.
 - **Status and body are forwarded unchanged.** A proxy that flattened a `503` into a `500` would
   destroy the distinction between "wait and retry" and "fix your input", which is the most
   useful thing the error surface carries.
