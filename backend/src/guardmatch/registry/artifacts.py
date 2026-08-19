@@ -53,6 +53,14 @@ CHECKSUMMED_FILES: tuple[str, ...] = (
     FAIRNESS_FILE,
 )
 
+# Artifacts are written with LF on every platform, so their bytes — and therefore
+# their checksums — describe the artifact and not the operating system that
+# produced it. Named here so the guarantee has one home rather than being an
+# argument repeated at each write site.
+LF = "\n"
+LF_BYTES = b"\n"
+CRLF_BYTES = b"\r\n"
+
 
 @dataclass(frozen=True)
 class LoadedModel:
@@ -75,7 +83,29 @@ def _sha256(path: Path) -> str:
 def _write_json(path: Path, payload: Any) -> None:
     # sort_keys so an unchanged payload always produces an identical file, and
     # therefore an identical checksum.
-    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
+    #
+    # The explicit newline is load-bearing rather than a style choice. Left to
+    # the default, write_text applies the platform line ending, so an identical
+    # payload produces different bytes — and therefore a different SHA-256 — on
+    # Windows than on Linux. A checksum taken over platform-dependent bytes
+    # verifies the machine that wrote the file rather than the artifact, which is
+    # the opposite of what a checksum is for.
+    path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8", newline=LF)
+
+
+def _force_lf(path: Path) -> None:
+    """Rewrite a file with LF line endings, in place.
+
+    Applied to whatever LightGBM's serialiser produced. It writes through the
+    platform's text layer, so on Windows a few of its newlines arrive as CRLF and
+    the artifact's bytes come to depend on where training happened to run. LF is
+    the canonical form here because it is what every container, CI runner and
+    non-Windows toolchain in this project already uses.
+    """
+    raw = path.read_bytes()
+    normalised = raw.replace(CRLF_BYTES, LF_BYTES)
+    if normalised != raw:
+        path.write_bytes(normalised)
 
 
 def _read_json(path: Path) -> Any:
@@ -121,6 +151,8 @@ def save_model(
     # LightGBM's native text format, not pickle: readable, portable across
     # library versions, and it cannot execute code on load.
     booster.save_model(str(directory / MODEL_FILE), num_iteration=booster.best_iteration)
+    # Normalised straight away, before anything reads it to compute a hash.
+    _force_lf(directory / MODEL_FILE)
 
     _write_json(directory / FEATURE_NAMES_FILE, list(metadata.feature_names))
     _write_json(directory / METADATA_FILE, metadata.to_dict())

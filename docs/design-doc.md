@@ -698,6 +698,33 @@ does not route traffic to an instance whose model failed to load.
 | **Parser gaps** — unseen phrasing silently drops a qualification | Medium | Parse warnings surfaced in responses; failure rate tracked as a metric |
 | **Cold start** — new job types absent from training data | Medium | Documented limitation; baseline scorer as fallback |
 | **Small group sizes** — fairness metrics unstable on small demographic groups | Medium | Report confidence intervals; suppress metrics below a minimum group size |
+| **Platform-dependent artifact bytes** — a checksum taken over CRLF verifies the machine that wrote the file rather than the artifact | High — **materialised, see below** | Artifacts written with LF on every platform; `.gitattributes` marks `backend/models/**` as `-text`; two tests assert no artifact file contains CRLF |
+
+### The artifact integrity risk that materialised
+
+This one is listed as materialised rather than mitigated because it happened, and the way it
+happened is the part worth keeping.
+
+`v0.1.0` was written on Windows. Python's `write_text` and LightGBM's serialiser both emit the
+platform line ending, so the recorded SHA-256 values described bytes containing CRLF. Git, with
+`core.autocrlf` set and no `.gitattributes`, normalised those to LF on the way into the
+repository. The committed bytes therefore hashed differently from the recorded checksums, and
+since verification is not optional and startup re-raises on failure, **the released artifact
+would not load on any Linux checkout** — CI, the container, or a contributor not on Windows.
+
+Two things let it survive undetected. It passed on the machine that produced the bytes, so
+local runs were always green. And the one step whose purpose was to confirm CI green had never
+been completed, so the red pipeline was never read. The process gap and the defect concealed
+each other; either one alone would have been caught.
+
+The lesson generalises past line endings: **a verification step that only ever runs in the
+environment that produced the thing being verified is not a verification step.** Every integrity
+claim in this project is now exercised in a Linux container as well as locally.
+
+Corrected rather than reissued, and only after proving the two byte variants were the same
+model — 78 trees, 12 features, bit-identical predictions across 2,000 inputs. Re-recording a
+hash against a canonical form is a correction to a record; bumping the version would have
+implied a retrain that did not happen and orphaned the metrics already reported for v0.1.0.
 
 ### Resolved decisions
 

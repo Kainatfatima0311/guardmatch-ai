@@ -1,0 +1,28 @@
+# ---------------------------------------------------------------------------
+# Line endings
+# ---------------------------------------------------------------------------
+# Normalise text to LF in the repository. Without this, `core.autocrlf` decides
+# what gets stored, and what gets stored then depends on the contributor's
+# operating system rather than on the file.
+* text=auto eol=lf
+
+# ---------------------------------------------------------------------------
+# Model artifacts — byte-exact, never rewritten
+# ---------------------------------------------------------------------------
+# These files are hashed, and the hash is verified before the service will serve
+# them. Any line-ending translation on the way in or out changes their bytes and
+# therefore their SHA-256, which makes the recorded checksum describe the
+# machine that wrote the file rather than the artifact.
+#
+# This is not hypothetical. `models/v0.1.0/model.txt` was written on Windows with
+# two CRLF pairs in it; git normalised them to LF on the way into the repository,
+# so the committed bytes hashed differently from the recorded checksum and the
+# released artifact refused to load on every Linux checkout — including CI and
+# the container. `-text` tells git to store and check out these paths verbatim.
+backend/models/** -text
+
+# ---------------------------------------------------------------------------
+# Generated files that should not clutter a diff
+# ---------------------------------------------------------------------------
+backend/models/v0.1.0/model.txt linguist-generated=true
+frontend/package-lock.json linguist-generated=true diff=none

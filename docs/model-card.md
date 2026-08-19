@@ -202,6 +202,25 @@ checksums.json       SHA-256 of every file above
 Checksums are verified on load and the service **refuses to start** on mismatch, because an
 artifact that does not match its recorded hash is not the one that was evaluated and audited.
 
+**The checksums were platform-dependent when v0.1.0 was first released, and the artifact did
+not load on Linux.** The files were written on Windows, where Python's `write_text` and
+LightGBM's serialiser both emit CRLF. Git — with `core.autocrlf` and no `.gitattributes` —
+normalised those to LF on the way into the repository, so the committed bytes hashed
+differently from the recorded checksums. Verification therefore failed on every non-Windows
+checkout, including CI and the container, and because startup re-raises on artifact failure the
+service refused to serve at all. It passed only on the machine that produced the bytes.
+
+Found on 2026-08-19 by a CI run, and worth stating plainly: a checksum taken over
+platform-dependent bytes verifies the machine that wrote the file, not the artifact.
+
+Corrected rather than reissued. The two byte variants were first proven to be the same model —
+78 trees, 12 features, identical feature names, and bit-identical predictions across 2,000
+random inputs — so the recorded hashes were re-taken against the canonical LF form without
+touching the model that was evaluated and audited. Artifacts are now written with LF on every
+platform, `.gitattributes` marks `backend/models/**` as `-text` so git cannot rewrite them
+again, and two tests assert that no artifact file contains CRLF. No metric in this document
+changed.
+
 The artifact was written from a clean working tree, so its recorded git SHA genuinely describes
 the code that produced it. Training refuses to write an artifact from uncommitted code.
 
@@ -238,6 +257,7 @@ scikit-learn 1.9.0.
 | Version | Date | Notes |
 |---|---|---|
 | v0.1.0 | 2026-08-17 | First release. NDCG@10 0.904 vs baseline 0.804. Fairness audit passes on all three attributes. |
+| v0.1.0 | 2026-08-19 | Checksums re-recorded against the canonical LF form; see section 9. The model is unchanged and was proven bit-identical before the record was corrected. Not a new version, because nothing about the model is new. |
 
 ### Proposed for v0.2.0
 
