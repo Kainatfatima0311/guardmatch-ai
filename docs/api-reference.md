@@ -34,6 +34,7 @@ A human reviewer remains responsible for every hiring outcome.
 | POST | `/rank` | Rank many candidates against one job — **the primary endpoint** |
 | POST | `/score` | Score one candidate against one job |
 | POST | `/parse` | Extract structured facts from CV text |
+| GET | `/sample-candidates` | Generate synthetic applications, for trying the service at volume |
 | GET | `/health` | Liveness |
 | GET | `/ready` | Readiness |
 | GET | `/model-info` | Active model provenance |
@@ -202,6 +203,57 @@ A sparse CV therefore returns:
 
 `parse_warnings` travel through to `/score` and `/rank`, so a reviewer can see where the
 system was unsure rather than receiving a confident number built on a gap.
+
+---
+
+## GET /sample-candidates
+
+Generated applications, so the ranking path can be exercised at the size the brief describes.
+Pasting three hundred CVs by hand is not a way to see hiring volume.
+
+| Parameter | Default | Notes |
+|---|---|---|
+| `count` | 10 | 1 to `MAX_RANK_BATCH`. Above that, `422` |
+| `seed` | `RANDOM_SEED` | The same seed returns the same applications |
+
+```bash
+curl 'http://localhost:8000/sample-candidates?count=100'
+```
+
+```json
+{
+  "candidates": [
+    { "candidate_id": "c_00000", "cv_text": "SUMMARY\nSecurity officer with 6 years..." }
+  ],
+  "count": 100,
+  "seed": 42,
+  "source": "synthetic"
+}
+```
+
+**Notes**
+
+**Generated, not read from disk.** The obvious implementation reads
+`backend/data/candidates.json`, and it would fail in the container: `data/` is excluded from the
+image deliberately, because a service that scores what it is sent has no use for the training
+set. The generator ships inside the package instead, so this costs nothing at build time and
+behaves identically locally, in the container and in CI. Roughly 80 ms for 250 candidates.
+
+**Ground truth is stripped.** The generator produces candidates carrying the `true_*` values the
+CV text was written from — years, certifications, availability. Returning those would hand a
+caller exactly what the model is supposed to infer from the text, so only `candidate_id` and
+`cv_text` cross the boundary.
+
+**`source` travels with the data.** Stated in the payload rather than only here, for the same
+reason `/rank` carries its disclaimer: a caller who never read this page still needs to know
+these are not real applicants.
+
+**No model required.** Unlike every scoring route, this does not return `503` while the model is
+loading or unverified. It produces text and touches nothing the model owns, so a caller can
+prepare a batch before the service is able to score it.
+
+**`count` above the batch limit is refused here** rather than at `/rank`, so a caller is never
+handed more candidates than it is allowed to submit.
 
 ---
 

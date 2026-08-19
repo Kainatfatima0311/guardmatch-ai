@@ -1,4 +1,5 @@
 import { NextResponse, type NextRequest } from "next/server";
+import { ALLOWED, REQUEST_ID_HEADER, upstreamUrl } from "@/lib/proxy";
 
 /**
  * Server-side proxy to the scoring service.
@@ -13,27 +14,26 @@ import { NextResponse, type NextRequest } from "next/server";
  * It forwards status and body unchanged. A proxy that flattens a 503 into a 500
  * or swallows a validation body would destroy exactly the information the UI
  * needs to tell a caller whether to fix their input or wait and retry.
+ *
+ * **Two defects lived here, and both were silent.** The handler hardcoded a JSON
+ * Content-Type and read the body as text, which is fine for every JSON endpoint
+ * and destroys a file upload: the multipart boundary was replaced and the binary
+ * payload was decoded as UTF-8. Uploads failed with "field required" while the
+ * identical request to the backend succeeded. A proxy should carry a request, not
+ * interpret it.
+ *
+ * **The query string is forwarded too, and leaving it out was the other.**
+ * The first version built the upstream URL from the path alone, so `?count=250`
+ * was dropped in transit and the service answered with its default of 10. Nothing
+ * errored: the caller asked for 250 applications, received 10, and was told
+ * nothing about the difference. A proxy that silently discards half a request is
+ * worse than one that fails, because the failure is invisible on both sides.
  */
 
 const BACKEND_URL = process.env.BACKEND_URL ?? "http://localhost:8000";
 
-/**
- * Only the endpoints this interface uses. Without an allowlist the handler is
- * an open relay to anything the backend serves, reachable from any page that
- * can reach this one — including `/metrics`, which is operational data with no
- * business being exposed to a browser.
- */
-const ALLOWED = new Map<string, "GET" | "POST">([
-  ["rank", "POST"],
-  ["score", "POST"],
-  ["parse", "POST"],
-  ["sample-candidates", "GET"],
-  ["ready", "GET"],
-  ["health", "GET"],
-  ["model-info", "GET"],
-]);
-
-const REQUEST_ID_HEADER = "X-Request-ID";
+// The allowlist and the upstream URL builder live in @/lib/proxy so they can be
+// unit tested. See the note there: dropping the query string was a real defect.
 
 async function forward(request: NextRequest, segments: string[]): Promise<NextResponse> {
   const path = segments.join("/");
@@ -49,7 +49,13 @@ async function forward(request: NextRequest, segments: string[]): Promise<NextRe
     );
   }
 
-  const headers: HeadersInit = { "Content-Type": "application/json" };
+  // The incoming Content-Type is forwarded, not replaced. Hardcoding JSON here
+  // was a real defect: a multipart upload carries a boundary in its Content-Type,
+  // and overwriting it left the service unable to find the file at all — every
+  // upload came back "field required" while the same request straight to the
+  // backend worked. The proxy must not have an opinion about the payload.
+  const contentType = request.headers.get("Content-Type");
+  const headers: HeadersInit = contentType ? { "Content-Type": contentType } : {};
   // Preserved rather than regenerated, so one id spans the browser, this
   // handler and the backend's structured logs. A support report quoting an id
   // then finds the exact log line.
@@ -58,10 +64,13 @@ async function forward(request: NextRequest, segments: string[]): Promise<NextRe
 
   let upstream: Response;
   try {
-    upstream = await fetch(`${BACKEND_URL}/${path}`, {
+    upstream = await fetch(upstreamUrl(BACKEND_URL, segments, request.nextUrl.search), {
       method: request.method,
       headers,
-      body: request.method === "POST" ? await request.text() : undefined,
+      // Raw bytes, not text. `request.text()` decodes as UTF-8, which mangles the
+      // binary content of a PDF or .docx beyond recovery — the second half of the
+      // same defect.
+      body: request.method === "POST" ? await request.arrayBuffer() : undefined,
       cache: "no-store",
     });
   } catch {

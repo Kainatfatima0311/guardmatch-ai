@@ -209,6 +209,23 @@ than an unknown. See the [model card](model-card.md).
 
 These four contain no real personal data. The names are invented and the employers do not exist.
 
+### Generated batches, via `GET /sample-candidates`
+
+The interface can also ask for 10 to 250 applications at once, to exercise the ranking path at
+the volume this brief describes. Those come from **this generator**, called in process — not from
+`data/candidates.json`.
+
+That distinction is deliberate. `data/` is excluded from the container image, because a service
+that scores what it is sent has no use for the training set, and an endpoint reading that file
+would have worked locally and failed in the container. The generator ships inside the package, so
+generating costs nothing at build time and behaves identically everywhere. Roughly 80 ms for 250.
+
+The endpoint returns only `candidate_id` and `cv_text`. The `true_*` ground-truth fields
+described in section 3 are **stripped at the boundary**: returning them would hand a caller
+exactly what the model is supposed to infer from the CV text, and any demonstration built on
+that would be measuring nothing. The response also carries `"source": "synthetic"`, so a caller
+who never read this document still cannot mistake the output for real applicants.
+
 ## 9. Limitations
 
 **This dataset does not resemble SAJCO's real applicant pool.** Distributions were chosen to

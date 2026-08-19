@@ -19,6 +19,13 @@ dependencies = [
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
 
+    # Document extraction. Deliberately narrow: these read text out of a file and
+    # nothing more. No OCR — see parsing/documents.py for why a scanned PDF is
+    # refused rather than guessed at.
+    "python-multipart>=0.0.9",
+    "pypdf>=5.1",
+    "python-docx>=1.1",
+
     # NLP
     "spacy>=3.8",
     "rapidfuzz>=3.10",

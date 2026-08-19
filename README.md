@@ -32,10 +32,14 @@ End to end, from a pasted CV to a ranked shortlist on screen:
 ```
  BROWSER                    NEXT.JS                 FASTAPI
  ───────                    ───────                 ───────
- posting + CV text
+ posting + applications
+   drop .txt files ─┐
+   generate a batch ┼─▶ up to 500 candidates
+   paste text ──────┘
       │
       │  validate locally
       │  enums · 20k chars · unique ids · 500 batch
+      │  file names held here, never sent
       ▼
  POST /api/rank ──────▶ allowlist check ──────▶ Pydantic, extra="forbid"
    same origin          server-side hop               │
@@ -111,7 +115,7 @@ docker compose up --build
 
 | | |
 |---|---|
-| <http://localhost:3000> | the Rank workspace — press **Load samples**, then **Rank applications** |
+| <http://localhost:3000> | the Rank workspace — **Generate** a batch or drop files, then **Rank applications** |
 | <http://localhost:8000/docs> | the API directly, via Swagger UI |
 
 First build takes a few minutes; the API image compiles LightGBM and downloads the spaCy model.
@@ -156,6 +160,18 @@ npm run dev
 
 Then <http://localhost:3000>. The API is expected on port 8000; point elsewhere with
 `BACKEND_URL=http://host:port npm run dev`.
+
+Three ways to get applications in:
+
+- **Drop files** — `.txt`, `.text`, `.md`, read in the browser, so the file itself is never
+  uploaded. `.pdf` and `.docx` are a later phase.
+- **Generate a batch** — 10 to 250 synthetic applications, which is how to see the hiring volume
+  the brief describes.
+- **Paste** — for one or two, or to correct text read from a file.
+
+File names are shown on screen and **never sent**: `name` is a blocked attribute in this system,
+so the display name and the request payload are separate types. See
+[the frontend notes](docs/frontend.md).
 
 The browser never calls the API directly — requests go to a route handler inside the Next.js
 server, which makes the onward call itself. That is why there is no CORS configuration anywhere

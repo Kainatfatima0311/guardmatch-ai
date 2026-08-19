@@ -244,7 +244,80 @@ destroys it the first time anyone clicks.
 
 ---
 
-## 6. Boundary limits, mirrored client-side
+## 6. How applications get in
+
+The brief opens with *"Given SAJCO's hiring volume"* — hundreds of applications per vacancy. The
+first version of this interface required every CV to be pasted by hand, which is fine for three
+and useless for three hundred. It did not match the premise it was built for.
+
+Three paths now, and only one of them was expensive:
+
+| Path | What it is for | Cost to build |
+|---|---|---|
+| **Drop files** | Real applications, `.txt` / `.text` / `.md` | None — `File.text()` reads them in the browser |
+| **Generate a batch** | Seeing volume: 10 / 50 / 100 / 250 | A small endpoint, `GET /sample-candidates` |
+| **Paste** | One or two, or correcting extracted text | Already there |
+
+`.pdf` and `.docx` need server-side extraction and are a later phase. A dropped `.pdf` is
+described as *coming* rather than *unsupported*, because a reviewer told "unsupported" would go
+and convert files they will not need to convert.
+
+### The display name never leaves the browser
+
+A reviewer working through fifty applications cannot use `c_1, c_2, c_3`; they need to see which
+file is which. But `name` is an **explicitly blocked attribute** in this system — it appears in
+`features/blocklist.py` and in `_BLOCKED_TOKENS`, every request model is `extra="forbid"`, and
+`assert_no_protected_fields` fires on anything reaching the feature builder. A name in a request
+body would trip the leakage gate and fail the build.
+
+So the two live in **different types**. `CandidateDraft` is what the interface holds and carries
+`displayName`; `Candidate` is what crosses the network and cannot carry it.
+`toRequestCandidates` is the single place the conversion happens, and a test asserts on the
+serialised output that nothing else survives. Two types rather than one rule to remember.
+
+Verified through the running stack, not only in a unit test: what the interface sends returns
+**200**; the same body with `displayName` attached returns **422 `extra_forbidden`**; a literal
+`name` field returns **422**. Two independent layers — the client strips it, and the service
+would refuse it anyway.
+
+Like an exam marked by roll number: the office knows which number belongs to which student, the
+marker does not, and so the name cannot move the mark.
+
+### What is refused, and why refusal is the point
+
+| Input | Result |
+|---|---|
+| Empty file | **Refused.** An empty CV ranks last, so accepting one would show a confident bottom placement for a blank document |
+| Over 20,000 characters | Refused, against the limit the service enforces |
+| Too large to be a CV | Refused before it is read |
+| `.pdf`, `.docx` | Refused for now, described as coming |
+
+Failures are reported **per file**, not per drop: being told only that "something failed" after
+dropping twenty files is not usable, and a reviewer needs to know which one to fix while they are
+still holding it.
+
+The empty-file case is the small version of a trap waiting in the PDF work — a scanned PDF
+extracts to an empty string, which would flow on as an empty CV and rank last. The system would
+confidently place a candidate bottom because their file could not be read.
+
+### A list built for a hundred, not for three
+
+Rows are **collapsed unless asked for**. The first version tracked which rows were *collapsed*,
+defaulting to none — correct for three candidates and wrong for two hundred and fifty, where
+loading a batch opened every row and pushed the posting off the page. Inverting it means any
+intake path produces a readable list without anything having to remember to collapse it. A row
+with no text yet is the exception: it is always open, because it exists to be typed into.
+
+Past eight candidates the list gains a filter and its own scroll area, so the posting and the
+Rank button stay reachable. **The filter states that it does not change what is ranked** —
+*"Showing 12 of 250. Filtering changes this list only — all 250 are ranked."* That is the trap
+the feature creates, and while the property is structural (the page submits the full list, and
+the filtered view never reaches the request), a guarantee the user cannot see is not a guarantee
+to them.
+
+---
+
+## 7. Boundary limits, mirrored client-side
 
 The server enforces these; the client repeats them so a reviewer meets the ceiling while typing
 rather than after a submit comes back `422`.
@@ -266,7 +339,7 @@ the model's largest single input.
 
 ---
 
-## 7. Errors
+## 8. Errors
 
 `422` arrives in two incompatible shapes and both are handled in one place
 (`src/lib/errors.ts`), because they mean different things:
@@ -290,7 +363,7 @@ message for six situations.
 
 ---
 
-## 8. Dependencies
+## 9. Dependencies
 
 Next.js, React, and `clsx`. That is the whole runtime list.
 
@@ -306,7 +379,7 @@ three highs and an explanation. Next 16.3 reports zero.
 
 ---
 
-## 9. Deliberately not built
+## 10. Deliberately not built
 
 Scope, not oversight.
 
@@ -314,14 +387,14 @@ Scope, not oversight.
 |---|---|
 | Parse playground | `POST /parse` exists and is worth showing, but the ranking flow already exercises the parser and surfaces its warnings |
 | Model provenance page | `/model-info` returns checksums, metrics and feature importance. Valuable, and not needed to demonstrate the ranking |
-| Fairness dashboard | The audit output is not exposed by any endpoint; it would need either a new endpoint or reading `fairness.json`. The [fairness report](fairness-report.md) covers the substance |
-| File upload | The backend accepts raw text only. A picker that silently dropped formatting would be a worse lie than its absence |
+| Fairness dashboard | Being built next. The audit output needs a small endpoint of its own; the [fairness report](fairness-report.md) covers the substance meanwhile |
+| `.pdf` / `.docx` upload | Needs server-side extraction, and a scanned PDF extracts to nothing — which would rank as an empty CV. A later phase, handled properly rather than quickly. `.txt` upload works today, see section 6 |
 | Authentication | No endpoint has any. Adding it to the frontend alone would imply protection that does not exist |
 | Saving or exporting shortlists | Nothing here is a record of a decision. Persisting a ranking would make it look like one |
 
 ---
 
-## 10. Known limitations
+## 11. Known limitations
 
 - **No end-to-end browser tests.** The API client, error normalisation, feature metadata and
   warning phrasings are unit tested; the rendered components are verified by hand. A Playwright

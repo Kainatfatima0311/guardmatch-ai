@@ -21,24 +21,33 @@ anything else.
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Literal
 
 import numpy as np
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile
 
 from guardmatch.api.dependencies import ServiceState, get_ready_service
 from guardmatch.core.config import get_settings
+from guardmatch.core.exceptions import ParsingError
 from guardmatch.core.logging import get_logger, get_request_id
 from guardmatch.core.metrics import rank_batch_size
 from guardmatch.data.candidates import generate_candidates
 from guardmatch.explain.reasons import build_reasons
 from guardmatch.explain.shap_explainer import Explainer, ShapExplanation
+from guardmatch.features.builder import build_features
 from guardmatch.features.registry import to_vector
+from guardmatch.parsing.documents import MAX_UPLOAD_BYTES, extension_of, extract_text
 from guardmatch.parsing.extractor import parse_cv
 from guardmatch.ranking.predict import RankedCandidate
 from guardmatch.schemas.candidate import Candidate, ParsedProfile
+from guardmatch.schemas.enums import CertificationCode, ShiftType, SiteType
+from guardmatch.schemas.job import Job
 from guardmatch.schemas.scoring import (
     Explanation,
+    ExtractResponse,
     FeatureContribution,
+    FeatureImportance,
+    FeatureImportanceResponse,
     ParseRequest,
     ParseResponse,
     RankRequest,
@@ -136,6 +145,118 @@ def sample_candidates(
         count=len(generated),
         seed=resolved_seed,
     )
+
+
+#: Enough for a stable mean without making the first request slow. Parsing is the
+#: cost here, not SHAP.
+IMPORTANCE_SAMPLE = 200
+
+#: A middle-of-the-road posting. Importance is measured against *a* job because
+#: every feature in this model is pairwise — there is no candidate-only view — so
+#: the reference posting is part of the measurement and is stated, not hidden.
+_REFERENCE_JOB = Job(
+    job_id="reference",
+    required_certifications=frozenset(
+        {CertificationCode.SECURITY_LICENCE, CertificationCode.FIRST_AID}
+    ),
+    min_years_experience=3.0,
+    shift_pattern=ShiftType.NIGHT,
+    site_type=SiteType.RETAIL,
+    driving_required=True,
+)
+
+
+@router.get(
+    "/feature-importance",
+    response_model=FeatureImportanceResponse,
+    summary="Global SHAP feature importance",
+)
+def feature_importance(
+    service: ServiceState = Depends(get_ready_service),
+) -> FeatureImportanceResponse:
+    """Return each feature's share of the model's total effect.
+
+    Global importance is the view a single explanation cannot give. One candidate's
+    contributions say why that candidate placed where they did; this says what the
+    model leans on in general — which is how `shift_match` was found to dominate,
+    and `shift_match` is the feature carrying the largest fairness exposure.
+
+    Measured against a fixed reference posting, because every feature here is
+    pairwise: there is no candidate-only feature vector to average over. The
+    posting used is part of the answer, so it is stated in the docstring rather
+    than buried.
+
+    Cached after the first call. Building the sample means parsing CVs, which costs
+    around a second — acceptable once, not per request.
+    """
+    _, explainer = service.require_scoring()
+
+    if service.importance is None:
+        rows = [
+            to_vector(build_features(parse_cv(candidate), _REFERENCE_JOB))
+            for candidate in generate_candidates(IMPORTANCE_SAMPLE, seed=get_settings().random_seed)
+        ]
+        service.importance = explainer.global_importance(np.asarray(rows, dtype=float))
+        logger.info("feature_importance_computed", sample=IMPORTANCE_SAMPLE)
+
+    total = sum(service.importance.values()) or 1.0
+    ranked = sorted(service.importance.items(), key=lambda item: -item[1])
+
+    return FeatureImportanceResponse(
+        model_version=service.model_version,
+        sample_size=IMPORTANCE_SAMPLE,
+        features=tuple(
+            FeatureImportance(feature=name, mean_absolute_contribution=value, share=value / total)
+            for name, value in ranked
+        ),
+    )
+
+
+@router.post("/extract", response_model=ExtractResponse, summary="Extract CV text from a file")
+async def extract(file: UploadFile = File(...)) -> ExtractResponse:
+    """Pull CV text out of one uploaded document.
+
+    One file per request, deliberately. A reviewer dropping twenty files needs to
+    know **which** ones failed while they are still holding them, and a batch
+    endpoint either fails wholesale or returns a mixed result the client has to
+    unpick anyway. Per-file requests make each outcome its own answer.
+
+    Refuses rather than guesses. A scanned PDF has no text layer, so `pypdf`
+    returns an empty string with no error — passing that on would produce an empty
+    CV, which ranks last. See `parsing/documents.py` for the full argument and for
+    why OCR was rejected.
+
+    No model needed: this reads a file. It stays available while the model is
+    still verifying, so a reviewer can prepare a batch before it can be scored.
+
+    Raises:
+        ParsingError: Handled by the application's exception handler as a 422 with
+            a string `detail` naming the file's problem and, where there is one,
+            the way out.
+    """
+    filename = file.filename or "upload"
+    payload = await file.read()
+
+    # Size is checked inside `extract_text` too, but reading the whole body first
+    # is unavoidable with UploadFile — this is the belt, not the braces.
+    if len(payload) > MAX_UPLOAD_BYTES:
+        msg = (
+            f"{len(payload) / (1024 * 1024):.1f} MB is too large for a CV — the limit is "
+            f"{MAX_UPLOAD_BYTES // (1024 * 1024)} MB."
+        )
+        raise ParsingError(msg)
+
+    text = extract_text(filename, payload)
+    extension = extension_of(filename)
+    source: Literal["text", "pdf", "docx"] = (
+        "pdf" if extension == ".pdf" else "docx" if extension == ".docx" else "text"
+    )
+
+    logger.info(
+        "document_extracted", source=source, characters=len(text), filename_length=len(filename)
+    )
+
+    return ExtractResponse(filename=filename, cv_text=text, characters=len(text), source=source)
 
 
 @router.post("/parse", response_model=ParseResponse, summary="Extract structured facts")

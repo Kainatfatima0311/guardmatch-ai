@@ -30,6 +30,11 @@ class ServiceState:
     ranker: Ranker | None = None
     explainer: Explainer | None = None
     ready: bool = False
+    #: Global SHAP importance, computed once on first request and held here.
+    #: Computing it needs a representative sample of feature vectors, which means
+    #: parsing CVs — around a second of work. Doing that per request would put
+    #: that on the latency budget of a page a reviewer refreshes.
+    importance: dict[str, float] | None = None
     detail: str | None = field(
         default="model has not finished loading",
         metadata={"note": "reason readiness is false, surfaced by /ready"},

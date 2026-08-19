@@ -22,10 +22,12 @@ these tests need no artifact on disk and train a small model in seconds.
 
 from __future__ import annotations
 
+import io
 from typing import Any
 
 import lightgbm as lgb
 import numpy as np
+import pypdf
 import pytest
 from fastapi.testclient import TestClient
 
@@ -34,6 +36,8 @@ from guardmatch.api.dependencies import ServiceState
 from guardmatch.explain.shap_explainer import Explainer
 from guardmatch.features.registry import FEATURE_NAMES
 from guardmatch.ranking.predict import Ranker
+from guardmatch.registry.artifacts import LoadedModel
+from guardmatch.registry.metadata import ModelMetadata
 from guardmatch.schemas.scoring import SCORE_TYPE
 
 CV_TEXT = """PROFILE
@@ -114,6 +118,168 @@ def unready_client() -> TestClient:
     return TestClient(app)
 
 
+def _group(name: str, appearances: int, in_top_k: int) -> dict[str, Any]:
+    return {
+        "group": name,
+        "n_appearances": appearances,
+        "n_in_top_k": in_top_k,
+        "n_qualified": appearances // 3,
+        "n_qualified_in_top_k": in_top_k // 2,
+        "selection_rate": in_top_k / appearances,
+        "qualified_selection_rate": (in_top_k // 2) / max(appearances // 3, 1),
+        "mean_exposure": 0.24,
+    }
+
+
+# A two-attribute audit shaped like the released one, and deliberately carrying
+# **both** outcomes the endpoint has to keep distinct: `gender` passes cleanly,
+# while `age_band` sits below the four-fifths line yet is reported inconclusive
+# rather than failed, because the gap is not distinguishable from noise once
+# corrected for the number of possible group comparisons. A fixture where
+# everything simply passes could not catch a consumer that collapses the two.
+AUDIT: dict[str, Any] = {
+    "model_version": "v-test",
+    "top_k": 10,
+    "adverse_impact_threshold": 0.8,
+    "max_gap": 0.1,
+    "min_group_size": 30,
+    "n_postings": 50,
+    "n_rows": 3041,
+    "passes": True,
+    "failures": [],
+    "inconclusive": [
+        "age_band: adverse impact ratio 0.627 is below the four-fifths threshold "
+        "of 0.80 but not distinguishable from noise once corrected for 10 possible "
+        "group comparisons (p=0.0069, threshold 0.0050); smallest group n=319"
+    ],
+    "attributes": [
+        {
+            "attribute": "gender",
+            "top_k": 10,
+            "groups": [_group("female", 1275, 214), _group("male", 1766, 306)],
+            "suppressed_groups": [],
+            "adverse_impact_ratio": 0.9649,
+            "demographic_parity_gap": 0.0059,
+            "equal_opportunity_gap": 0.0389,
+            "exposure_ratio": 0.9825,
+            "selection_p_value": 0.6652,
+            "qualified_p_value": 0.2067,
+            "significance_threshold": 0.05,
+            "n_comparisons": 1,
+            "passes": True,
+            "failures": [],
+            "inconclusive": [],
+        },
+        {
+            "attribute": "age_band",
+            "top_k": 10,
+            "groups": [
+                _group("under_25", 319, 33),
+                _group("25_34", 902, 148),
+                _group("55_plus", 421, 44),
+            ],
+            "suppressed_groups": ["unknown"],
+            "adverse_impact_ratio": 0.6275,
+            "demographic_parity_gap": 0.0612,
+            "equal_opportunity_gap": 0.0904,
+            "exposure_ratio": 0.9077,
+            "selection_p_value": 0.0069,
+            "qualified_p_value": 0.0411,
+            "significance_threshold": 0.005,
+            "n_comparisons": 10,
+            "passes": True,
+            "failures": [],
+            "inconclusive": [
+                "adverse impact ratio 0.627 is below 0.80 but not distinguishable "
+                "from noise after correcting for 10 comparisons"
+            ],
+        },
+    ],
+}
+
+
+@pytest.fixture
+def audited_client(booster: lgb.Booster) -> TestClient:
+    """A client whose artifact carries a fairness audit.
+
+    `ready_client` is ready but holds no `LoadedModel`, which is enough for the
+    scoring routes and not for anything reading the artifact bundle. The audit
+    lives in that bundle, so it needs a loaded artifact rather than a relaxed
+    endpoint.
+    """
+    app = create_app()
+    metadata = ModelMetadata(
+        model_version="v-test",
+        trained_at="2026-08-20T00:00:00+00:00",
+        generator_version="1.0.0",
+        data_seed=42,
+        n_candidates=100,
+        n_jobs=10,
+        n_pairs=400,
+        n_train_groups=8,
+        n_valid_groups=2,
+        feature_names=list(FEATURE_NAMES),
+        hyperparameters={"num_leaves": 7},
+        best_iteration=20,
+        git_sha="abc123",
+        git_dirty=False,
+    )
+    app.state.service = ServiceState(
+        model_version="v-test",
+        loaded=LoadedModel(
+            booster=booster,
+            metadata=metadata,
+            metrics={"model_ndcg_at_10": 0.9},
+            fairness=AUDIT,
+            feature_names=FEATURE_NAMES,
+            version="v-test",
+        ),
+        ranker=Ranker(booster),
+        explainer=Explainer(booster),
+        ready=True,
+        detail=None,
+    )
+    return TestClient(app)
+
+
+@pytest.fixture
+def unaudited_client(booster: lgb.Booster) -> TestClient:
+    """An artifact with no audit — `train` writes the model, `audit` fills this in."""
+    app = create_app()
+    metadata = ModelMetadata(
+        model_version="v-test",
+        trained_at="2026-08-20T00:00:00+00:00",
+        generator_version="1.0.0",
+        data_seed=42,
+        n_candidates=100,
+        n_jobs=10,
+        n_pairs=400,
+        n_train_groups=8,
+        n_valid_groups=2,
+        feature_names=list(FEATURE_NAMES),
+        hyperparameters={},
+        best_iteration=20,
+        git_sha="abc123",
+        git_dirty=False,
+    )
+    app.state.service = ServiceState(
+        model_version="v-test",
+        loaded=LoadedModel(
+            booster=booster,
+            metadata=metadata,
+            metrics={},
+            fairness={},
+            feature_names=FEATURE_NAMES,
+            version="v-test",
+        ),
+        ranker=Ranker(booster),
+        explainer=Explainer(booster),
+        ready=True,
+        detail=None,
+    )
+    return TestClient(app)
+
+
 def candidate(candidate_id: str = "c_1", text: str = CV_TEXT) -> dict[str, str]:
     return {"candidate_id": candidate_id, "cv_text": text}
 
@@ -168,6 +334,292 @@ def test_metrics_endpoint_serves_prometheus(ready_client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 # Parse
 # ---------------------------------------------------------------------------
+
+
+# ---------------------------------------------------------------------------
+# document upload
+# ---------------------------------------------------------------------------
+
+
+def test_extract_reads_a_text_file(unready_client: TestClient) -> None:
+    """Deliberately on the unready client.
+
+    Extraction reads a file and touches nothing the model owns, so it must stay
+    available while the model is still verifying — a reviewer can prepare a batch
+    before the service can score it. If this ever returns 503, a dependency was
+    added that does not belong.
+    """
+    response = unready_client.post(
+        "/extract",
+        files={"file": ("cv.txt", b"PROFILE\nGuard with 6 years.", "text/plain")},
+    )
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["filename"] == "cv.txt"
+    assert "PROFILE" in body["cv_text"]
+    assert body["source"] == "text"
+    assert body["characters"] == len(body["cv_text"])
+
+
+def test_extract_refuses_a_scanned_pdf_with_a_string_detail(ready_client: TestClient) -> None:
+    """The failure the whole feature is shaped around, at the API boundary.
+
+    `ParsingError` maps to a 422 whose `detail` is a **string**, unlike a
+    validation 422 whose detail is an array. The client handles both; this pins
+    that an unreadable file arrives as the string kind, since that is the one
+    carrying a message meant for a person.
+    """
+    writer = pypdf.PdfWriter()
+    writer.add_blank_page(width=595, height=842)
+    buffer = io.BytesIO()
+    writer.write(buffer)
+
+    response = ready_client.post(
+        "/extract",
+        files={"file": ("scan.pdf", buffer.getvalue(), "application/pdf")},
+    )
+
+    assert response.status_code == 422
+    detail = response.json()["detail"]
+    assert isinstance(detail, str)
+    assert "no text layer" in detail
+
+
+def test_extract_never_returns_empty_text(ready_client: TestClient) -> None:
+    """The invariant everything downstream relies on.
+
+    Either text comes back and can be ranked, or an error comes back and the
+    caller knows not to rank. There is no third state where something empty flows
+    on looking like a CV.
+    """
+    response = ready_client.post(
+        "/extract", files={"file": ("blank.txt", b"   \n  ", "text/plain")}
+    )
+
+    assert response.status_code == 422
+    assert "empty" in response.json()["detail"]
+
+
+def test_extract_output_is_rankable(ready_client: TestClient) -> None:
+    """What comes out of /extract goes straight into /rank, unchanged."""
+    extracted = ready_client.post(
+        "/extract",
+        files={
+            "file": (
+                "aisha.txt",
+                b"PROFILE\nGuard with 6 years.\n\nCERTIFICATIONS\n- SIA licence",
+                "text/plain",
+            )
+        },
+    ).json()
+
+    response = ready_client.post(
+        "/rank",
+        json={
+            "job": JOB,
+            "candidates": [{"candidate_id": "c_1", "cv_text": extracted["cv_text"]}],
+        },
+    )
+
+    assert response.status_code == 200
+    assert response.json()["candidates"][0]["rank"] == 1
+
+
+def test_extract_does_not_echo_the_filename_into_the_ranking_path(
+    ready_client: TestClient,
+) -> None:
+    """`/extract` returns the filename; `/rank` must never receive it.
+
+    The filename is the display label, and `name` is a blocked attribute in this
+    system. Attaching it to a candidate is refused by `extra="forbid"` — asserted
+    here so the two endpoints cannot be wired together carelessly.
+    """
+    extracted = ready_client.post(
+        "/extract", files={"file": ("aisha_okafor.txt", b"PROFILE\nGuard.", "text/plain")}
+    ).json()
+
+    response = ready_client.post(
+        "/rank",
+        json={
+            "job": JOB,
+            "candidates": [
+                {
+                    "candidate_id": "c_1",
+                    "cv_text": extracted["cv_text"],
+                    "filename": extracted["filename"],
+                }
+            ],
+        },
+    )
+
+    assert response.status_code == 422
+
+
+# ---------------------------------------------------------------------------
+# global feature importance
+# ---------------------------------------------------------------------------
+
+
+def test_feature_importance_covers_every_feature(ready_client: TestClient) -> None:
+    response = ready_client.get("/feature-importance")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert len(body["features"]) == len(FEATURE_NAMES)
+    assert {f["feature"] for f in body["features"]} == set(FEATURE_NAMES)
+
+
+def test_feature_importance_shares_sum_to_one(ready_client: TestClient) -> None:
+    """Shares, not raw magnitudes.
+
+    The model card quotes these as percentages, so the response has to carry
+    something that can be read as one. A raw mean absolute contribution cannot:
+    nobody can scale it without the total.
+    """
+    body = ready_client.get("/feature-importance").json()
+
+    assert sum(f["share"] for f in body["features"]) == pytest.approx(1.0)
+
+
+def test_feature_importance_is_ordered_by_effect(ready_client: TestClient) -> None:
+    """Largest first, because the question is which feature dominates."""
+    shares = [f["share"] for f in ready_client.get("/feature-importance").json()["features"]]
+
+    assert shares == sorted(shares, reverse=True)
+
+
+def test_feature_importance_is_refused_while_unready(unready_client: TestClient) -> None:
+    """It needs the explainer, so it is a scoring-path route and answers like one."""
+    assert unready_client.get("/feature-importance").status_code == 503
+
+
+def test_feature_importance_is_cached(ready_client: TestClient) -> None:
+    """The same answer twice, from the cache rather than recomputed.
+
+    Building the sample means parsing 200 CVs — around a second. Acceptable once
+    for a page a reviewer opens; not acceptable on every refresh.
+    """
+    first = ready_client.get("/feature-importance").json()
+    again = ready_client.get("/feature-importance").json()
+
+    assert first == again
+
+
+# ---------------------------------------------------------------------------
+# fairness audit
+# ---------------------------------------------------------------------------
+
+
+def test_fairness_reports_a_missing_audit_plainly(unaudited_client: TestClient) -> None:
+    """404 with instructions, not an empty shape.
+
+    An artifact can legitimately exist without an audit — `train` writes the model
+    and `audit` fills this in afterwards. Returning an empty audit would read like
+    a clean bill of health for a model nobody has measured.
+    """
+    response = unaudited_client.get("/fairness")
+
+    assert response.status_code == 404
+    assert "guardmatch audit" in response.json()["detail"]
+
+
+def test_fairness_is_refused_while_unready(unready_client: TestClient) -> None:
+    """503 rather than 404.
+
+    The audit is part of the artifact bundle, so its absence before load means the
+    service is not ready — not that fairness data does not exist. A 404 would send
+    a caller looking for a missing file.
+    """
+    response = unready_client.get("/fairness")
+
+    assert response.status_code == 503
+
+
+def test_fairness_returns_the_audit(audited_client: TestClient) -> None:
+    response = audited_client.get("/fairness")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["model_version"] == "v-test"
+    assert body["top_k"] == 10
+    assert body["adverse_impact_threshold"] == 0.8
+
+
+def test_fairness_reports_every_audited_attribute(audited_client: TestClient) -> None:
+    body = audited_client.get("/fairness").json()
+
+    assert [a["attribute"] for a in body["attributes"]] == ["gender", "age_band"]
+
+
+def test_fairness_carries_group_level_aggregates(audited_client: TestClient) -> None:
+    """Aggregates, and only aggregates.
+
+    This endpoint is publishable precisely because nothing in it describes an
+    individual. If a candidate id or CV text ever appeared here it would be a
+    disclosure, not a metric — asserted on the whole serialised body rather than
+    field by field.
+    """
+    response = audited_client.get("/fairness")
+
+    assert "candidate_id" not in response.text
+    assert "cv_text" not in response.text
+
+    group = response.json()["attributes"][0]["groups"][0]
+    assert set(group) == {
+        "group",
+        "n_appearances",
+        "n_in_top_k",
+        "n_qualified",
+        "n_qualified_in_top_k",
+        "selection_rate",
+        "qualified_selection_rate",
+        "mean_exposure",
+    }
+
+
+def test_fairness_distinguishes_inconclusive_from_passing(audited_client: TestClient) -> None:
+    """The distinction the whole endpoint exists to preserve.
+
+    `passes` is not `adverse_impact_ratio >= threshold`. A ratio below the
+    four-fifths line that is not distinguishable from noise after Bonferroni
+    correction is reported as **inconclusive**, and the released `age_band` audit
+    is exactly that case at 0.627. A consumer rendering `passes` as a green tick
+    while ignoring `inconclusive` would state something this audit does not, so
+    both fields have to survive the boundary.
+    """
+    body = audited_client.get("/fairness").json()
+    by_name = {a["attribute"]: a for a in body["attributes"]}
+
+    clean = by_name["gender"]
+    assert clean["passes"] is True
+    assert clean["inconclusive"] == []
+
+    unclear = by_name["age_band"]
+    assert unclear["adverse_impact_ratio"] < body["adverse_impact_threshold"]
+    # Below the line and still `passes`, because it is inconclusive rather than a
+    # breach. Anything rendering only `passes` would call this clean.
+    assert unclear["passes"] is True
+    assert len(unclear["inconclusive"]) == 1
+    assert unclear["failures"] == []
+
+    # The run reports no failures while still carrying an inconclusive result, so
+    # a summary built from `failures` alone would lose it.
+    assert body["failures"] == []
+    assert len(body["inconclusive"]) == 1
+
+
+def test_fairness_includes_the_exposure_metric(audited_client: TestClient) -> None:
+    """Exposure is the metric that earns its place.
+
+    Two groups shortlisted at exactly equal rates but placed 1-5 against 6-10 read
+    as perfectly fair on every selection-rate measure. Only exposure catches it, so
+    it must not be dropped from the response for being the unfamiliar one.
+    """
+    attribute = audited_client.get("/fairness").json()["attributes"][0]
+
+    assert "exposure_ratio" in attribute
+    assert 0.0 <= attribute["exposure_ratio"] <= 2.0
 
 
 # ---------------------------------------------------------------------------

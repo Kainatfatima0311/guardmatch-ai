@@ -160,6 +160,99 @@ export interface ReadyResponse {
   detail: string | null;
 }
 
+/**
+ * How one demographic group fared across the held-out shortlists.
+ *
+ * Aggregate throughout. Groups smaller than the audit's `min_group_size` are
+ * suppressed rather than reported, because a ratio of two proportions is unstable
+ * on small numbers — this project produced a false adverse-impact alarm that way
+ * once, on a 319-member group.
+ */
+export interface GroupOutcome {
+  group: string;
+  n_appearances: number;
+  n_in_top_k: number;
+  n_qualified: number;
+  n_qualified_in_top_k: number;
+  selection_rate: number;
+  qualified_selection_rate: number;
+  mean_exposure: number;
+}
+
+/**
+ * The audit for one protected attribute.
+ *
+ * **`passes` is not `adverse_impact_ratio >= threshold`.** A ratio below the
+ * four-fifths line that is not distinguishable from noise after correcting for the
+ * number of possible group comparisons is reported as *inconclusive* — and the
+ * released `age_band` audit is exactly that, at 0.627 with `passes: true`.
+ *
+ * Rendering `passes` as a tick while ignoring `inconclusive` would state something
+ * the audit does not. Use `auditVerdict` rather than reading `passes` directly.
+ */
+export interface AttributeAudit {
+  attribute: string;
+  top_k: number;
+  groups: GroupOutcome[];
+  suppressed_groups: string[];
+  adverse_impact_ratio: number;
+  demographic_parity_gap: number;
+  equal_opportunity_gap: number;
+  exposure_ratio: number;
+  selection_p_value: number;
+  qualified_p_value: number;
+  significance_threshold: number;
+  n_comparisons: number;
+  passes: boolean;
+  failures: string[];
+  inconclusive: string[];
+}
+
+export interface FairnessResponse {
+  model_version: string;
+  top_k: number;
+  adverse_impact_threshold: number;
+  max_gap: number;
+  min_group_size: number;
+  n_postings: number;
+  n_rows: number;
+  passes: boolean;
+  failures: string[];
+  inconclusive: string[];
+  attributes: AttributeAudit[];
+}
+
+/** Text pulled out of one uploaded document. `cv_text` is never empty. */
+export interface ExtractResponse {
+  filename: string;
+  cv_text: string;
+  characters: number;
+  /** How the text was obtained, so a reviewer knows whether to expect layout damage. */
+  source: "text" | "pdf" | "docx";
+}
+
+export interface FeatureImportance {
+  feature: string;
+  mean_absolute_contribution: number;
+  /** Share of the total, so the twelve sum to 1. */
+  share: number;
+}
+
+/**
+ * Global SHAP importance: what the model leans on in general, as opposed to why
+ * one candidate placed where they did.
+ *
+ * Measured against a fixed reference posting, because every feature in this model
+ * is pairwise — there is no candidate-only vector to average over. That makes the
+ * reference posting part of the measurement, which is why figures here can differ
+ * slightly from the model card, computed against the full set of training jobs.
+ */
+export interface FeatureImportanceResponse {
+  model_version: string;
+  sample_size: number;
+  features: FeatureImportance[];
+}
+
 export interface ModelInfoResponse {
   model_version: string;
   trained_at: string;

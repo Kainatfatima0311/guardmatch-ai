@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import Nav from "./Nav";
 import ThemeToggle from "./ThemeToggle";
 
 /**
@@ -36,12 +37,12 @@ export default function Shell({ children }: { children: ReactNode }) {
               <span className="block h-1 w-4 rounded-full bg-primary" />
               <span className="block h-1 w-2.5 rounded-full bg-primary opacity-55" />
             </span>
-            <div className="flex min-w-0 flex-wrap items-baseline gap-x-2.5">
-              <span className="text-base font-semibold tracking-tight">GuardMatch</span>
-              <span className="text-xs text-muted">Rank workspace</span>
-            </div>
+            <span className="text-base font-semibold tracking-tight">GuardMatch</span>
           </div>
-          <ThemeToggle />
+          <div className="flex items-center gap-3">
+            <Nav />
+            <ThemeToggle />
+          </div>
         </div>
 
         <div className="border-t border-border bg-amber-surface">

@@ -24,7 +24,13 @@ import ReasonList from "./ReasonList";
  * hierarchy, not endorsement — the disclaimer above the list is what says what
  * being first does and does not mean.
  */
-export default function CandidateCard({ candidate }: { candidate: ScoredCandidate }) {
+export default function CandidateCard({
+  candidate,
+  displayName,
+}: {
+  candidate: ScoredCandidate;
+  displayName?: string;
+}) {
   const [open, setOpen] = useState(false);
   const panelId = useId();
   const leading = candidate.rank === 1;
@@ -56,7 +62,12 @@ export default function CandidateCard({ candidate }: { candidate: ScoredCandidat
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-baseline gap-x-2">
-            <h3 className="text-sm font-semibold tracking-tight">{candidate.candidate_id}</h3>
+            <h3 className="text-sm font-semibold tracking-tight">
+              {displayName ?? candidate.candidate_id}
+            </h3>
+            {displayName && (
+              <span className="tabular text-2xs text-muted">{candidate.candidate_id}</span>
+            )}
             {leading && (
               <span className="rounded bg-primary-wash px-1.5 py-0.5 text-2xs font-medium text-primary">
                 strongest fit

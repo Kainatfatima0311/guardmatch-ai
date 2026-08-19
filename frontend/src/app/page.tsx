@@ -9,7 +9,9 @@ import { Button } from "@/components/ui";
 import { rank, ready, sampleCandidates } from "@/lib/api";
 import type { NormalisedError } from "@/lib/errors";
 import { SAMPLE_CANDIDATES, SAMPLE_JOB } from "@/lib/samples";
-import type { Candidate, Job, RankResponse } from "@/lib/types";
+import { toRequestCandidates, type CandidateDraft } from "@/lib/files";
+import { displayNames } from "@/lib/shortlist";
+import type { Job, RankResponse } from "@/lib/types";
 
 /**
  * The Rank workspace.
@@ -36,11 +38,11 @@ const EMPTY_JOB: JobDraft = {
   driving_required: false,
 };
 
-const EMPTY_CANDIDATES: Candidate[] = [{ candidate_id: "c_1", cv_text: "" }];
+const EMPTY_CANDIDATES: CandidateDraft[] = [{ candidate_id: "c_1", cv_text: "" }];
 
 export default function Page() {
   const [job, setJob] = useState<JobDraft>(EMPTY_JOB);
-  const [candidates, setCandidates] = useState<Candidate[]>(EMPTY_CANDIDATES);
+  const [candidates, setCandidates] = useState<CandidateDraft[]>(EMPTY_CANDIDATES);
   const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<RankResponse | null>(null);
   const [error, setError] = useState<NormalisedError | null>(null);
@@ -119,10 +121,9 @@ export default function Page() {
     const response = await rank({
       // Safe: `problems` is 0, so both selects hold a real enum value.
       job: job as Job,
-      candidates: candidates.map((c) => ({
-        candidate_id: c.candidate_id.trim(),
-        cv_text: c.cv_text,
-      })),
+      // The one place a draft becomes a payload. `displayName` and `fromFile` are
+      // dropped here — see the note in @/lib/files on why the name must not travel.
+      candidates: toRequestCandidates(candidates),
     });
 
     if (response.ok) {
@@ -250,7 +251,7 @@ export default function Page() {
 
         {result && !busy && (
           <>
-            <RankResults result={result} />
+            <RankResults result={result} names={displayNames(candidates)} />
             <StatusFooter
               modelVersion={result.model_version}
               requestId={result.request_id}
