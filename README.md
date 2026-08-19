@@ -105,7 +105,7 @@ back up to the score.
 
 The browser never calls the API directly — requests go through a route handler in the
 Next.js server. That is why there is no CORS configuration anywhere in the backend: there is
-no cross-origin request to permit.
+no cross-origin request to permit. See [the frontend notes](docs/frontend.md).
 
 ### Docker
 
@@ -238,6 +238,7 @@ A gate that has never failed proves nothing about what it claims to detect.
 | [Explainability](docs/explainability.md) | Method, worked examples, global importance |
 | [Data card](docs/data-card.md) | Generation, anti-circularity design, bias injection |
 | [API reference](docs/api-reference.md) | Endpoints, schemas, errors |
+| [Frontend](docs/frontend.md) | Colour system with measured contrast, the constraints enforced in code, what was not built |
 
 ## Project layout
 

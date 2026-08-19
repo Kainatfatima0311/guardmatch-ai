@@ -134,6 +134,22 @@ than discovered later.
 **A feature that only carries risk.** `recency_months` contributes 0.0% while proxying for
 career breaks, which correlate with parental leave. It is a free removal in v0.2.0.
 
+**A stated shortcoming is penalised harder than an unstated one, so the model mildly rewards a
+vague CV.** Missing values reach LightGBM as NaN and are routed down a default branch, which is
+gentler than the branch a known-bad value takes. Measured on the sample set: `site_type_match`
+contributes **-0.0850** when the site type is known not to match, against **-0.0192** when the CV
+never said; `exp_gap` contributes **-0.2716** at a year below the minimum, against **-0.0609**
+when experience is unstated. A candidate who documents a genuine mismatch can therefore rank
+below one who documents almost nothing.
+
+Mechanically this is ordinary gradient-boosting behaviour and nothing is broken. As a property
+of a hiring aid it points an incentive the wrong way, and CV completeness is not evenly
+distributed across groups — fluency, education and access to CV-writing help all bear on it, and
+each correlates with characteristics the audit watches. It was found by building the interface
+rather than by any test: the ordering looked wrong, and the contribution table said why in one
+glance. Not yet reflected in the fairness metrics, which measure outcomes by group rather than by
+how much a CV happened to state. Candidate for explicit missing-value handling in v0.2.0.
+
 **Extraction limits what the model can see.** A certification the parser missed cannot
 influence a score or appear in an explanation. Parse warnings travel through to every API
 response so a reviewer can tell when the system was unsure. Accuracy on generated CVs is 100%

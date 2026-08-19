@@ -4,9 +4,9 @@ The interface for the scoring service: describe a posting, paste the application
 ranked shortlist where every placement carries the reasons behind it.
 
 For what the project is, see the [root README](../README.md). The design decisions behind this
-half — the colour system with its measured contrast ratios, the honesty rules below, and why
-there is no CORS middleware anywhere in the backend — are recorded in the comments at the top
-of the files that implement them, and collected in `docs/frontend.md`.
+half — the colour system with its measured contrast ratios, the constraints enforced in code, and
+why there is no CORS middleware anywhere in the backend — are in
+[the frontend notes](../docs/frontend.md).
 
 ## Running it
 
