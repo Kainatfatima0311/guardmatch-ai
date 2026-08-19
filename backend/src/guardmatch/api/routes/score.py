@@ -23,17 +23,19 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import numpy as np
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from guardmatch.api.dependencies import ServiceState, get_ready_service
+from guardmatch.core.config import get_settings
 from guardmatch.core.logging import get_logger, get_request_id
 from guardmatch.core.metrics import rank_batch_size
+from guardmatch.data.candidates import generate_candidates
 from guardmatch.explain.reasons import build_reasons
 from guardmatch.explain.shap_explainer import Explainer, ShapExplanation
 from guardmatch.features.registry import to_vector
 from guardmatch.parsing.extractor import parse_cv
 from guardmatch.ranking.predict import RankedCandidate
-from guardmatch.schemas.candidate import ParsedProfile
+from guardmatch.schemas.candidate import Candidate, ParsedProfile
 from guardmatch.schemas.scoring import (
     Explanation,
     FeatureContribution,
@@ -41,6 +43,7 @@ from guardmatch.schemas.scoring import (
     ParseResponse,
     RankRequest,
     RankResponse,
+    SampleCandidatesResponse,
     ScoredCandidate,
     ScoreRequest,
     ScoreResponse,
@@ -67,6 +70,71 @@ def _to_explanation(shap: ShapExplanation) -> Explanation:
             for item in ranked
         ),
         reasons=build_reasons(shap),
+    )
+
+
+@router.get(
+    "/sample-candidates",
+    response_model=SampleCandidatesResponse,
+    summary="Generate synthetic candidates for trying the service at volume",
+)
+def sample_candidates(
+    count: int = Query(10, ge=1, description="How many candidates to generate."),
+    seed: int | None = Query(
+        None, description="Defaults to the configured RANDOM_SEED, so results repeat."
+    ),
+) -> SampleCandidatesResponse:
+    """Synthetic applications, generated on demand.
+
+    The brief opens with SAJCO's hiring volume, and there is no way to see that in
+    an interface where every CV has to be pasted by hand. This produces as many
+    applications as asked for, so the ranking path can be exercised at a realistic
+    size.
+
+    **Generated rather than read from disk.** The obvious implementation reads
+    ``data/candidates.json``, and it would fail in the container: `data/` is
+    excluded from the image by `.dockerignore`, deliberately, because a service
+    that scores what it is sent has no use for the training set. The generator
+    itself ships inside the package, so generating costs nothing at build time and
+    works identically locally, in the container and in CI. Measured at roughly
+    80 ms for 250 candidates.
+
+    **No model needed.** This deliberately does not depend on
+    ``get_ready_service``: it produces text and touches nothing the model owns, so
+    it stays available while the model is still loading or has failed
+    verification. A caller can prepare a batch before the service can score it.
+
+    **Ground truth is stripped.** The generator returns ``GeneratedCandidate``,
+    which carries the ``true_*`` values the CV text was written from. Only the
+    plain ``Candidate`` fields are returned, because handing a caller the answers
+    the model is meant to infer from the text would make any demo meaningless.
+
+    Raises:
+        HTTPException: ``count`` exceeds the batch limit the ranking endpoint
+            enforces, so a caller cannot be handed more candidates than it is
+            allowed to submit.
+    """
+    settings = get_settings()
+
+    if count > settings.max_rank_batch:
+        msg = (
+            f"count exceeds MAX_RANK_BATCH ({count} > {settings.max_rank_batch}). "
+            f"Requesting more candidates than /rank accepts would only fail later."
+        )
+        raise HTTPException(status_code=422, detail=msg)
+
+    resolved_seed = settings.random_seed if seed is None else seed
+    generated = generate_candidates(count, seed=resolved_seed)
+
+    logger.info("sample_candidates_generated", count=count, seed=resolved_seed)
+
+    return SampleCandidatesResponse(
+        candidates=tuple(
+            Candidate(candidate_id=candidate.candidate_id, cv_text=candidate.cv_text)
+            for candidate in generated
+        ),
+        count=len(generated),
+        seed=resolved_seed,
     )
 
 

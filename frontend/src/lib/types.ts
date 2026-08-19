@@ -135,6 +135,24 @@ export interface RankResponse {
   disclaimer: string;
 }
 
+/**
+ * Synthetic candidates, for trying the service at the volume the brief describes.
+ *
+ * `source` is carried in the payload rather than assumed, for the same reason
+ * `RankResponse` carries its disclaimer: a constraint that travels with the data
+ * cannot be left behind. The interface renders it, so a demo is never mistaken
+ * for real applicants.
+ *
+ * The service deliberately strips the ground truth the generator holds, so these
+ * are plain `Candidate` objects and nothing more.
+ */
+export interface SampleCandidatesResponse {
+  candidates: Candidate[];
+  count: number;
+  seed: number;
+  source: "synthetic";
+}
+
 export interface ReadyResponse {
   ready: boolean;
   model_version: string;

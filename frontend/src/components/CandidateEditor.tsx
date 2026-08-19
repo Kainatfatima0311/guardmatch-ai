@@ -3,7 +3,7 @@
 import clsx from "clsx";
 import { useState } from "react";
 import { MAX_CV_LENGTH, MAX_RANK_BATCH, type Candidate } from "@/lib/types";
-import { Button, Card, CardBody, CardHeader } from "./ui";
+import { Button, Card, CardBody, CardHeader, Select } from "./ui";
 
 /**
  * The applications to rank.
@@ -22,6 +22,15 @@ import { Button, Card, CardBody, CardHeader } from "./ui";
  * PDF upload and nothing here pretends otherwise: a file picker that silently
  * dropped formatting would be a worse lie than its absence.
  */
+
+/**
+ * How many generated applications the dataset control offers.
+ *
+ * It stops at 250 rather than at the 500 the service accepts, because 500 is the
+ * point at which the *next* request fails rather than a comfortable size to work
+ * at — offering the ceiling as a choice invites hitting it.
+ */
+export const DATASET_COUNTS = [10, 50, 100, 250] as const;
 
 export interface CandidateIssue {
   index: number;
@@ -71,14 +80,19 @@ export default function CandidateEditor({
   disabled,
   onChange,
   onLoadSamples,
+  onLoadDataset,
+  loadingDataset,
 }: {
   candidates: Candidate[];
   issues: CandidateIssue[];
   disabled?: boolean;
   onChange: (next: Candidate[]) => void;
   onLoadSamples: () => void;
+  onLoadDataset: (count: number) => void;
+  loadingDataset?: boolean;
 }) {
   const [collapsed, setCollapsed] = useState<Set<number>>(new Set());
+  const [datasetCount, setDatasetCount] = useState(100);
 
   const update = (index: number, patch: Partial<Candidate>) =>
     onChange(candidates.map((c, i) => (i === index ? { ...c, ...patch } : c)));
@@ -113,8 +127,26 @@ export default function CandidateEditor({
         actions={
           <>
             <Button type="button" size="sm" onClick={onLoadSamples} disabled={disabled}>
-              Load samples
+              Load 4 samples
             </Button>
+            <div className="flex items-center gap-1.5">
+              <Select
+                aria-label="How many generated applications to load"
+                className="w-auto py-1.5 text-xs"
+                value={String(datasetCount)}
+                disabled={disabled || loadingDataset}
+                onChange={(e) => setDatasetCount(Number(e.target.value))}
+                options={DATASET_COUNTS.map((n) => ({ value: String(n), label: String(n) }))}
+              />
+              <Button
+                type="button"
+                size="sm"
+                onClick={() => onLoadDataset(datasetCount)}
+                disabled={disabled || loadingDataset}
+              >
+                {loadingDataset ? "Generating…" : "Load generated"}
+              </Button>
+            </div>
             <Button
               type="button"
               size="sm"

@@ -176,6 +176,32 @@ class RankResponse(BaseModel):
 # ---------------------------------------------------------------------------
 
 
+class SampleCandidatesResponse(BaseModel):
+    """Synthetic candidates, for trying the service at volume.
+
+    The brief opens with SAJCO's hiring volume, and pasting three hundred CVs by
+    hand is not a way to see that. This returns generated applications instead.
+
+    **Ground truth is deliberately absent.** The generator produces
+    ``GeneratedCandidate``, which carries the ``true_*`` fields the CV text was
+    written from — years, certifications, availability. Returning those would hand
+    a caller the answers the model is supposed to infer from the text, so only the
+    plain ``Candidate`` shape crosses the boundary.
+
+    ``source`` exists so a caller cannot mistake this for real applicants. It is
+    stated in the payload rather than only in documentation, for the same reason
+    ``RankResponse`` carries its disclaimer: a constraint that travels with the
+    data cannot be left behind.
+    """
+
+    model_config = ConfigDict(frozen=True, extra="forbid")
+
+    candidates: tuple[Candidate, ...]
+    count: int
+    seed: int
+    source: Literal["synthetic"] = "synthetic"
+
+
 class HealthResponse(BaseModel):
     """Liveness. Deliberately does not touch the model."""
 

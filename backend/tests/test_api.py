@@ -170,6 +170,117 @@ def test_metrics_endpoint_serves_prometheus(ready_client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
+# ---------------------------------------------------------------------------
+# sample candidates
+# ---------------------------------------------------------------------------
+
+
+def test_sample_candidates_returns_the_requested_count(ready_client: TestClient) -> None:
+    response = ready_client.get("/sample-candidates?count=7")
+
+    assert response.status_code == 200
+    body = response.json()
+    assert body["count"] == 7
+    assert len(body["candidates"]) == 7
+
+
+def test_sample_candidates_never_returns_ground_truth(ready_client: TestClient) -> None:
+    """The generator knows the answers. A caller must not.
+
+    `generate_candidates` returns `GeneratedCandidate`, which carries the `true_*`
+    values the CV text was written from — years, certifications, availability.
+    Returning those would hand a caller exactly what the model is supposed to infer
+    from the text, and any demo built on it would be measuring nothing.
+
+    Asserted on the raw response body as well as the parsed fields, because the
+    leak would happen in serialisation and a field-by-field check on a parsed
+    object can miss a nested one.
+    """
+    response = ready_client.get("/sample-candidates?count=3")
+
+    for candidate in response.json()["candidates"]:
+        assert set(candidate) == {"candidate_id", "cv_text"}, (
+            f"unexpected fields crossed the boundary: {sorted(candidate)}"
+        )
+
+    assert "true_" not in response.text
+
+
+def test_sample_candidates_marks_itself_synthetic(ready_client: TestClient) -> None:
+    """Stated in the payload, not only in the documentation.
+
+    Same argument as the disclaimer on `RankResponse`: a constraint that travels
+    with the data cannot be left behind by a caller who never read the docs.
+    """
+    body = ready_client.get("/sample-candidates?count=2").json()
+
+    assert body["source"] == "synthetic"
+
+
+def test_sample_candidates_is_reproducible_from_its_seed(ready_client: TestClient) -> None:
+    first = ready_client.get("/sample-candidates?count=4&seed=11").json()["candidates"]
+    again = ready_client.get("/sample-candidates?count=4&seed=11").json()["candidates"]
+    other = ready_client.get("/sample-candidates?count=4&seed=12").json()["candidates"]
+
+    assert first == again
+    assert first != other
+
+
+def test_sample_candidates_refuses_more_than_rank_accepts(ready_client: TestClient) -> None:
+    """Refused here rather than at `/rank`.
+
+    Handing a caller 600 candidates when `/rank` accepts 500 would produce a batch
+    that cannot be submitted, and the failure would surface one step later than the
+    mistake.
+    """
+    response = ready_client.get("/sample-candidates?count=100000")
+
+    assert response.status_code == 422
+    assert "MAX_RANK_BATCH" in response.json()["detail"]
+
+
+def test_sample_candidates_refuses_a_count_below_one(ready_client: TestClient) -> None:
+    assert ready_client.get("/sample-candidates?count=0").status_code == 422
+
+
+def test_sample_candidates_works_without_the_model(unready_client: TestClient) -> None:
+    """It generates text and touches nothing the model owns.
+
+    Every scoring route is refused while the model is unverified, and this one must
+    not be: a reviewer can prepare a batch while the service is still starting. If
+    this ever starts returning 503, a dependency was added that does not belong.
+    """
+    response = unready_client.get("/sample-candidates?count=2")
+
+    assert response.status_code == 200
+    assert response.json()["count"] == 2
+
+
+def test_sample_candidates_are_rankable(ready_client: TestClient) -> None:
+    """The whole point: what comes out of here goes straight into `/rank`."""
+    candidates = ready_client.get("/sample-candidates?count=5").json()["candidates"]
+
+    response = ready_client.post(
+        "/rank",
+        json={
+            "job": {
+                "job_id": "j_sample",
+                "required_certifications": ["security_licence"],
+                "min_years_experience": 3.0,
+                "shift_pattern": "night",
+                "site_type": "retail",
+                "driving_required": False,
+            },
+            "candidates": candidates,
+        },
+    )
+
+    assert response.status_code == 200, response.text
+    ranked = response.json()["candidates"]
+    assert len(ranked) == 5
+    assert [c["rank"] for c in ranked] == [1, 2, 3, 4, 5]
+
+
 def test_parse_returns_structured_facts(ready_client: TestClient) -> None:
     response = ready_client.post("/parse", json={"candidate": candidate()})
     assert response.status_code == 200

@@ -1,5 +1,11 @@
 import { normaliseError, type NormalisedError } from "./errors";
-import type { ModelInfoResponse, RankRequest, RankResponse, ReadyResponse } from "./types";
+import type {
+  ModelInfoResponse,
+  RankRequest,
+  RankResponse,
+  ReadyResponse,
+  SampleCandidatesResponse,
+} from "./types";
 
 /**
  * The typed client.
@@ -57,6 +63,22 @@ async function call<T>(path: string, init?: RequestInit): Promise<Result<T>> {
 
 export function rank(request: RankRequest): Promise<Result<RankResponse>> {
   return call<RankResponse>("rank", { method: "POST", body: JSON.stringify(request) });
+}
+
+/**
+ * Generated applications, so the ranking path can be tried at a realistic size.
+ *
+ * Available even while the model is still verifying, because the service produces
+ * this without touching anything the model owns — a batch can be prepared before
+ * it can be scored.
+ */
+export function sampleCandidates(
+  count: number,
+  seed?: number,
+): Promise<Result<SampleCandidatesResponse>> {
+  const query = new URLSearchParams({ count: String(count) });
+  if (seed !== undefined) query.set("seed", String(seed));
+  return call<SampleCandidatesResponse>(`sample-candidates?${query}`);
 }
 
 export function ready(): Promise<Result<ReadyResponse>> {

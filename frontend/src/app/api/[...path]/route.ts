@@ -27,6 +27,7 @@ const ALLOWED = new Map<string, "GET" | "POST">([
   ["rank", "POST"],
   ["score", "POST"],
   ["parse", "POST"],
+  ["sample-candidates", "GET"],
   ["ready", "GET"],
   ["health", "GET"],
   ["model-info", "GET"],

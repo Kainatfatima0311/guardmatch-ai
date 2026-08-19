@@ -6,7 +6,7 @@ import JobForm, { type JobDraft, type JobFormErrors } from "@/components/JobForm
 import RankResults from "@/components/RankResults";
 import StatusFooter from "@/components/StatusFooter";
 import { Button } from "@/components/ui";
-import { rank, ready } from "@/lib/api";
+import { rank, ready, sampleCandidates } from "@/lib/api";
 import type { NormalisedError } from "@/lib/errors";
 import { SAMPLE_CANDIDATES, SAMPLE_JOB } from "@/lib/samples";
 import type { Candidate, Job, RankResponse } from "@/lib/types";
@@ -46,6 +46,8 @@ export default function Page() {
   const [error, setError] = useState<NormalisedError | null>(null);
   const [showErrors, setShowErrors] = useState(false);
   const [notReady, setNotReady] = useState<string | null>(null);
+  const [loadingDataset, setLoadingDataset] = useState(false);
+  const [generatedNote, setGeneratedNote] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -72,12 +74,39 @@ export default function Page() {
 
   const problems = candidateIssues.length + Object.keys(jobErrors).length;
 
+  /**
+   * Generated applications, so the ranking path can be tried at the volume the
+   * brief describes. The service produces these without touching the model, so it
+   * works even while the model is still verifying.
+   */
+  async function loadDataset(count: number) {
+    setLoadingDataset(true);
+    setError(null);
+
+    const response = await sampleCandidates(count);
+
+    if (response.ok) {
+      setCandidates(response.data.candidates.map((c) => ({ ...c })));
+      setResult(null);
+      setShowErrors(false);
+      // Rendered from the response rather than assumed, so the interface cannot
+      // claim a provenance the service did not state.
+      setGeneratedNote(
+        `${response.data.count} ${response.data.source} applications, generated from seed ${response.data.seed}. Not real applicants.`,
+      );
+    } else {
+      setError(response.error);
+    }
+    setLoadingDataset(false);
+  }
+
   function loadSamples() {
     setJob({ ...SAMPLE_JOB, required_certifications: [...SAMPLE_JOB.required_certifications] });
     setCandidates(SAMPLE_CANDIDATES.map((c) => ({ ...c })));
     setResult(null);
     setError(null);
     setShowErrors(false);
+    setGeneratedNote(null);
   }
 
   async function submit() {
@@ -139,8 +168,25 @@ export default function Page() {
           disabled={busy}
           onChange={setCandidates}
           onLoadSamples={loadSamples}
+          onLoadDataset={loadDataset}
+          loadingDataset={loadingDataset}
         />
       </div>
+
+      {generatedNote && (
+        <div
+          role="status"
+          className="flex gap-2.5 rounded-lg border border-amber/40 bg-amber-surface px-4 py-2.5"
+        >
+          <span aria-hidden="true" className="text-amber">
+            ◈
+          </span>
+          <p className="text-xs leading-relaxed">
+            <span className="font-semibold text-amber">Generated data. </span>
+            <span className="text-text">{generatedNote}</span>
+          </p>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-border bg-surface px-4 py-3.5 shadow-[var(--shadow-card)]">
         <span
