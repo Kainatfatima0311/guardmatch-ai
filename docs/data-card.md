@@ -181,7 +181,8 @@ committing 5.6 MB would add weight without adding information. Model artifacts u
 
 ## 8. The sample CVs shipped with the interface
 
-`frontend/src/lib/samples.ts` carries four hand-written CVs so the Rank workspace can be tried
+`frontend/src/lib/samples.ts` carries four hand-written CVs so the [Rank workspace](frontend.md)
+can be tried
 without pasting a real application. They are a second, much smaller dataset and belong in this
 document for the same reason the generated one does.
 
@@ -204,7 +205,7 @@ than `0` would be untestable by eye.
 
 It also surfaced a model behaviour nobody had written down: `c_haddad`, a complete CV, ranks
 *below* `c_unstated`, which states almost nothing, because a stated negative is penalised harder
-than an unknown. See the model card's limitations.
+than an unknown. See the [model card](model-card.md).
 
 These four contain no real personal data. The names are invented and the employers do not exist.
 
