@@ -166,7 +166,44 @@ there is nothing to trade off.
 Global importance is what surfaces both of these. Neither is visible from any individual
 explanation.
 
-## 7. Limitations
+## 7. How a reviewer actually sees this
+
+Everything above describes what the service produces. What a reviewer reads is the
+[Rank workspace](frontend.md), and four of its rules exist because of properties of this
+explanation layer rather than for visual reasons.
+
+**The words come before the numbers.** The generated `reasons` are shown first, because they are
+the layer a non-technical reviewer reads. The twelve-row contribution table sits underneath as
+the audit trail, behind a disclosure.
+
+**All twelve contributions are shown, including the ones that did nothing.** The response never
+truncates them, and neither does the interface. Dropping the near-zero rows would turn "this did
+not matter" into "this was not considered" — different claims that a reader cannot distinguish
+from an absence.
+
+**The additivity guarantee is displayed rather than asserted.** Because base value plus every
+contribution reconstructs the score to 1e-6, the browser recomputes the sum and shows whether it
+holds, alongside the reported score. Measured across the sample set the delta runs from 0.0e+00
+to 1.8e-15, which is JSON rounding rather than disagreement. An explanation that does not add up
+to the score it explains is a story printed beside a number, and the interface is able to say
+which one it is holding.
+
+**Direction never depends on colour.** Each row carries a sign and an arrow as well as its
+emerald or rose fill, so the information survives greyscale printing and colour vision
+deficiency. The reasons already state direction in words, which is the primary channel.
+
+Two things the interface deliberately refuses to render. The score is never shown as a
+percentage, a ring, or a progress bar — every one of those implies a proportion, and a reviewer
+reads a filled ring as "83% suitable" regardless of the caption. And a `null` contribution value
+renders as **"not stated"**, never as `0`, because the parser distinguishes a fact the CV omitted
+from one it stated as zero and the presentation must not collapse them.
+
+The four features registered as monitored proxies are labelled as such in the table, with their
+specific exposure. `shift_match` being both the largest input and the largest fairness exposure
+is a fact that previously lived only in section 6 and the fairness report; it now appears at the
+moment it is acting on a candidate.
+
+## 8. Limitations
 
 **Explanations describe the model, not the world.** They say what drove a score. They do not
 establish that the model's reasoning is correct, or that the features it weighs are the ones
@@ -186,7 +223,7 @@ in any explanation. This is why parse warnings travel through to the API respons
 **Measured on synthetic data.** Importance rankings reflect this dataset. On real applicants
 the ordering would differ, and the audit would need re-running.
 
-## 8. Where this lives in the code
+## 9. Where this lives in the code
 
 | Concern | Module |
 |---|---|

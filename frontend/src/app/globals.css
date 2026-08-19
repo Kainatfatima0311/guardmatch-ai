@@ -1,117 +1,190 @@
 @import "tailwindcss";
 
 /* ===========================================================================
-   Night Watch — the GuardMatch colour system
+   Night Watch — the GuardMatch design system
    ===========================================================================
 
-   Colour here is a carrier of meaning, not decoration. Three families are
-   reserved, and nothing else may use them:
+   COLOUR IS A CARRIER OF MEANING, NOT DECORATION
 
-     --amber          a constraint on how the output may be used. Disclaimers
-                      and nothing else. If amber appears, the reader is being
-                      told what this result is not.
-     --pos / --neg    the direction of a SHAP contribution, and only that.
-                      Never generic success/error styling.
-     --primary        interactive affordances, and the leading candidate.
+   Three families are reserved. Nothing else may use them:
+
+     --amber        a constraint on how the output may be used. Disclaimers and
+                    readiness warnings, nothing else. If amber appears, the
+                    reader is being told what this result is not.
+     --pos / --neg  the direction of a SHAP contribution, and only that. Never
+                    generic success or error styling.
+     --primary      interactive affordances, and the leading candidate.
 
    Reserving them is what lets a reader learn the language once. A green badge
    that sometimes means "saved" and sometimes means "counted in favour" teaches
    nothing.
 
-   Every foreground/background pair below was measured, not estimated:
+   EVERY PAIR MEASURED, ON EVERY SURFACE IT CAN SIT ON
 
-     DARK      on --bg   on --surface        LIGHT     on --bg   on --surface
-     text      15.89       14.45             text      16.25       17.28
-     muted      7.32        6.65             muted      5.09        5.42
-     primary    7.52        6.84             primary    5.14        5.47
-     amber      8.72        7.93             amber      4.72        5.02
-     pos        9.74        8.86             pos        5.15        5.48
-     neg        6.96        6.33             neg        5.91        6.29
+   Four background layers exist, so a colour that clears AA on --bg can still
+   fail on --surface-3. Each foreground is therefore measured against all four,
+   and the figure recorded is the worst of them.
 
-   All clear WCAG AA for body text (4.5:1). --border is a decorative separator
-   and is deliberately low contrast; --border-strong is the one used for control
-   boundaries, and it clears the 3:1 that WCAG 1.4.11 requires of them
-   (dark 3.14 on surface, light 3.58).
+     DARK             worst    LIGHT            worst
+     text             11.66    text             14.81
+     muted             5.44    muted             4.80
+     primary           5.46    primary           4.55
+     primary-hover     7.30    primary-hover     6.31
+     amber             6.33    amber             4.66
+     pos               7.07    pos               4.56
+     neg               5.05    neg               5.23
 
-   Three theme states are supported. An explicit choice sets data-theme on the
-   root element; the default "system" sets nothing, so prefers-color-scheme is
-   the only signal. Each palette is therefore declared twice on purpose — once
-   for the media query and once for the attribute — so a toggle wins in both
-   directions rather than only when it agrees with the OS.
+   All clear WCAG AA for body text (4.5:1). Measuring against the deepest surface
+   rather than the page background caught four failures in the first draft of
+   this palette, before any of it was written into a component.
+
+   --border is a decorative separator and is deliberately low contrast.
+   --border-strong is the one used for control boundaries, and clears the 3:1
+   that WCAG 1.4.11 asks of them on every surface: 3.39 dark, 3.36 light.
+
+   THREE THEME STATES
+
+   An explicit choice stamps data-theme on the root; the default "system" stamps
+   nothing, leaving prefers-color-scheme as the only signal. Each palette is
+   therefore declared twice on purpose — once for the media query and once for
+   the attribute — so a toggle wins in both directions rather than only when it
+   agrees with the OS.
    ------------------------------------------------------------------------- */
 
 :root {
-  --bg: #f6f8fb;
+  /* Light — the bare :root default, so "system" resolves correctly with no
+     attribute set and no JavaScript having run. */
+  --bg: #f5f8fc;
   --surface: #ffffff;
-  --surface-2: #eef2f8;
-  --border: #d9e1ec;
-  --border-strong: #7e8899;
-  --text: #0f1b2d;
-  --muted: #5a6b85;
+  --surface-2: #edf2f9;
+  --surface-3: #e3ebf5;
+  --border: #dce4ef;
+  --border-strong: #767f8f;
+  --text: #0d1829;
+  --muted: #56677f;
   --primary: #0f766e;
+  --primary-hover: #115e59;
   --primary-contrast: #ffffff;
-  --amber: #b45309;
-  --amber-surface: #fef6ec;
+  --primary-wash: #e6f4f1;
+  --amber: #a94d08;
+  --amber-surface: #fef7ec;
   --pos: #047857;
   --neg: #be123c;
-  --shadow: 0 1px 2px rgb(15 27 45 / 0.06), 0 8px 24px rgb(15 27 45 / 0.06);
+  --pos-wash: #e7f5ef;
+  --neg-wash: #fdeaee;
+
+  --shadow-sm: 0 1px 2px rgb(13 24 41 / 0.05);
+  --shadow-md: 0 1px 2px rgb(13 24 41 / 0.05), 0 4px 12px rgb(13 24 41 / 0.06);
+  --shadow-lg: 0 1px 2px rgb(13 24 41 / 0.05), 0 12px 32px rgb(13 24 41 / 0.1);
+  --ring: 0 0 0 3px rgb(15 118 110 / 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0b1220;
-    --surface: #131c2e;
-    --surface-2: #1b2740;
-    --border: #24314a;
-    --border-strong: #566a92;
-    --text: #e6edf7;
-    --muted: #93a3bc;
+    --bg: #0a101c;
+    --surface: #111a2b;
+    --surface-2: #18243a;
+    --surface-3: #1f2e49;
+    --border: #223047;
+    --border-strong: #6680ab;
+    --text: #e8eef8;
+    --muted: #94a5c0;
     --primary: #14b8a6;
+    --primary-hover: #2dd4bf;
     --primary-contrast: #04211d;
+    --primary-wash: #10312e;
     --amber: #f59e0b;
-    --amber-surface: #26200f;
+    --amber-surface: #241c0c;
     --pos: #34d399;
     --neg: #fb7185;
-    --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+    --pos-wash: #102c24;
+    --neg-wash: #2c1219;
+
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 12px rgb(0 0 0 / 0.3);
+    --shadow-lg: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+    --ring: 0 0 0 3px rgb(20 184 166 / 0.25);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0b1220;
-  --surface: #131c2e;
-  --surface-2: #1b2740;
-  --border: #24314a;
-  --border-strong: #566a92;
-  --text: #e6edf7;
-  --muted: #93a3bc;
+  --bg: #0a101c;
+  --surface: #111a2b;
+  --surface-2: #18243a;
+  --surface-3: #1f2e49;
+  --border: #223047;
+  --border-strong: #6680ab;
+  --text: #e8eef8;
+  --muted: #94a5c0;
   --primary: #14b8a6;
+  --primary-hover: #2dd4bf;
   --primary-contrast: #04211d;
+  --primary-wash: #10312e;
   --amber: #f59e0b;
-  --amber-surface: #26200f;
+  --amber-surface: #241c0c;
   --pos: #34d399;
   --neg: #fb7185;
-  --shadow: 0 1px 2px rgb(0 0 0 / 0.4), 0 8px 24px rgb(0 0 0 / 0.35);
+  --pos-wash: #102c24;
+  --neg-wash: #2c1219;
+
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 12px rgb(0 0 0 / 0.3);
+  --shadow-lg: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+  --ring: 0 0 0 3px rgb(20 184 166 / 0.25);
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
   --color-border: var(--border);
   --color-border-strong: var(--border-strong);
   --color-text: var(--text);
   --color-muted: var(--muted);
   --color-primary: var(--primary);
+  --color-primary-hover: var(--primary-hover);
   --color-primary-contrast: var(--primary-contrast);
+  --color-primary-wash: var(--primary-wash);
   --color-amber: var(--amber);
   --color-amber-surface: var(--amber-surface);
   --color-pos: var(--pos);
   --color-neg: var(--neg);
+  --color-pos-wash: var(--pos-wash);
+  --color-neg-wash: var(--neg-wash);
 
-  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
-    "Helvetica Neue", Arial, sans-serif;
-  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
-    "Liberation Mono", monospace;
+  /* Supplied by next/font in layout.tsx, which self-hosts the files. No runtime
+     request to a font CDN, and therefore no third party in the request path of a
+     hiring tool. */
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system,
+    "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-mono: var(--font-mono-face), ui-monospace, SFMono-Regular, Menlo,
+    Consolas, "Liberation Mono", monospace;
+
+  /* A restrained type scale. Six sizes is enough for this interface, and a
+     scale with more steps than the design needs invites inconsistency. */
+  --text-2xs: 0.6875rem;
+  --text-2xs--line-height: 1rem;
+  --text-xs: 0.75rem;
+  --text-xs--line-height: 1.125rem;
+  --text-sm: 0.875rem;
+  --text-sm--line-height: 1.375rem;
+  --text-base: 1rem;
+  --text-base--line-height: 1.5625rem;
+  --text-lg: 1.125rem;
+  --text-lg--line-height: 1.625rem;
+  --text-xl: 1.375rem;
+  --text-xl--line-height: 1.75rem;
+  --text-2xl: 1.75rem;
+  --text-2xl--line-height: 2.125rem;
+
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+
+  --shadow-card: var(--shadow-md);
+  --shadow-raised: var(--shadow-lg);
 }
 
 html {
@@ -123,23 +196,38 @@ body {
   color: var(--text);
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 /* Scores, contributions and counts are read down a column and compared. With
    proportional digits a 1 is narrower than a 7, so the columns misalign and the
    eye has to re-find the decimal point on every row. */
 .tabular {
-  font-variant-numeric: tabular-nums;
   font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
 /* One focus treatment everywhere, and it is never removed — only restyled.
-   :focus-visible so a mouse click does not leave a ring behind, while keyboard
+   :focus-visible so a mouse click leaves no ring behind, while keyboard
    navigation always shows where it is. */
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
+}
+
+/* A hairline that reads as a fold in the surface rather than a drawn line.
+   Used where a section boundary needs to be felt but not counted. */
+.hairline {
+  background-image: linear-gradient(
+    to right,
+    transparent,
+    var(--border) 12%,
+    var(--border) 88%,
+    transparent
+  );
+  height: 1px;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -149,5 +237,6 @@ body {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

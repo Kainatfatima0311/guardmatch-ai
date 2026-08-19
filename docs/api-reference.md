@@ -251,6 +251,41 @@ labelled gauge, and feature distribution snapshots for later drift comparison.
 
 ---
 
+## Callers, and why there is no CORS middleware
+
+Two kinds of caller are supported, and only one of them is a browser.
+
+**A server-side integration** — an HR system, a script, a scheduled job — calls these endpoints
+directly. Nothing here is specific to a browser.
+
+**The Rank workspace** does not. It calls a route handler inside its own Next.js server, which
+makes the onward call server-side:
+
+```
+browser ──► /api/rank  (Next.js, same origin) ──► FastAPI /rank
+```
+
+There is therefore **no `CORSMiddleware` anywhere in this service, by design**. The alternative
+was naming every origin permitted to reach a hiring model, which fails silently once that list
+is wrong: access widens and nothing appears broken. The proxy removes the question rather than
+answering it, because there is no cross-origin request to permit.
+
+Consequences a caller should know:
+
+- **Calling the API directly from browser JavaScript will be blocked**, and this is intended.
+  Either proxy it server-side, or add CORS deliberately, with the origin list treated as a
+  security decision rather than a configuration detail.
+- **The proxy carries an endpoint allowlist**: `/rank`, `/score`, `/parse`, `/ready`, `/health`,
+  `/model-info`. `/metrics` is deliberately not reachable through it — operational data has no
+  business being exposed to a browser. An unlisted path returns `404`; a wrong method `405`.
+- **Status and body are forwarded unchanged.** A proxy that flattened a `503` into a `500` would
+  destroy the distinction between "wait and retry" and "fix your input", which is the most
+  useful thing the error surface carries.
+- **`X-Request-ID` is preserved, not regenerated**, so one identifier spans the browser, the
+  handler and this service's logs.
+
+See [the frontend notes](frontend.md) for the client side.
+
 ## Errors
 
 | Status | Meaning |

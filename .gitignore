@@ -75,7 +75,22 @@ htmlcov/
 # Notebooks
 # ---------------------------------------------------------------------------
 .ipynb_checkpoints/
-notebooks/*.ipynb
+
+# `*.ipynb` with no slash in it, matched at any depth. This rule previously read
+# `notebooks/*.ipynb`, and the Phase 14 restructure silently killed it: a pattern
+# containing a slash is anchored to the directory holding the .gitignore, so once
+# the folder became `backend/notebooks/` the rule matched nothing and a committed
+# notebook — outputs, embedded data and all — would have gone straight in.
+#
+# This is the mirror image of the `/data/` bug fixed in efff6ce. That pattern had
+# no leading slash and matched too much, excluding source code. This one had a
+# slash and matched too little. Both failures are silent, and both were found by
+# testing the rule against a real path rather than reading it.
+#
+# The intent is "notebook files are not a deliverable here", which is a statement
+# about the file type and not about one directory, so the rule no longer names a
+# directory at all.
+*.ipynb
 
 # ---------------------------------------------------------------------------
 # Node and Next.js
@@ -97,6 +112,19 @@ yarn-error.log*
 
 # Local overrides only. .env.example stays committed as documentation.
 .env*.local
+
+# ---------------------------------------------------------------------------
+# Local tool configuration
+# ---------------------------------------------------------------------------
+# `.claude/settings.local.json` was committed, and it should not have been. The
+# filename says local, and the contents were machine-specific: absolute paths to
+# `D:/miniconda3/envs/guardmatch/Scripts/...`. Anyone cloning the repository
+# inherited permission rules pointing at an interpreter that does not exist on
+# their machine — noise at best, and a confusing failure at worst.
+#
+# A shared `.claude/settings.json` would be a reasonable thing to commit. This
+# file is the deliberately un-shared one.
+.claude/settings.local.json
 
 # ---------------------------------------------------------------------------
 # Editors and OS

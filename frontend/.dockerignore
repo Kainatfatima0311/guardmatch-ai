@@ -1,27 +1,51 @@
-# Build inputs only. Anything reproducible from them, or specific to a
-# developer's machine, stays out of the context.
+# Build context for guardmatch-web.
+#
+# The context is this directory. Everything at the repository root — docs/, the
+# backend, the task runners, PLAN.md and PROGRESS.md — is already outside it, and
+# is not listed here: a rule for a path that cannot exist reads as protection and
+# gives none.
 
+# ---------------------------------------------------------------------------
+# Present, and deliberately excluded
+# ---------------------------------------------------------------------------
+
+# Reinstalled inside the image from package-lock.json. A host node_modules holds
+# platform-specific binaries — the wrong esbuild and the wrong sharp — and is by
+# far the largest thing in this directory.
 node_modules/
+
+# Rebuilt by `npm run build` in the builder stage. Copying a host build in would
+# let a stale bundle silently win over a fresh compile.
 .next/
 out/
 next-env.d.ts
 *.tsbuildinfo
 
-# Local environment and editor state
-.env
-.env.local
-.env*.local
-.vscode/
-.idea/
-.DS_Store
-Thumbs.db
-
-# Nothing here is needed to build or run the server. Tests are run by CI and by
-# `npm test`, not inside the image — a runtime image that carries its own test
-# suite is carrying code it will never execute.
+# Run by CI and by `npm test`, never inside the image.
 **/*.test.ts
 **/*.test.tsx
 vitest.config.ts
+
+# Not read at runtime, and read by the builder before the context is sent.
 README.md
 Dockerfile
 .dockerignore
+
+# ---------------------------------------------------------------------------
+# Absent today, and must stay absent — kept precisely because they match nothing
+# ---------------------------------------------------------------------------
+# Next.js inlines any NEXT_PUBLIC_* variable into the client bundle at build time.
+# A local .env reaching this context would therefore not merely sit in a layer —
+# it could be compiled into JavaScript served to every visitor.
+.env
+.env.*
+*.pem
+*.key
+
+# Editor and OS noise.
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
+desktop.ini

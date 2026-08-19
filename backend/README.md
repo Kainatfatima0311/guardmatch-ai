@@ -23,7 +23,7 @@ backend/
 │   ├── registry/   versioned, checksummed artifacts
 │   ├── api/        FastAPI service
 │   └── cli.py      generate-data, train, audit
-├── tests/          337 tests, 95% coverage
+├── tests/          341 tests, 94.75% coverage, 80 of them gates
 ├── models/v0.1.0/  committed artifacts — six files, all checksummed
 ├── data/           generated from a seed, not committed
 └── notebooks/

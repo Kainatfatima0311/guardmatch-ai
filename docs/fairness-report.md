@@ -172,7 +172,31 @@ That trade-off is documented in advance rather than discovered under pressure. B
 `recency_months` carries career-break proxy risk while contributing **0.0%** — a free removal,
 proposed for v0.2.0.
 
-## 8. What this report does not establish
+## 8. Where a reviewer meets this
+
+Sections 3 and 7 describe machinery that runs before anyone sees a shortlist. The
+[Rank workspace](frontend.md) adds a visibility layer, and it is worth being precise about how
+weak that layer is.
+
+Each of the four monitored proxy features is labelled `(proxy)` in the contribution table, with
+its specific exposure available on the row. So a reviewer looking at why a candidate placed
+where they did can see that `shift_match` — the largest single input to the model — carries a
+correlation with caring responsibilities.
+
+**This prevents nothing.** It does not constrain the model, it does not gate a deployment, and it
+cannot detect anything. All it does is move a fact out of this report, which a reviewer is
+unlikely to have open, and into the screen where the decision is being made. The import barrier,
+the leakage gate and the audit in section 3 are the mechanisms that actually hold.
+
+Two other properties of the interface bear on fairness reading rather than fairness itself. The
+score is never rendered as a percentage or a ring, because a reviewer who reads "83% suitable"
+has been given a probability the number does not carry. And parse warnings are phrased as things
+the *document* did not state, never as things the applicant lacks — "Did not say whether a
+driving licence is held", never "has no driving licence" — since the parser deliberately declines
+to infer the second from the first, and the presentation must not reintroduce the inference the
+pipeline refused.
+
+## 9. What this report does not establish
 
 **It does not certify that the model is fair.** Every number here was measured on synthetic
 demographics, drawn from distributions chosen to be plausible rather than measured. Real
@@ -194,7 +218,7 @@ catches a harm the selection-based ones miss.
    applicant population shifts — the drift hook in `core/metrics.py` exists to make that
    measurable, but the review process is not built.
 
-## 9. If a threshold is breached
+## 10. If a threshold is breached
 
 In order of preference:
 
@@ -206,7 +230,7 @@ In order of preference:
 **Loosening the threshold is not an option.** The threshold is a commitment, and a commitment
 that moves when it becomes inconvenient was never one.
 
-## 10. Reproducing this
+## 11. Reproducing this
 
 ```bash
 cd backend

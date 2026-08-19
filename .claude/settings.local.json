@@ -1,8 +1,0 @@
-{
-  "permissions": {
-    "allow": [
-      "Bash(\"D:/miniconda3/envs/guardmatch/Scripts/ruff.exe\" check *)",
-      "Bash(\"D:/miniconda3/envs/guardmatch/Scripts/mypy.exe\" src *)"
-    ]
-  }
-}

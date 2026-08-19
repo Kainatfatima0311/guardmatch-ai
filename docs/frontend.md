@@ -113,8 +113,10 @@ number, and the interface should be able to say which one it is holding.
 ### Monitored proxy features are labelled where they act
 
 Four of the twelve features can carry demographic information indirectly, and the project's own
-blocklist registers each with its mitigation. Those rows are marked `(proxy)` in the contribution
-table, with the specific exposure on hover. `shift_match` is the known worst case and is also
+blocklist registers each with its mitigation. Those rows carry an amber **proxy** badge in the
+contribution table, with the specific exposure on hover. Amber rather than a neutral grey because
+the badge is a constraint on how the row should be read, which is exactly what amber is reserved
+for. `shift_match` is the known worst case and is also
 the model's single largest input. That fact previously lived only in the fairness report; it now
 appears at the moment it is acting on a candidate.
 
@@ -136,37 +138,70 @@ means "saved" and sometimes means "counted in favour" teaches nothing.
 
 ### Palette and measured contrast
 
-Every foreground/background pair was measured, not estimated. Body text requires 4.5:1 under
-WCAG AA.
+Every foreground is measured against **all four background layers it can sit on**, and the
+figure recorded is the worst of them. Body text requires 4.5:1 under WCAG AA.
 
-| Token | Dark | on `--bg` | on `--surface` | Light | on `--bg` | on `--surface` |
-|---|---|---|---|---|---|---|
-| `--text` | `#E6EDF7` | 15.89 | 14.45 | `#0F1B2D` | 16.25 | 17.28 |
-| `--muted` | `#93A3BC` | 7.32 | 6.65 | `#5A6B85` | 5.09 | 5.42 |
-| `--primary` | `#14B8A6` | 7.52 | 6.84 | `#0F766E` | 5.14 | 5.47 |
-| `--amber` | `#F59E0B` | 8.72 | 7.93 | `#B45309` | 4.72 | 5.02 |
-| `--pos` | `#34D399` | 9.74 | 8.86 | `#047857` | 5.15 | 5.48 |
-| `--neg` | `#FB7185` | 6.96 | 6.33 | `#BE123C` | 5.91 | 6.29 |
+Backgrounds — dark: `--bg #0A101C`, `--surface #111A2B`, `--surface-2 #18243A`,
+`--surface-3 #1F2E49`. Light: `#F5F8FC`, `#FFFFFF`, `#EDF2F9`, `#E3EBF5`.
 
-Backgrounds: dark `--bg #0B1220`, `--surface #131C2E`; light `--bg #F6F8FB`, `--surface #FFFFFF`.
+| Token | Dark | worst | Light | worst |
+|---|---|---|---|---|
+| `--text` | `#E8EEF8` | 11.66 | `#0D1829` | 14.81 |
+| `--muted` | `#94A5C0` | 5.44 | `#56677F` | 4.80 |
+| `--primary` | `#14B8A6` | 5.46 | `#0F766E` | 4.55 |
+| `--primary-hover` | `#2DD4BF` | 7.30 | `#115E59` | 6.31 |
+| `--amber` | `#F59E0B` | 6.33 | `#A94D08` | 4.66 |
+| `--pos` | `#34D399` | 7.07 | `#047857` | 4.56 |
+| `--neg` | `#FB7185` | 5.05 | `#BE123C` | 5.23 |
 
-The tightest pair is amber on the light background at **4.72:1**, which clears AA. The loosest
-is body text at 16.25:1.
+**Measuring against the deepest surface rather than the page background is what makes this
+table worth having.** The first draft of this palette failed in four places once the fourth
+layer was introduced: `--border-strong` at 2.86 and 2.51 on the dark raised surfaces, light
+`--amber` at 4.18, and light `--border-strong` at 2.98. All four were fixed by search — dark
+border `#566A92` → `#6680AB`, light border `#7E8899` → `#767F8F`, light amber `#B45309` →
+`#A94D08` — before any of it reached a component.
+
+Semantic colours are also used as tints, so text on each tint was measured separately. The
+tightest of the sixteen pairs is `--primary` on `--primary-wash` in light at **4.84**.
+
+| On its own wash | Dark | Light |
+|---|---|---|
+| `--primary` | 5.62 | 4.84 |
+| `--amber` | 7.84 | 5.26 |
+| `--pos` | 7.76 | 4.88 |
+| `--neg` | 6.46 | 5.44 |
+| `--text` on any wash | ≥ 12.80 | ≥ 15.41 |
 
 ### Two border tokens, because one was not enough
 
-The first pass had a single `--border`, measured at **1.31:1**. That is correct for a decorative
-card edge and wrong for the boundary of an input or a control, where WCAG 1.4.11 asks 3:1.
-Rather than darkening every border and losing the quiet surface separation the design depends
-on, a second token was added:
+A single `--border` measured **1.31:1**. That is correct for a decorative card edge and wrong
+for the boundary of an input or a control, where WCAG 1.4.11 asks 3:1. Rather than darkening
+every border and losing the quiet surface separation the design depends on, a second token
+carries control boundaries:
 
 | Token | Dark | Light | Used for |
 |---|---|---|---|
 | `--border` | 1.31 | 1.32 | Card edges, table rules — decorative |
-| `--border-strong` | `#566A92`, 3.14 | `#7E8899`, 3.58 | Inputs, selects, buttons, switches |
+| `--border-strong` | `#6680AB`, worst 3.39 | `#767F8F`, worst 3.36 | Inputs, selects, buttons, switches |
 
 The measured table is written into `globals.css` beside the values, so a change that breaks a
 ratio is visible in the same file as the change.
+
+### Type, rhythm and elevation
+
+A six-step type scale with explicit line heights, a four-step radius scale, and three elevation
+levels. Six sizes is enough for this interface; a scale with more steps than the design needs
+invites inconsistency.
+
+Fonts are **self-hosted** through `next/font`, not linked from a CDN, and the reason is not
+performance. A runtime request to `fonts.gstatic.com` would put a third party in the request
+path of a hiring tool and leak that someone is using it. Verified: 13 `woff2` files emitted
+locally, zero references to a font host in the served output.
+
+Inter for prose, because it was designed for screen UI at small sizes. JetBrains Mono for
+figures, because scores and contributions are read down a column and compared — with
+proportional digits a 1 is narrower than a 7, the columns misalign, and the eye has to re-find
+the decimal point on every row.
 
 ### Three theme states
 
@@ -197,6 +232,13 @@ destroys it the first time anyone clicks.
   regions compete.
 - **The contribution table is a table.** `<th scope>` on both axes and an `sr-only` caption, so
   a row can be read as "Shift availability, 1.0, counted in favour" rather than as loose cells.
+  The sign, the arrow and an `sr-only` phrase all state direction, so it is available three ways.
+- **The step numbers are decoration, not a wizard.** The posting, the applications and the action
+  bar are numbered 1–3 so three stacked cards read as a sequence rather than three unrelated
+  panels. Nothing is gated on completing a step, because a reviewer may fill them in any order.
+- **Long CVs collapse.** With four applications pasted in full the page becomes a scroll wall and
+  the posting scrolls out of view — the one thing a reviewer needs in sight while comparing. Each
+  row collapses to its first meaningful line, with `aria-expanded` on the control.
 - **No horizontal body scroll.** Wide content scrolls inside its own container.
 - **Reduced motion honoured** via `prefers-reduced-motion`.
 

@@ -31,7 +31,7 @@ the model whatever patterns were present in past decisions — including any dis
 and present the result as objective. Generating labels from an explicit, inspectable rule is
 the more honest starting point for a system whose purpose includes fairness auditing.
 
-The cost of this choice is realism, and it is a real cost. See Section 8.
+The cost of this choice is realism, and it is a real cost. See Section 9.
 
 ## 3. Contents
 
@@ -179,7 +179,36 @@ The dataset is **not committed** — `data/` is gitignored. It is regenerable fr
 committing 5.6 MB would add weight without adding information. Model artifacts under
 `models/` *are* committed, since those are a deliverable.
 
-## 8. Limitations
+## 8. The sample CVs shipped with the interface
+
+`frontend/src/lib/samples.ts` carries four hand-written CVs so the Rank workspace can be tried
+without pasting a real application. They are a second, much smaller dataset and belong in this
+document for the same reason the generated one does.
+
+| | Written to exercise |
+|---|---|
+| `c_okafor` | The well-formed case: 6 years, licence and fire marshal, night and rotating, construction site, driving |
+| `c_bennett` | A strong candidate who is wrong for *this* posting — day and weekend availability against a night role |
+| `c_haddad` | Real but under-qualified: 3 years against a 4-year minimum, no licence, corporate rather than construction |
+| `c_unstated` | **Deliberately thin.** Almost nothing stated |
+
+They are hand-written rather than drawn from the generator because their job is different: the
+generator produces volume with controlled statistical properties, while these four have to be
+individually legible to someone reading the screen and comparing them.
+
+**The fourth one is the important one.** It returns seven `null` feature values and four parse
+warnings, which is the only way to see the difference between "the CV did not say" and "the
+answer is no". A demo built only from well-formed CVs would show an interface that never has to
+admit it does not know something — and the rule that a `null` renders as "not stated" rather
+than `0` would be untestable by eye.
+
+It also surfaced a model behaviour nobody had written down: `c_haddad`, a complete CV, ranks
+*below* `c_unstated`, which states almost nothing, because a stated negative is penalised harder
+than an unknown. See the model card's limitations.
+
+These four contain no real personal data. The names are invented and the employers do not exist.
+
+## 9. Limitations
 
 **This dataset does not resemble SAJCO's real applicant pool.** Distributions were chosen to
 be plausible, not measured. Any metric reported against this data describes performance on

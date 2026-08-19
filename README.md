@@ -5,7 +5,7 @@ experience, availability — and explains why each candidate landed where they d
 
 [![CI](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml)
 ![Python](https://img.shields.io/badge/python-3.12-blue)
-![Coverage](https://img.shields.io/badge/coverage-95%25-brightgreen)
+![Coverage](https://img.shields.io/badge/coverage-94.75%25-brightgreen)
 ![Licence](https://img.shields.io/badge/licence-MIT-lightgrey)
 
 
@@ -27,13 +27,44 @@ candidates and does not make hiring decisions.
 
 ## How it works
 
+End to end, from a pasted CV to a ranked shortlist on screen:
+
 ```
-CV text ──▶ Parser ──▶ Features ──▶ LambdaRank ──▶ SHAP ──▶ ranked list
-            spaCy      pairwise      LightGBM      exact     + reasons
-            + regex    12 features                 contributions
-                          │
-                          └── protected attributes cannot reach here
+ BROWSER                    NEXT.JS                 FASTAPI
+ ───────                    ───────                 ───────
+ posting + CV text
+      │
+      │  validate locally
+      │  enums · 20k chars · unique ids · 500 batch
+      ▼
+ POST /api/rank ──────▶ allowlist check ──────▶ Pydantic, extra="forbid"
+   same origin          server-side hop               │
+                                                      ▼
+                                                   Parser        spaCy + regex + rapidfuzz
+                                                      ▼
+                                                   Features     12 pairwise
+                                                      │         ┌──────────────────────────┐
+                                                      │◀────────┤ protected attributes     │
+                                                      ▼         │ cannot reach here        │
+                                                   LambdaRank   └──────────────────────────┘
+                                                      ▼         LightGBM, graded 0–3
+                                                    SHAP        exact contributions
+                                                      ▼
+ ranked list ◀───────── status and body ◀──────── 12 contributions
+      │                 unchanged                 + reasons + disclaimer
+      │
+      │  re-check: base value + 12 contributions = score
+      ▼
+ rank · reasons · 12 bars · warnings · disclaimer
 ```
+
+**The browser has no arrow to FastAPI.** Every call goes to a route handler on the Next.js
+server, which makes the onward call itself. That is why no CORS configuration exists anywhere in
+the backend — there is no cross-origin request to permit.
+
+The last step is the one the interface exists for. SHAP here is additive, so the browser
+recomputes `base value + all 12 contributions` and shows whether it reconstructs the score.
+Measured deltas run from 0.0e+00 to 1.8e-15.
 
 | Concern | Choice | Why |
 |---|---|---|
@@ -43,6 +74,7 @@ CV text ──▶ Parser ──▶ Features ──▶ LambdaRank ──▶ SHAP 
 | Fairness | Blocked at the type level, proxies monitored, outcomes audited in CI | Prevention cannot see proxies; measurement only catches harm after it is learned |
 | Serving | FastAPI, checksum-verified versioned artifacts | A model that cannot verify itself should not answer questions |
 | Data | Synthetic and seeded | No real CVs, no PII, fully reproducible |
+| Interface | Next.js, calling the API server-side | The browser never reaches the model, so the audited service keeps the trust boundary it was reviewed with |
 
 ## Results
 
@@ -244,25 +276,38 @@ A gate that has never failed proves nothing about what it claims to detect.
 
 ```
 guardmatch-ai/
-├── backend/                 the service and the pipeline behind it
+├── backend/                     the service and the pipeline behind it
 │   ├── src/guardmatch/
-│   │   ├── core/            config, structured logging, metrics
-│   │   ├── schemas/         Pydantic contracts and closed vocabularies
-│   │   ├── data/            synthetic generator (protected attributes held separately)
-│   │   ├── parsing/         spaCy + regex extraction
-│   │   ├── features/        pairwise features + protected attribute blocklist
-│   │   ├── ranking/         baseline, LambdaRank, evaluation
-│   │   ├── explain/         SHAP contributions and plain-language reasons
-│   │   ├── fairness/        metrics and audit
-│   │   ├── registry/        versioned, checksummed artifacts
-│   │   └── api/             FastAPI service
-│   ├── tests/               337 tests
-│   ├── models/v0.1.0/       committed artifacts, six files, all checksummed
-│   └── data/                generated from a seed, not committed
-├── docs/                    the documents below
-├── docker-compose.yml
-├── Makefile · tasks.ps1     one task list for the whole repository
-└── .github/workflows/
+│   │   ├── core/                config, structured logging, metrics
+│   │   ├── schemas/             Pydantic contracts and closed vocabularies
+│   │   ├── data/                synthetic generator (protected attributes held separately)
+│   │   ├── parsing/             spaCy + regex extraction
+│   │   ├── features/            pairwise features + protected attribute blocklist
+│   │   ├── ranking/             baseline, LambdaRank, evaluation
+│   │   ├── explain/             SHAP contributions and plain-language reasons
+│   │   ├── fairness/            metrics and audit
+│   │   ├── registry/            versioned, checksummed artifacts
+│   │   ├── api/                 FastAPI service
+│   │   └── cli.py               generate-data · train · audit
+│   ├── tests/                   341 tests, 80 of them gates
+│   ├── models/v0.1.0/           committed artifacts, six files, all checksummed
+│   ├── data/                    generated from a seed, not committed
+│   ├── pyproject.toml · Dockerfile · .dockerignore · .env.example
+│   └── README.md
+├── frontend/                    the Rank workspace
+│   ├── src/app/
+│   │   ├── page.tsx             the workspace
+│   │   ├── globals.css          design tokens, with measured contrast ratios
+│   │   └── api/[...path]/       server-side proxy — why no CORS config exists
+│   ├── src/components/          form, results, contribution bars, disclosure
+│   ├── src/lib/                 typed contract, error normalisation, samples
+│   ├── package.json · Dockerfile · .dockerignore
+│   └── README.md
+├── docs/                        the eight documents below
+├── docker-compose.yml           both services, web gated on the API's /ready
+├── Makefile · tasks.ps1         one task list for the whole repository
+├── .gitattributes               keeps artifact bytes verbatim — see the model card
+└── .github/workflows/ci.yml     five jobs
 ```
 
 `docs/` sits at the root rather than inside `backend/` because those documents describe the
@@ -274,7 +319,7 @@ Paths quoted inside `docs/architecture.md` diagrams are relative to `backend/`.
 
 ```bash
 cd backend
-pytest              # 337 tests, 95% coverage, threshold enforced at 85%
+pytest              # 341 tests, 94.75% coverage, threshold enforced at 85%
 pytest -m gate      # fairness and leakage gates only
 pytest -m "not slow"
 ```

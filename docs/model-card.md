@@ -267,6 +267,12 @@ scikit-learn 1.9.0.
 5. **Treat 0.80 as a floor, not a target.** An adverse impact ratio of 0.85 warrants
    investigation, not celebration.
 6. **Monitor over time.** The drift hook exists; the review process does not.
+7. **The reviewer must be able to see the reasoning.** Condition 1 is only meaningful if the
+   human doing the reviewing can read why a candidate placed where they did. The API returns the
+   explanation on every response and the [Rank workspace](frontend.md) renders it — reasons
+   first, then all twelve contributions with the additivity check. An integration that consumes
+   the ranking and discards the explanation satisfies condition 1 in form and not in substance:
+   it produces a human who is approving an order they cannot interrogate.
 
 ## 11. Version history
 

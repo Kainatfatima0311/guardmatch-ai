@@ -1,38 +1,28 @@
-# Everything under data/ is regenerable from a seed and runs to several
-# megabytes. It also has no place in a serving image — the service scores
-# incoming candidates, it does not read the training set.
+# Build context for guardmatch-ai.
 #
-# models/ is deliberately NOT ignored: the artifacts are what the container
-# serves.
+# The context is this directory, not the repository root, so anything at the root
+# is already outside it — the Makefile, docker-compose.yml, .github/, .git/,
+# PLAN.md and PROGRESS.md cannot reach this image and are not listed. Rules for
+# paths that cannot exist here read as protection and provide none.
+#
+# What *is* listed falls into two groups, and the difference matters.
+
+# ---------------------------------------------------------------------------
+# Present, and deliberately excluded
+# ---------------------------------------------------------------------------
+
+# Regenerable from a seed via `guardmatch generate-data`. ~5.7 MB that the image
+# has no use for: the service scores what it is sent, it does not read the
+# training set.
 data/
 
-# Internal working files
-PLAN.md
-PROGRESS.md
-
-# Secrets. Configuration reaches the container through environment variables.
-.env
-.env.local
-*.pem
-*.key
-
-# Version control and CI
-.git/
-.github/
-.gitignore
-
-# Tests and tooling are not needed to serve. CI runs them before the image is
-# built; running them inside the runtime image would only add weight.
+# The suite runs in CI and locally, never inside the runtime image. An image that
+# carries its own tests carries code it will never execute.
 tests/
 notebooks/
-scripts/
-Makefile
-tasks.ps1
-docker-compose.yml
-Dockerfile
-.dockerignore
 
-# Caches
+# Caches and build leftovers. Copying a host cache into a Linux image at best
+# wastes layers and at worst confuses a tool into trusting a stale result.
 __pycache__/
 *.py[cod]
 .pytest_cache/
@@ -40,16 +30,41 @@ __pycache__/
 .ruff_cache/
 .coverage
 coverage.xml
-htmlcov/
 *.egg-info/
-build/
-dist/
+
+# Read by the builder before the context is sent, so shipping them is redundant.
+Dockerfile
+.dockerignore
+
+# ---------------------------------------------------------------------------
+# Absent today, and must stay absent — kept precisely because they match nothing
+# ---------------------------------------------------------------------------
+# These are the accident-prevention rules. `.env.example` is committed and holds
+# no values; a real `.env` holds all of them, and the difference between the two
+# filenames is one keystroke. A secret baked into an image layer stays in that
+# layer even after a later layer deletes it, so this list earns its place long
+# after it stops matching anything.
+#
+# No exception is needed for `.env.example`: the Dockerfile never copies it.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+id_rsa*
+
+# A host virtualenv contains Windows-built binaries that cannot run in the image,
+# and it is large enough to double the context.
 .venv/
 venv/
+htmlcov/
+build/
+dist/
 
-# Editors and OS
+# Editor and OS noise.
 .vscode/
 .idea/
+*.swp
 .DS_Store
 Thumbs.db
 desktop.ini
