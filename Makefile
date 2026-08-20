@@ -75,7 +75,7 @@ web-lint:  ## Run eslint on the frontend
 	$(WRUN) npm run lint
 
 web-typecheck:  ## Type check the frontend without emitting
-	$(WRUN) npx tsc --noEmit
+	$(WRUN) npm run typecheck
 
 web-test:  ## Run the frontend unit tests
 	$(WRUN) npm test

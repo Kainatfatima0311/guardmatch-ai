@@ -548,15 +548,33 @@ and reviewed by someone with employment-law expertise for the relevant jurisdict
 
 ### 8.1 Endpoints
 
-| Method | Path | Purpose |
-|---|---|---|
-| POST | `/rank` | Primary — many candidates against one job, ranked with explanations |
-| POST | `/score` | One candidate against one job |
-| POST | `/parse` | CV text to structured profile; useful for debugging extraction |
-| GET | `/health` | Liveness |
-| GET | `/ready` | Readiness — model loaded and validated |
-| GET | `/model-info` | Active model version and metadata |
-| GET | `/metrics` | Prometheus exposition |
+Eleven, and they are grouped here by **what they depend on** rather than by subject, because
+that is the distinction a caller has to act on.
+
+| Method | Path | Purpose | Needs a verified model |
+|---|---|---|---|
+| POST | `/rank` | Primary — many candidates against one job, ranked with explanations | Yes |
+| POST | `/score` | One candidate against one job | Yes |
+| POST | `/parse` | CV text to structured profile; useful for debugging extraction | Yes |
+| POST | `/extract` | Text out of one uploaded PDF, Word or plain-text document | No |
+| GET | `/sample-candidates` | Generated applications, for exercising the ranking at volume | No |
+| GET | `/fairness` | The audit the loaded artifact carries | Yes |
+| GET | `/feature-importance` | What the ranking rests on, over a fixed sample | Yes |
+| GET | `/health` | Liveness | No |
+| GET | `/ready` | Readiness — model loaded and checksums verified | Answers either way |
+| GET | `/model-info` | Active model version and metadata | Yes |
+| GET | `/metrics` | Prometheus exposition | No |
+
+The four routes added after this document was first written are not incidental. `/extract` and
+`/sample-candidates` exist because the brief opens with *"Given SAJCO's hiring volume"* and the
+first interface required every CV to be pasted by hand, which is fine for three and useless for
+three hundred. Neither touches the model, so both answer while it is still verifying — a caller
+can prepare a batch before the service is able to score it.
+
+`/fairness` and `/feature-importance` exist because the fairness machinery in section 7 and the
+global importance in section 6.3 were enforced in CI and readable nowhere. They report what the
+loaded artifact already carries and compute no new claim about it, which is why the registry
+reaches them by configuration rather than on the request path.
 
 ### 8.2 Design points
 
@@ -845,20 +863,31 @@ with the model work.
 
 ### 14.1 Phases added after this plan was written
 
-Phases 0-13 delivered the brief as written. Four more followed. They are listed here rather than
-left out, so this document describes the project that exists rather than the one that was
-predicted.
+Phases 0-13 delivered the brief as written. **Fifteen more followed.** They are listed here
+rather than left out, so this document describes the project that exists rather than the one that
+was predicted — including the two that were built and undone, which are the most informative rows
+in the table.
 
 | Phase | Content | Why it was not in the original plan |
 |---|---|---|
 | 14 | Split into `backend/` and `frontend/` | A single runtime needed no split |
-| 15 | Rank workspace frontend | A frontend was a locked decision against -- reversed, see the appendix |
+| 15 | Rank workspace frontend | A frontend was a locked decision against — reversed, see the appendix |
 | 16 | The frontend written into every document | Five documents described a system that stopped at the API, because when they were written it did |
 | 17 | Frontend redesign, re-measured for WCAG AA on every surface | The first pass was correct and plain; the constraints it enforces were the valuable part and did not change |
+| 18 | Flow verification and cleanup | Running the documented quick start found a command in it that could never succeed |
+| **19** | **Violet palette — built, measured, and reverted** | Requested, delivered with thirty pairs measured, then judged worse than the teal it replaced. The person who looks at it every day is the one who gets to say so |
+| 20 | Volume, and upload that needs no backend | The brief's premise was hiring volume and the interface required pasting. A bulk path already worked end to end; volume was a missing button rather than a missing capability |
+| **21—22** | **Fairness dashboard and provenance page — built, then removed** | Both rendered real endpoints faithfully and both were aimed at the wrong reader: a recruiter working a shortlist does not consult an adverse impact ratio. **The endpoints were kept**; what was removed is the browser's ability to reach them |
+| 23 | PDF and DOCX upload | A scanned PDF has no text layer, extracts to nothing, and would rank last — a candidate placed at the bottom because their file could not be read. Refused at upload instead, and OCR rejected for reproducing the same failure in a new form |
+| 24 | Filter, sort and CSV export | Filtering never renumbers a rank, and the export carries the disclaimer as its first row |
+| 25 | UI hierarchy and rhythm | Refinement, and the user's verdict was that nothing had changed. That verdict was correct: refinement is not redesign |
+| 26 | Console — a new visual language | Flat surfaces, dense rows, micro labels. Changed what the design *is* rather than how well it works |
+| 27 | The workspace, from a supplied mockup | Light, soft and elevated, with a sidebar rail and statistic tiles. Two things in the mockup could not be built and were refused rather than approximated — see the appendix |
+| 28 | Final audit: structure, and every document current | The frontend arrived at Phase 15 and the documents predating it had been patched eleven times rather than rewritten |
 
-Phase 16 exists because of a failure mode worth naming. The interface was built, and the
-documents describing the system were not revisited. Each one remained internally consistent and
-collectively they were wrong: this section, section 8 and section 12 all described a system with
+Phases 16 and 28 exist because of a failure mode worth naming twice. The interface was built,
+and the documents describing the system were not revisited. Each one remained internally consistent
+and collectively they were wrong: this section, section 8 and section 12 all described a system with
 no browser in it. **A component added late does not announce itself in the diagrams that predate
 it**, and nothing in a test suite fails when a document goes stale.
 
@@ -896,6 +925,14 @@ Python 3.12, in a dedicated conda environment.
 | Pickle for model storage | No provenance, version-fragile, arbitrary code execution risk |
 | Real or scraped CV data | PII, no labels, and inherited historical bias |
 | A frontend | Not requested in the brief; Swagger UI is sufficient for demonstration — **reversed 2026-08-19, see below** |
+| A **match level** on each candidate ("Strong / Moderate / Weak") | The training labels are graded 0-3, so a level is meaningful in the label space, but the output has no calibration to those grades. Any level shown would be a threshold the interface invented, and section 5.6 is explicit that nothing in the output supports one. Replaced with a count of the posting's own stated requirements, where an unstated value never counts as a failure |
+| A **score out of 100** | The model emits a relative ranking score within one posting. `/100` reads as "92% suitable" whatever caption sits beside it, which is the exact failure section 8.4 exists to prevent |
+| **OCR** for scanned PDFs | A large dependency whose failure mode is the one this project exists to prevent: mis-read text ranks confidently and wrongly, with nothing signalling it. A CV whose certifications were garbled scores like one that could not be read at all, except now nothing marks it. Refused at upload instead |
+| Medals or a trophy on the top-ranked candidates | A reward metaphor. A medal says a person won something; the only available claim is that one CV matched a posting's stated requirements more closely than another. The rank number carries the ordering without the framing |
+| A different avatar colour per candidate | The palette reserves colour for meaning — amber is a constraint on use, positive and negative are the direction of a contribution. An orange avatar would read as a warning about that person and a green one as something in their favour, neither of which is being claimed |
+| A shareable link to a ranking | It turns a working file into a record of a decision, which is the same argument that keeps a shortlist unpersisted |
+| Per-certification ticks in the breakdown | `POST /rank` returns `cert_overlap_count`, not which certifications matched. Naming them individually would need a second parse request per candidate, so the count is shown, since the count is what the model used |
+| Elevation for the leading candidate | Depth is not available in every rendering. The border carries it instead, which survives a screenshot, a print, and a viewer who cannot separate two shadows |
 
 **On the frontend reversal.** The original reasoning was sound for the brief as written, and
 it is left in the table above rather than edited away. What changed is not the brief but an
@@ -909,6 +946,16 @@ The reversal is deliberately narrow. One workspace for the ranking flow was adde
 service contract, the model and the fairness machinery are untouched, and the browser never
 speaks to the API directly, so the audited service keeps the trust boundary it was reviewed
 with.
+
+**On the refusals.** Five of the rows above were added at Phase 27, when a design mockup was
+supplied and asked for. Most of it was built. Two things in it — a score out of one hundred and a
+"Strong match" badge — assert a calibration this model does not have, and both were resolved by
+**keeping the shape and changing the claim**: the same large figure in the same position carrying
+the real score, and the same badge carrying a counted fact.
+
+That distinction is the one worth carrying forward. A request for a design is not a request for the
+claims a design happens to imply, and the useful answer to "make it look like this" is usually the
+layout with the assertion removed rather than either the layout or the assertion alone.
 
 ---
 

@@ -43,6 +43,21 @@ function Invoke-InEnv {
 function Invoke-InWeb {
     # Frontend task: run from frontend/, no conda involved.
     param([string]$Exe, [string[]]$CommandArgs)
+
+    # NODE LAUNCHERS MUST BE THE .cmd SHIM, NOT THE BARE NAME
+    #
+    # On Windows, `npm` resolves to npm.ps1, and that shim builds a command
+    # string and runs it through Invoke-Expression. A splatted array of
+    # arguments does not survive that: the arguments are folded into the string
+    # and re-parsed, and npm receives nothing it recognises. Every frontend task
+    # here failed with npm's usage message, which reads like a bad task name
+    # rather than a launcher problem.
+    #
+    # The .cmd shim passes arguments through as a normal argument list, so it is
+    # used explicitly. Typing `npm run lint` by hand works, which is why this
+    # went unnoticed: the fault only appears through a splat.
+    if ($Exe -in @("npm", "npx")) { $Exe = "$Exe.cmd" }
+
     Write-Host "> [frontend] $Exe $($CommandArgs -join ' ')" -ForegroundColor DarkGray
     if (-not (Test-Path $Frontend)) {
         Write-Host "frontend/ does not exist yet - skipping." -ForegroundColor Yellow
@@ -133,7 +148,7 @@ switch ($Task.ToLower()) {
     "web-install"   { Invoke-InWeb "npm" @("ci") }
     "web-dev"       { Invoke-InWeb "npm" @("run", "dev") }
     "web-lint"      { Invoke-InWeb "npm" @("run", "lint") }
-    "web-typecheck" { Invoke-InWeb "npx" @("tsc", "--noEmit") }
+    "web-typecheck" { Invoke-InWeb "npm" @("run", "typecheck") }
     "web-test"      { Invoke-InWeb "npm" @("test") }
     "web-build"     { Invoke-InWeb "npm" @("run", "build") }
 

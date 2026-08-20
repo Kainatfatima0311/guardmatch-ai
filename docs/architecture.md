@@ -320,6 +320,54 @@ flowchart BT
     api --> core
 ```
 
+Arrows point from a module to what it depends on. The graph is acyclic by construction and the
+`fairness` package is deliberately a leaf that nothing on the scoring path imports — a static test
+fails the build if any module reachable from `api` ever imports where the demographics live.
+
+**The frontend is a second graph, and the two meet at exactly one place.**
+
+```mermaid
+flowchart BT
+    types["types.ts<br/>the API contract, mirrored by hand"]
+    errors["errors.ts<br/>both 422 shapes, 503"]
+    api2["api.ts<br/>typed client"]
+    proxy["proxy.ts<br/>endpoint allowlist"]
+    files["files.ts<br/>intake, two size bounds"]
+    reqs["requirements.ts<br/>asked vs shown"]
+    shortlist["shortlist.ts<br/>filter, sort, CSV"]
+    feats["features.ts<br/>feature metadata, additivity"]
+    route["app/api/[...path]<br/>route handler"]
+    page["app/page.tsx<br/>the workspace"]
+    comps["components/*"]
+
+    errors --> types
+    api2 --> types
+    api2 --> errors
+    files --> types
+    files --> api2
+    reqs --> types
+    shortlist --> types
+    feats --> types
+    route --> proxy
+    comps --> types
+    comps --> feats
+    comps --> reqs
+    comps --> shortlist
+    page --> api2
+    page --> files
+    page --> comps
+```
+
+`types.ts` is the root of the frontend graph and is **hand-written rather than generated** from the
+OpenAPI schema. That is a deliberate cost: a generated client would track the contract
+automatically and would also import whatever the schema happened to say, including fields the
+interface must never send. Writing it by hand makes `Candidate` a type that *cannot* carry a
+display name, which is what turns the leakage rule into something the compiler enforces.
+
+The only edge between the two graphs is the route handler reaching the service over HTTP. No
+frontend module imports anything Python, and no backend module knows the frontend exists — which
+is what makes the trust boundary in section 1 a boundary rather than a convention.
+
 Arrows point from dependent to dependency. The graph is acyclic, and `core` and `schemas` sit
 at the bottom with no dependencies of their own.
 
@@ -339,7 +387,7 @@ flowchart TB
 
     subgraph CI["GitHub Actions — 5 jobs"]
         LINT["ruff + mypy"]
-        TEST["pytest<br/>341 tests"]
+        TEST["pytest<br/>399 tests"]
         GATES["gates as their own job<br/>80 tests"]
         WEB["frontend<br/>lint, types, tests, build"]
         BUILD["docker build<br/>both images, both started"]

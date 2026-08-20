@@ -23,7 +23,7 @@ backend/
 │   ├── registry/   versioned, checksummed artifacts
 │   ├── api/        FastAPI service
 │   └── cli.py      generate-data, train, audit
-├── tests/          341 tests, 94.75% coverage, 80 of them gates
+├── tests/          399 tests, 94.80% coverage, 80 of them gates
 ├── models/v0.1.0/  committed artifacts — six files, all checksummed
 └── data/           generated from a seed, not committed
 ```
@@ -53,6 +53,33 @@ Interactive docs at <http://localhost:8000/docs>.
 
 There is no `guardmatch serve` command — the CLI covers the pipeline, and the service is
 started by an ASGI server, which is the thing that owns host, port and worker count.
+
+## Endpoints
+
+Eleven, grouped by what they depend on rather than by subject. Full reference, including both
+`422` body shapes a client has to handle, in [api-reference.md](../docs/api-reference.md).
+
+| | Path | Needs a verified model |
+|---|---|---|
+| `POST` | `/rank` | Yes — **the primary endpoint** |
+| `POST` | `/score` | Yes |
+| `POST` | `/parse` | Yes |
+| `POST` | `/extract` | No — text out of one uploaded PDF, Word or plain-text file |
+| `GET` | `/sample-candidates` | No — generated applications, for trying the service at volume |
+| `GET` | `/fairness` | Yes — the audit the loaded artifact carries |
+| `GET` | `/feature-importance` | Yes — what the ranking rests on, over a fixed sample |
+| `GET` | `/model-info` | Yes |
+| `GET` | `/ready` | Answers either way; that is its job |
+| `GET` | `/health` | No — deliberately does not touch the model |
+| `GET` | `/metrics` | No — Prometheus exposition, not in the schema |
+
+The routes that need a model return `503` until its checksums verify. `/extract` and
+`/sample-candidates` read a file or generate text, so they answer while the model is still
+verifying and a caller can prepare a batch before the service can score it.
+
+`/fairness` and `/feature-importance` are **not reachable through the frontend's proxy**. A
+dashboard over them was built and removed as aimed at the wrong reader, so they left the allowlist
+with it; they remain for a server-side caller and for anyone inspecting the service directly.
 
 ## Callers, and the missing CORS configuration
 

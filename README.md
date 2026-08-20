@@ -37,9 +37,9 @@ End to end, from a dropped CV to a ranked shortlist on screen:
  BROWSER                    NEXT.JS                 FASTAPI
  ───────                    ───────                 ───────
  posting + applications
-   drop .txt files ─┐
-   generate a batch ┼─▶ up to 500 candidates
-   paste text ──────┘
+   drop CVs ────────┐  .txt in the browser
+   generate a batch ┼─▶ .pdf/.docx via POST /extract
+   paste text ──────┘  up to 500 candidates
       │
       │  validate locally
       │  enums · 20k chars · unique ids · 500 batch
@@ -63,7 +63,7 @@ End to end, from a dropped CV to a ranked shortlist on screen:
       │
       │  re-check: base value + 12 contributions = score
       ▼
- rank · reasons · 12 bars · warnings · disclaimer
+ rank · score · requirements met · reasons · 12 bars · warnings · disclaimer
 ```
 
 **The browser has no arrow to FastAPI.** Every call goes to a route handler on the Next.js
@@ -340,16 +340,21 @@ A gate that has never failed proves nothing about what it claims to detect.
 
 ## Documentation
 
-| Document | Contents |
+Eight documents, listed by the question each one answers.
+
+| If you are asking | Read |
 |---|---|
-| [Design doc](docs/design-doc.md) | Full design, decisions rejected, risks |
-| [Architecture](docs/architecture.md) | Component, request-flow and trust-boundary diagrams |
-| [Model card](docs/model-card.md) | Intended use, out-of-scope uses, limitations, conditions of use |
-| [Fairness report](docs/fairness-report.md) | Metrics, what the audit caught, and what it missed |
-| [Explainability](docs/explainability.md) | Method, worked examples, global importance |
-| [Data card](docs/data-card.md) | Generation, anti-circularity design, bias injection |
-| [API reference](docs/api-reference.md) | Endpoints, schemas, errors |
-| [Frontend](docs/frontend.md) | Colour system with measured contrast, the constraints enforced in code, what was not built |
+| Why is it built this way, and what was rejected? | [Design doc](docs/design-doc.md) — the full design, every rejected option with its reasoning, and the risks including the one that materialised |
+| How do the pieces fit together? | [Architecture](docs/architecture.md) — component, request-flow, trust-boundary and module-dependency diagrams for both halves |
+| Can I use this for X? | [Model card](docs/model-card.md) — intended use, out-of-scope uses, limitations, and the conditions any use is subject to |
+| Is it fair, and how would you know? | [Fairness report](docs/fairness-report.md) — the metrics, what the audit caught, and the injected bias it **missed** |
+| Why did this candidate rank here? | [Explainability](docs/explainability.md) — method, worked examples, global importance |
+| What is the data, and can I trust it? | [Data card](docs/data-card.md) — generation, anti-circularity design, deliberate bias injection |
+| How do I call it? | [API reference](docs/api-reference.md) — eleven endpoints, schemas, and both `422` shapes a client must handle |
+| Why does the interface refuse to show X? | [Frontend](docs/frontend.md) — the seven constraints enforced in code, the measured colour system, and the two things a supplied mockup asked for that could not be built |
+
+Two working files, `PLAN.md` and `PROGRESS.md`, are deliberately not committed. They track the
+build rather than describe the system.
 
 ## Project layout
 
@@ -373,13 +378,13 @@ guardmatch-ai/
 │   ├── data/                    generated from a seed, not committed
 │   ├── pyproject.toml · Dockerfile · .dockerignore · .env.example
 │   └── README.md
-├── frontend/                    the Rank workspace
+├── frontend/                    the Rank workspace — one page
 │   ├── src/app/
 │   │   ├── page.tsx             intake, shortlist, explanations
-│   │   ├── globals.css          design tokens, with measured contrast ratios
+│   │   ├── globals.css          design tokens, every contrast ratio measured
 │   │   └── api/[...path]/       server-side proxy — why no CORS config exists
-│   ├── src/components/          form, results, contribution bars, disclosure
-│   ├── src/lib/                 typed contract, file intake, filters, CSV, 69 tests
+│   ├── src/components/          15: rail, steps, panels, results, bars, disclosure
+│   ├── src/lib/                 contract, intake, requirements, filters, CSV, proxy
 │   ├── package.json · Dockerfile · .dockerignore
 │   └── README.md
 ├── docs/                        the eight documents below
@@ -405,7 +410,7 @@ pytest -m "not slow"
 
 ```bash
 cd frontend
-npm test            # 69 tests: the API contract, file intake, filters, CSV, the proxy
+npm test            # 93 tests: contract, intake, requirements, filters, CSV, proxy
 ```
 
 CI runs lint, type checking, the full suite, the gates as a separate job, and a Docker build
