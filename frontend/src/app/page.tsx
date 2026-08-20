@@ -74,8 +74,12 @@ export default function Page() {
   // the frame from having to own the workspace's state to describe it.
   const publish = usePublishStatus();
   useEffect(() => {
-    publish({ applications: candidates.length, ranked: result?.candidates.length ?? null });
-  }, [publish, candidates.length, result]);
+    publish({
+      applications: candidates.length,
+      ranked: result?.candidates.length ?? null,
+      posting: job.job_id.trim() || null,
+    });
+  }, [publish, candidates.length, result, job.job_id]);
 
   const candidateIssues = useMemo(() => validateCandidates(candidates), [candidates]);
 
@@ -344,17 +348,36 @@ export default function Page() {
         )}
 
         {!result && !error && !busy && (
-          /* Left-aligned and short. A centred block in a dashed box reads as a
-             placeholder waiting to be replaced; a line of text at the start of the
-             column reads as the interface telling you where you are. */
-          <div className="rounded-md border border-dashed border-border-strong px-3 py-4">
-            <p className="text-xs font-medium">Nothing ranked yet</p>
-            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
+          /* SAYS WHAT WILL APPEAR, NOT ONLY THAT NOTHING HAS
+             This column is empty until a ranking exists, and an empty panel that
+             only reports its own emptiness wastes the one moment a reviewer is
+             deciding whether the tool is worth their attention. Listing what
+             arrives here is also a quiet statement of what this tool does and does
+             not produce — an order and an explanation, not a decision. */
+          <div className="rounded-xl border border-dashed border-border-strong px-4 py-4">
+            <p className="text-sm font-medium">Nothing ranked yet</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">
               Fill in the posting and the applications, or press{" "}
               <span className="font-medium text-text">Load samples</span> to try it with four
               example CVs. One of them is deliberately thin, so the difference between “the CV did
               not say” and “no” is visible rather than theoretical.
             </p>
+            <ul className="mt-3 flex flex-col gap-1.5 border-t border-border pt-3">
+              {[
+                "A shortlist ordered best fit first, with the real ranking score",
+                "How many of the posting’s requirements each CV met, and which",
+                "All twelve feature contributions, and whether they reconstruct the score",
+                "What each CV did not state, kept separate from what it ruled out",
+                "A CSV export carrying the disclaimer as its first row",
+              ].map((line) => (
+                <li key={line} className="flex gap-2 text-2xs leading-relaxed text-muted">
+                  <span aria-hidden="true" className="shrink-0 text-primary">
+                    →
+                  </span>
+                  <span>{line}</span>
+                </li>
+              ))}
+            </ul>
           </div>
         )}
       </div>

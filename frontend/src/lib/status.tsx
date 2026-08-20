@@ -21,9 +21,18 @@ export interface WorkspaceStatus {
   applications: number;
   /** Placements in the current shortlist, or null when nothing has been ranked. */
   ranked: number | null;
+  /**
+   * The posting being worked on, for the header.
+   *
+   * Deliberately here and not the counts: the header says *what you are working
+   * on* and the rail says *what is loaded and what is serving you*. Putting a
+   * count in both would repeat one figure under two names on one screen, which is
+   * a defect this project has already had to fix once.
+   */
+  posting: string | null;
 }
 
-const EMPTY: WorkspaceStatus = { applications: 0, ranked: null };
+const EMPTY: WorkspaceStatus = { applications: 0, ranked: null, posting: null };
 
 const StatusContext = createContext<WorkspaceStatus>(EMPTY);
 const SetStatusContext = createContext<(next: WorkspaceStatus) => void>(() => {});
@@ -35,7 +44,11 @@ export function StatusProvider({ children }: { children: ReactNode }) {
   // time the counts change.
   const publish = useCallback((next: WorkspaceStatus) => {
     setStatus((prev) =>
-      prev.applications === next.applications && prev.ranked === next.ranked ? prev : next,
+      prev.applications === next.applications &&
+      prev.ranked === next.ranked &&
+      prev.posting === next.posting
+        ? prev
+        : next,
     );
   }, []);
 

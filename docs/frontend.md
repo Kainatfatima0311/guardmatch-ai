@@ -432,10 +432,30 @@ this interface exists to provide. `ReasonList` gained a dense mode instead — s
 bullets rather than numbered chips — with every reason still rendered and nothing clamped.
 **Density is bought by removing furniture, not by removing reasons.**
 
-**Everything on the frame gave up a type size except the disclaimer.** The header, the footer, the
-status line and the empty state all came down. The disclaimer strip kept `text-xs` and moved only
-its padding: it is the one sentence that has to survive a partial read of the whole interface, so
-winning vertical space there would be spending exactly the wrong thing.
+**Everything on the frame gave up a type size except the disclaimer**, which kept `text-xs` and
+moved only its padding while the header, footer, status line and empty state all came down. That
+was the right call at the time and it is recorded because the reasoning still holds: winning
+vertical space from the one sentence that has to survive a partial read is spending the wrong thing.
+
+**The amber strip itself was later removed, at the user's request, and it was checked first.** The
+guarantee is carried in four places, and it was in five:
+
+| Where | Carrier |
+|---|---|
+| The rail | *"This is a shortlisting aid only. Final hiring decisions are made by humans."* — on screen at every width, hidden at none |
+| Above the shortlist | The service's own `disclaimer`, from the response body |
+| The footer | *"Scores are relative to a single posting and are not probabilities."* |
+| CSV row 1 | The same disclaimer, so the constraint travels with the file |
+
+So the strip was **redundant with the rail rather than load-bearing**, and it was also the largest
+thing on the page: two lines of amber above every screen restating a permanent note. **A warning
+shown twice is read less carefully than one shown once**, which is the argument for removing a
+duplicate rather than for keeping every copy of a constraint one can find.
+
+What replaced it is not decoration. The header carries what the page is and which posting is being
+worked on, and it carries **no count** — counts live in the rail, and one figure under two names
+on one screen is a defect this project has already had to fix once. The page also gained its first
+`h1` in the process; there had been none, so a screen reader's outline started at level two.
 
 **Two columns from `md`, with a narrower rail there.** Between 48rem and 64rem everything used to
 stack into a single narrow column, wasting a tablet and a small laptop. The rail is 19rem at `md`

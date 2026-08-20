@@ -1,25 +1,32 @@
+"use client";
+
 import type { ReactNode } from "react";
-import { StatusProvider } from "@/lib/status";
+import { StatusProvider, useWorkspaceStatus } from "@/lib/status";
 import Rail from "./Rail";
 import ThemeToggle from "./ThemeToggle";
 
 /**
- * The page frame: a sidebar rail, a top bar, and the workspace.
+ * The page frame: a sidebar rail, a header, and the workspace.
  *
- * The disclaimer sits in the frame rather than on the results, so it cannot be
- * scrolled past or arrived at too late, and it is a bordered strip rather than
- * small print because small print is what readers have been trained to skip.
+ * THE AMBER BANNER IS GONE, AND THAT WAS CHECKED BEFORE IT WENT
  *
- * THE RAIL IS NOT DUPLICATED FOR SMALL SCREENS
+ * A two-line amber block used to sit across the top of every screen saying that
+ * this orders a queue and decides nothing. It was removed at the user's request,
+ * and the guarantee it carried survives in four places without it: the rail's
+ * persistent note, the service's own `disclaimer` rendered above the shortlist
+ * from the response body, the footer, and the first row of every CSV export.
  *
- * Below `lg` it moves from a fixed column into a strip above the workspace,
- * carrying the same component. Two layouts means two things to keep in agreement,
- * and the rail holds status rather than navigation — there is nothing to collapse
- * into a menu, because there is one destination.
+ * It was redundant with the rail rather than load-bearing, and it was also the
+ * largest thing on the page. A warning shown twice is read less carefully than
+ * one shown once, so removing the duplicate is not a weakening of it.
+ *
+ * What replaces it is not decoration: the header now says what the page is and
+ * which posting is being worked on. It deliberately carries **no count**, because
+ * counts live in the rail, and one figure under two names on one screen is a
+ * defect this project has already had to fix once.
  *
  * A skip link comes first in the DOM. Without one, reaching the applications
- * means tabbing through the rail, nine certification chips and two selects on
- * every visit.
+ * means tabbing through the rail and the posting form on every visit.
  */
 export default function Shell({ children }: { children: ReactNode }) {
   return (
@@ -37,23 +44,7 @@ export default function Shell({ children }: { children: ReactNode }) {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
-            <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-2.5 sm:px-6">
-              <p className="flex min-w-0 items-start gap-2 rounded-lg border border-amber/30 bg-amber-surface px-3 py-2 text-xs leading-relaxed">
-                <span aria-hidden="true" className="text-amber">
-                  ✦
-                </span>
-                <span>
-                  <span className="font-semibold text-amber">Shortlisting aid. </span>
-                  <span className="text-text">
-                    This orders a queue for a human reviewer. It does not reject candidates and
-                    does not make hiring decisions.
-                  </span>
-                </span>
-              </p>
-              <ThemeToggle />
-            </div>
-          </header>
+          <Header />
 
           <main id="workspace" className="flex-1 px-4 py-5 sm:px-6">
             {children}
@@ -71,5 +62,38 @@ export default function Shell({ children }: { children: ReactNode }) {
         </div>
       </div>
     </StatusProvider>
+  );
+}
+
+/**
+ * What the page is, and what is being worked on.
+ *
+ * The `h1` is here rather than in the workspace because the workspace is three
+ * panels with their own headings and no single subject. The page had no `h1` at
+ * all before this, which meant a screen reader's document outline started at a
+ * level two.
+ */
+function Header() {
+  const status = useWorkspaceStatus();
+
+  return (
+    <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
+      <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 px-4 py-2.5 sm:px-6">
+        <div className="min-w-0">
+          <h1 className="truncate text-sm font-semibold tracking-tight">Rank a vacancy</h1>
+          <p className="truncate text-2xs text-muted">
+            {status.posting ? (
+              <>
+                Posting <span className="tabular font-medium text-text">{status.posting}</span>
+                {status.ranked !== null && " · shortlist ready"}
+              </>
+            ) : (
+              "Give the posting a reference to begin"
+            )}
+          </p>
+        </div>
+        <ThemeToggle />
+      </div>
+    </header>
   );
 }
