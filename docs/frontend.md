@@ -149,57 +149,82 @@ means "saved" and sometimes means "counted in favour" teaches nothing.
 Every foreground is measured against **all four background layers it can sit on**, and the
 figure recorded is the worst of them. Body text requires 4.5:1 under WCAG AA.
 
-Backgrounds — dark: `--bg #0A101C`, `--surface #111A2B`, `--surface-2 #18243A`,
-`--surface-3 #1F2E49`. Light: `#F5F8FC`, `#FFFFFF`, `#EDF2F9`, `#E3EBF5`.
+Backgrounds — dark: `--bg #08090C`, `--surface #0E1013`, `--surface-2 #14171B`,
+`--surface-3 #1B1F24`. Light: `#F7F8F9`, `#FFFFFF`, `#F4F5F7`, `#EEF0F2`.
+
+The **accent is unchanged**. The ground under it was replaced for the Console redesign: deeper,
+less blue, and low enough in chroma that a single-pixel rule reads as structure rather than as
+decoration. Changing the ground and keeping the accent is a deliberately narrow move — a violet
+accent was built, measured and reverted at the user's direction earlier, so the hue is settled and
+the surfaces were the part still open.
 
 | Token | Dark | worst | Light | worst |
 |---|---|---|---|---|
-| `--text` | `#E8EEF8` | 11.66 | `#0D1829` | 14.81 |
-| `--muted` | `#94A5C0` | 5.44 | `#56677F` | 4.80 |
-| `--primary` | `#14B8A6` | 5.46 | `#0F766E` | 4.55 |
-| `--primary-hover` | `#2DD4BF` | 7.30 | `#115E59` | 6.31 |
-| `--amber` | `#F59E0B` | 6.33 | `#A94D08` | 4.66 |
-| `--pos` | `#34D399` | 7.07 | `#047857` | 4.56 |
-| `--neg` | `#FB7185` | 5.05 | `#BE123C` | 5.23 |
+| `--text` | `#E6E8EC` | 13.50 | `#0D1013` | 16.70 |
+| `--muted` | `#969CA7` | 6.00 | `#565C66` | 5.89 |
+| `--primary` | `#14B8A6` | 6.65 | `#0F766E` | 4.79 |
+| `--primary-hover` | `#2DD4BF` | 8.90 | `#115E59` | 6.64 |
+| `--amber` | `#F59E0B` | 7.71 | `#A94D08` | 4.90 |
+| `--pos` | `#34D399` | 8.61 | `#047857` | 4.80 |
+| `--neg` | `#FB7185` | 6.15 | `#BE123C` | 5.50 |
 
-**Measuring against the deepest surface rather than the page background is what makes this
-table worth having.** The first draft of this palette failed in four places once the fourth
-layer was introduced: `--border-strong` at 2.86 and 2.51 on the dark raised surfaces, light
-`--amber` at 4.18, and light `--border-strong` at 2.98. All four were fixed by search — dark
-border `#566A92` → `#6680AB`, light border `#7E8899` → `#767F8F`, light amber `#B45309` →
-`#A94D08` — before any of it reached a component.
+**Measuring against the deepest surface rather than the page background is what makes this table
+worth having, and it has now earned its keep twice.** The first draft of the original palette
+failed in four places once the fourth layer was introduced: `--border-strong` at 2.86 and 2.51 on
+the dark raised surfaces, light `--amber` at 4.18, and light `--border-strong` at 2.98.
+
+The first draft of this ground failed once, and marginally, which is the more instructive case.
+Light `--primary` landed on **exactly 4.50** against `--surface-3`, with `--pos` at 4.51 and
+`--amber` at 4.60 behind it — three colours passing on a rounding. Lightening `--surface-3` from
+`#E7E9EC` to `#EEF0F2` bought all three about 0.3 of headroom. Nothing was visibly wrong before
+the change and nothing looks different after it, which is exactly why the figure has to be read
+rather than eyeballed.
 
 Semantic colours are also used as tints, so text on each tint was measured separately. The
-tightest of the sixteen pairs is `--primary` on `--primary-wash` in light at **4.84**.
+tightest of the eight pairs is `--primary` on `--primary-wash` in light at **4.76**.
 
 | On its own wash | Dark | Light |
 |---|---|---|
-| `--primary` | 5.62 | 4.84 |
-| `--amber` | 7.84 | 5.26 |
-| `--pos` | 7.76 | 4.88 |
-| `--neg` | 6.46 | 5.44 |
-| `--text` on any wash | ≥ 12.80 | ≥ 15.41 |
+| `--primary` | 6.06 | 4.76 |
+| `--amber` | 8.20 | 5.22 |
+| `--pos` | 8.31 | 4.84 |
+| `--neg` | 6.68 | 5.43 |
+| `--text` on any wash | ≥ 12.29 | ≥ 16.48 |
 
 ### Two border tokens, because one was not enough
 
-A single `--border` measured **1.31:1**. That is correct for a decorative card edge and wrong
-for the boundary of an input or a control, where WCAG 1.4.11 asks 3:1. Rather than darkening
-every border and losing the quiet surface separation the design depends on, a second token
-carries control boundaries:
+A single `--border` measured about **1.3:1**. That is correct for a decorative edge and wrong for
+the boundary of an input or a control, where WCAG 1.4.11 asks 3:1. Rather than darkening every
+border and losing the quiet separation the design depends on, a second token carries control
+boundaries:
 
 | Token | Dark | Light | Used for |
 |---|---|---|---|
-| `--border` | 1.31 | 1.32 | Card edges, table rules — decorative |
-| `--border-strong` | `#6680AB`, worst 3.39 | `#767F8F`, worst 3.36 | Inputs, selects, buttons, switches |
+| `--border` | `#23272E`, 1.27 | `#DFE1E5`, 1.31 | Panel edges, table rules — decorative |
+| `--border-strong` | `#6B737F`, worst 3.46 | `#767C86`, worst 3.68 | Inputs, selects, buttons, switches |
+
+**This distinction became load-bearing in the Console redesign rather than merely tidy.** Once
+panels are defined by rules instead of by shadow, `--border` is doing structural work everywhere
+and the temptation is to darken it so it "passes". It should not be darkened: 1.4.11 governs
+control boundaries, not separators, and a page of 3:1 rules is a page of visible scaffolding.
 
 The measured table is written into `globals.css` beside the values, so a change that breaks a
 ratio is visible in the same file as the change.
 
 ### Type, rhythm and elevation
 
-A six-step type scale with explicit line heights, a four-step radius scale, and three elevation
-levels. Six sizes is enough for this interface; a scale with more steps than the design needs
-invites inconsistency.
+A six-step type scale with explicit line heights and a four-step radius scale. Six sizes is
+enough for this interface; a scale with more steps than the design needs invites inconsistency.
+
+**There are no elevation levels.** The three shadow tokens are `none`. A panel here is defined by
+a rule, not by floating above the page, and on a near-black ground a shadow reads as a smudge
+rather than as height. The tokens are kept rather than deleted so that a future design wanting
+depth changes one place instead of thirty.
+
+The radius scale was **re-cut** for Console rather than re-applied: 0.125, 0.25, 0.375 and 0.5rem,
+down from 0.375 to 1rem. Re-cutting the scale tightens every existing `rounded-*` usage at once,
+which is both less churn and less risk than editing several dozen class names — and small radii
+are most of what separates a tool from a consumer app.
 
 Fonts are **self-hosted** through `next/font`, not linked from a CDN, and the reason is not
 performance. A runtime request to `fonts.gstatic.com` would put a third party in the request
@@ -213,16 +238,32 @@ the decimal point on every row.
 
 ### Hierarchy, and what carries it
 
-The palette was measured and the type scale was restrained, and the page still read flat. Every
-card wore the same filled header band, every gap was the same size, and the most important control
-was the one element that was not a card. None of that is a colour problem, which is why none of it
-was fixed with colour.
+This section records two rounds, because the second one only makes sense against the first.
 
-**Card headers are a hairline rule, not a filled band.** The band used to sit on `surface-2`, and it
-was asserting something untrue: a fill says the header is a different *kind* of surface from the
-content, when all that is true is that one thing ends and another begins. A rule says only the
-second. Separation now comes from type and space — `text-base font-semibold` against `text-sm`
-content — with the rule as a hint rather than the mechanism.
+**Round one refined the design and the user's verdict was that nothing had changed.** That verdict
+was correct, and it is the most useful thing in this document. Card headers became hairline rules,
+a uniform spacing scale became a grouped one, a viewport breakpoint became a container query, and
+a results header stopped competing with itself. Every one of those improved how the design worked.
+None of them changed **what it was**: a card stack, in the same palette, at the same density, reads
+as the same interface however much better it behaves.
+
+**Round two changed the visual language instead of tuning it.** Direction chosen from four mockups:
+Console — flat surfaces separated by single-pixel rules, small radii, dense rows, micro uppercase
+labels, and every figure in mono. What follows is what that meant in practice, and the round-one
+decisions that survived it are marked as such, because a decision that survives a redesign is
+better evidence than one that has only ever been tested against the design it was made for.
+
+**Card headers are a hairline rule, not a filled band** (round one, kept). The band used to sit on
+`surface-2`, and it was asserting something untrue: a fill says the header is a different *kind* of
+surface from the content, when all that is true is that one thing ends and another begins. A rule
+says only the second.
+
+**A panel's title is a micro label, not a heading** (round two, and the single biggest change here).
+It is set as small tracked uppercase rather than as prose at `text-base`. A heading competes with
+the content for the reader's first look; a label names a region and then gets out of the way. It
+also buys back the vertical space that makes two hundred and fifty rows worth showing at all. The
+step number went with it — mono and unboxed, because a filled badge was one more shape to parse
+and the figure alone is enough to read three panels as a sequence.
 
 That is also why `--border` at 1.3:1 is correct here rather than a failure. WCAG 1.4.11's 3:1
 governs the boundary of a **control**, which is what `--border-strong` exists for. Darkening a
@@ -238,22 +279,68 @@ border; an open row gets a header band, because there it genuinely is the header
 screen the gutter a narrow one needs, so the header and body step up at `sm`. Two values, not four:
 a responsive scale nobody can hold in their head is a scale that drifts.
 
-**Spacing carries the grouping.** Every gap on the page was `gap-6`, which means the layout made no
-claim at all — the posting, the note describing what had just been loaded into it, the button
-that acts on it, and the results were each as related to one another as any other pair. What is
-being ranked, where it came from, and the act of ranking it are now one region held at `gap-3.5`,
-with `gap-6 sm:gap-8` between regions. **The ratio is what reads, not the absolute values.**
+**Spacing carries the grouping** (round one, kept — with its own lesson attached). Every gap on
+the page was `gap-6`, which means the layout made no claim at all: the posting, the note describing
+what had just been loaded into it, the button that acts on it, and the results were each as related
+to one another as any other pair. They are now one region held tight against wider gaps between
+regions.
 
-**The posting form asks its own width, not the window's.** Its two-column grid was keyed to `sm:`, a
-*viewport* breakpoint, while the card's width is set by the grid column it sits in. The two had been
-agreeing only by luck, and introducing a two-column layout at `md` broke the agreement at once: a
-640px window with a 304px rail would have put two selects side by side inside 256px. It is a
-**container query** now — `@container` on the card and `@min-[21rem]` on the grid — which asks
-the question that was always meant. Tailwind 4 has this in core, so it cost a class name.
+The absolute values changed in round two and the **ratio** did not, which is the point of having
+written down that the ratio was the thing that mattered. The round-one numbers were chosen for a
+looser design and would read as holes in this one.
+
+**The posting form asked its own width, not the window's** — and then stopped needing to. Its
+two-column grid was keyed to `sm:`, a *viewport* breakpoint, while the panel's width is set by the
+grid column it sits in. Those are different questions that had been agreeing only by luck, and
+introducing a two-column page layout at `md` broke the agreement at once: a 640px window with a
+304px rail would have put two selects side by side inside 256px. The fix was a container query, and
+it was right.
+
+**It is retired now, because the layout it existed for is gone.** The posting is a definition list
+— label in a fixed column, value beside it — which is one column at every width, so there is
+nothing to switch. The explanation stays in the source so that whoever reintroduces a multi-column
+grid there reaches for `@container` rather than for `sm:` and does not re-earn the same defect.
 
 One instance was deliberately left on a viewport breakpoint, with a comment saying so: the reference
 chip in a candidate row hides below `sm:`, and that still agrees with its column. The comment records
 when it would need to change, because it is the kind of line someone corrects in the wrong direction.
+
+**The applications are one table, not two hundred and fifty boxes.** Each row used to be its own
+bordered, rounded box with a gap between them, which at 250 rows is five hundred borders and 250
+gaps of nothing. One bordered container with hairline dividers carries the same information with a
+fraction of the furniture, and it is what finally makes the list read as a list. A row with a
+problem is marked by a left edge and a wash rather than by a full border — the only marker
+available once rows share a frame, and better regardless, because the eye finds a broken vertical
+line down a list faster than it finds one box among many.
+
+**The drop zone is a strip.** It was a tall centred panel carrying three paragraphs, which is a lot
+of furniture for a target you hit once, and in a dense list it was the largest thing on screen. The
+sentence about scanned PDFs stays, because it is the one line there that prevents a silent wrong
+ranking; it simply no longer occupies its own storey.
+
+**The shortlist is a table, and the caveat became a column header.** This is the most useful thing
+the redesign produced. Every score used to carry *"meaningful only within this posting, and not a
+probability"* underneath it — 250 repetitions of one sentence, which is how a caveat becomes
+wallpaper. It is now the score column's header, stated once, and still attached to every row as
+`sr-only` text because a row read aloud on its own has no header above it. The constraint travels
+with the number either way; it just stops shouting.
+
+**The score still gets no bar, and a table invites one more than a card ever did.** A column of
+figures looks unfinished without a sparkline beside it. It does not get one, for the reason in
+section 3. The contribution bars inside an expanded row keep theirs, because a contribution really
+is a magnitude within one explanation, measured against the largest in it — and that distinction
+is written into the component so it does not have to be re-derived.
+
+**Showing only the first reason per row was considered and rejected.** It would have saved more
+height than anything else here, and it would have hidden two thirds of the plain-language layer
+this interface exists to provide. `ReasonList` gained a dense mode instead — smaller type,
+bullets rather than numbered chips — with every reason still rendered and nothing clamped.
+**Density is bought by removing furniture, not by removing reasons.**
+
+**Everything on the frame gave up a type size except the disclaimer.** The header, the footer, the
+status line and the empty state all came down. The disclaimer strip kept `text-xs` and moved only
+its padding: it is the one sentence that has to survive a partial read of the whole interface, so
+winning vertical space there would be spending exactly the wrong thing.
 
 **Two columns from `md`, with a narrower rail there.** Between 48rem and 64rem everything used to
 stack into a single narrow column, wasting a tablet and a small laptop. The rail is 19rem at `md`

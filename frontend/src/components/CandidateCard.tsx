@@ -8,21 +8,33 @@ import ParseWarnings from "./ParseWarnings";
 import ReasonList from "./ReasonList";
 
 /**
- * One placement, with the reasons for it.
+ * One placement, as a row.
  *
- * The score is printed as a signed number next to its own name — no percentage,
- * no ring, no progress bar. A LambdaRank output is an ordering within one
- * posting; every visual idiom that suggests a proportion of something would
- * assert a likelihood the number does not carry, and reviewers read a filled ring
- * as "83% suitable" no matter what the caption says.
+ * It used to be a card: a header strip, a filled band of reasons, a warnings
+ * band, and padding on all of it. Read once that is fine; read two hundred and
+ * fifty times it is furniture. This is the same information in a row that shares
+ * one frame with its neighbours.
  *
- * The words come before the numbers, because the plain-language layer is what a
- * non-technical reviewer reads and the twelve-row table is the audit trail
- * underneath it.
+ * THE SCORE STILL GETS NO BAR
  *
- * The leading candidate gets a heavier border and a filled rank badge. That is
- * hierarchy, not endorsement — the disclaimer above the list is what says what
- * being first does and does not mean.
+ * A dense table invites one more than a card ever did — a column of numbers looks
+ * unfinished without a sparkline beside it. It does not get one. A LambdaRank
+ * output is an ordering within a single posting; every proportional idiom asserts
+ * a likelihood the number does not carry, and a reviewer reads a filled bar as
+ * "83% suitable" whatever the caption says. The contribution bars in the expanded
+ * panel keep theirs, because a contribution really is a magnitude within one
+ * explanation, measured against the largest one in it.
+ *
+ * WHAT MOVED, AND WHAT DID NOT
+ *
+ * The caveat that used to sit under every score — "meaningful only within this
+ * posting, and not a probability" — is now the score column's header, stated once
+ * for the table instead of two hundred and fifty times down it. It is still
+ * present for a screen reader on every row, because a row read aloud on its own
+ * has no column header.
+ *
+ * Every reason still renders. Density comes from removing furniture, not from
+ * hiding the plain-language layer this project exists to provide.
  */
 export default function CandidateCard({
   candidate,
@@ -35,89 +47,81 @@ export default function CandidateCard({
   const panelId = useId();
   const leading = candidate.rank === 1;
   const score = candidate.relative_ranking_score;
+  const gaps = candidate.parse_warnings.length;
 
   return (
-    <article
+    <div
       className={clsx(
-        "overflow-hidden rounded-xl border bg-surface transition-shadow",
-        leading
-          ? "border-primary shadow-[var(--shadow-raised)]"
-          : "border-border shadow-[var(--shadow-card)]",
+        "border-l-2 transition-colors",
+        leading ? "border-l-primary" : "border-l-transparent",
       )}
     >
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 px-4 py-3.5 sm:px-5">
+      <div className="flex items-start gap-2.5 px-2.5 py-2 sm:gap-3 sm:px-3">
         <span
           className={clsx(
-            "tabular flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-sm font-semibold",
-            leading
-              ? "bg-primary text-primary-contrast"
-              : "border border-border-strong bg-surface-2 text-muted",
+            "tabular w-5 shrink-0 pt-px text-right text-2xs",
+            leading ? "font-semibold text-primary" : "text-muted",
           )}
         >
-          {candidate.rank}
+          {String(candidate.rank).padStart(2, "0")}
           <span className="sr-only">
             {leading ? " — strongest fit for this posting" : " in the shortlist"}
           </span>
         </span>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-baseline gap-x-2">
-            <h3 className="text-sm font-semibold tracking-tight">
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+            <h3 className="truncate text-xs font-medium">
               {displayName ?? candidate.candidate_id}
             </h3>
             {displayName && (
               <span className="tabular text-2xs text-muted">{candidate.candidate_id}</span>
             )}
-            {leading && (
-              <span className="rounded bg-primary-wash px-1.5 py-0.5 text-2xs font-medium text-primary">
-                strongest fit
-              </span>
-            )}
-            {candidate.parse_warnings.length > 0 && (
-              <span className="rounded bg-amber-surface px-1.5 py-0.5 text-2xs font-medium text-amber">
-                {candidate.parse_warnings.length} gap
-                {candidate.parse_warnings.length === 1 ? "" : "s"} in the CV
+            {gaps > 0 && (
+              <span className="rounded-sm bg-amber-surface px-1 py-px text-2xs font-medium text-amber">
+                {gaps} unstated
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-xs text-muted">
-            <span className="tabular text-text">
-              {score > 0 ? "+" : ""}
-              {score.toFixed(4)}
-            </span>{" "}
-            relative ranking score — meaningful only within this posting, and not a probability
-          </p>
+          <div className="mt-1">
+            <ReasonList reasons={candidate.explanation.reasons} dense />
+          </div>
         </div>
+
+        <span className="tabular shrink-0 pt-px text-xs">
+          {score > 0 ? "+" : ""}
+          {score.toFixed(4)}
+          <span className="sr-only">
+            {" "}
+            relative ranking score — meaningful only within this posting, and not a probability
+          </span>
+        </span>
 
         <button
           type="button"
           aria-expanded={open}
           aria-controls={panelId}
           onClick={() => setOpen((v) => !v)}
-          className="rounded-lg border border-border-strong bg-surface-2 px-3 py-1.5 text-xs font-medium transition-colors hover:border-primary"
+          className="shrink-0 px-1 text-2xs text-muted transition-colors hover:text-text"
         >
-          <span aria-hidden="true" className="mr-1.5">
-            {open ? "▾" : "▸"}
+          <span aria-hidden="true">{open ? "▾" : "▸"}</span>
+          <span className="sr-only">
+            {open ? "Hide" : "Show"} the twelve contributions for{" "}
+            {displayName ?? candidate.candidate_id}
           </span>
-          {open ? "Hide the numbers" : "Show the numbers"}
         </button>
       </div>
 
-      <div className="border-t border-border bg-surface-2 px-4 py-3.5 sm:px-5">
-        <ReasonList reasons={candidate.explanation.reasons} />
-      </div>
-
-      {candidate.parse_warnings.length > 0 && (
-        <div className="border-t border-border px-4 py-3 sm:px-5">
-          <ParseWarnings warnings={candidate.parse_warnings} />
-        </div>
-      )}
-
       {open && (
-        <div id={panelId} className="border-t border-border px-4 py-4 sm:px-5">
+        <div id={panelId} className="border-t border-border bg-surface-2 px-2.5 py-3 sm:px-3">
+          {gaps > 0 && (
+            <div className="mb-3">
+              <ParseWarnings warnings={candidate.parse_warnings} />
+            </div>
+          )}
           <ContributionBars explanation={candidate.explanation} score={score} />
         </div>
       )}
-    </article>
+    </div>
   );
 }

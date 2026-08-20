@@ -26,21 +26,32 @@
    and the figure recorded is the worst of them.
 
      DARK             worst    LIGHT            worst
-     text             11.66    text             14.81
-     muted             5.44    muted             4.80
-     primary           5.46    primary           4.55
-     primary-hover     7.30    primary-hover     6.31
-     amber             6.33    amber             4.66
-     pos               7.07    pos               4.56
-     neg               5.05    neg               5.23
+     text             13.50    text             16.70
+     muted             6.00    muted             5.89
+     primary           6.65    primary           4.79
+     primary-hover     8.90    primary-hover     6.64
+     amber             7.71    amber             4.90
+     pos               8.61    pos               4.80
+     neg               6.15    neg               5.50
 
    All clear WCAG AA for body text (4.5:1). Measuring against the deepest surface
-   rather than the page background caught four failures in the first draft of
-   this palette, before any of it was written into a component.
+   rather than the page background caught four failures in the first draft of the
+   original palette, and one in the first draft of this ground: light --primary
+   landed on exactly 4.50 against --surface-3, with --pos at 4.51 and --amber at
+   4.60 close behind it. Lightening --surface-3 from #e7e9ec to #eef0f2 bought all
+   three about 0.3 of headroom, which is the difference between passing and
+   passing on a rounding.
 
-   --border is a decorative separator and is deliberately low contrast.
-   --border-strong is the one used for control boundaries, and clears the 3:1
-   that WCAG 1.4.11 asks of them on every surface: 3.39 dark, 3.36 light.
+   --border is a decorative separator and is deliberately low contrast (1.27 dark,
+   1.31 light). --border-strong is the one used for control boundaries and clears
+   the 3:1 that WCAG 1.4.11 asks of them on every surface: 3.46 dark, 3.68 light.
+
+   NO ELEVATION
+
+   The three shadow tokens are `none`. A panel in this interface is defined by a
+   rule, not by floating above the page, and shadows on a near-black ground read
+   as smudges rather than as height. They are kept as tokens so a future design
+   can reintroduce depth in one place.
 
    THREE THEME STATES
 
@@ -54,82 +65,82 @@
 :root {
   /* Light — the bare :root default, so "system" resolves correctly with no
      attribute set and no JavaScript having run. */
-  --bg: #f5f8fc;
+  --bg: #f7f8f9;
   --surface: #ffffff;
-  --surface-2: #edf2f9;
-  --surface-3: #e3ebf5;
-  --border: #dce4ef;
-  --border-strong: #767f8f;
-  --text: #0d1829;
-  --muted: #56677f;
+  --surface-2: #f4f5f7;
+  --surface-3: #eef0f2;
+  --border: #dfe1e5;
+  --border-strong: #767c86;
+  --text: #0d1013;
+  --muted: #565c66;
   --primary: #0f766e;
   --primary-hover: #115e59;
   --primary-contrast: #ffffff;
-  --primary-wash: #e6f4f1;
+  --primary-wash: #e4f2f0;
   --amber: #a94d08;
-  --amber-surface: #fef7ec;
+  --amber-surface: #fdf6ec;
   --pos: #047857;
   --neg: #be123c;
-  --pos-wash: #e7f5ef;
-  --neg-wash: #fdeaee;
+  --pos-wash: #e6f4ef;
+  --neg-wash: #fceaee;
 
-  --shadow-sm: 0 1px 2px rgb(13 24 41 / 0.05);
-  --shadow-md: 0 1px 2px rgb(13 24 41 / 0.05), 0 4px 12px rgb(13 24 41 / 0.06);
-  --shadow-lg: 0 1px 2px rgb(13 24 41 / 0.05), 0 12px 32px rgb(13 24 41 / 0.1);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
   --ring: 0 0 0 3px rgb(15 118 110 / 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0a101c;
-    --surface: #111a2b;
-    --surface-2: #18243a;
-    --surface-3: #1f2e49;
-    --border: #223047;
-    --border-strong: #6680ab;
-    --text: #e8eef8;
-    --muted: #94a5c0;
+    --bg: #08090c;
+    --surface: #0e1013;
+    --surface-2: #14171b;
+    --surface-3: #1b1f24;
+    --border: #23272e;
+    --border-strong: #6b737f;
+    --text: #e6e8ec;
+    --muted: #969ca7;
     --primary: #14b8a6;
     --primary-hover: #2dd4bf;
     --primary-contrast: #04211d;
-    --primary-wash: #10312e;
+    --primary-wash: #0d2b28;
     --amber: #f59e0b;
-    --amber-surface: #241c0c;
+    --amber-surface: #1f1808;
     --pos: #34d399;
     --neg: #fb7185;
-    --pos-wash: #102c24;
-    --neg-wash: #2c1219;
+    --pos-wash: #0d2620;
+    --neg-wash: #261016;
 
-    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-    --shadow-md: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 12px rgb(0 0 0 / 0.3);
-    --shadow-lg: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+    --shadow-sm: none;
+    --shadow-md: none;
+    --shadow-lg: none;
     --ring: 0 0 0 3px rgb(20 184 166 / 0.25);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #0a101c;
-  --surface: #111a2b;
-  --surface-2: #18243a;
-  --surface-3: #1f2e49;
-  --border: #223047;
-  --border-strong: #6680ab;
-  --text: #e8eef8;
-  --muted: #94a5c0;
+  --bg: #08090c;
+  --surface: #0e1013;
+  --surface-2: #14171b;
+  --surface-3: #1b1f24;
+  --border: #23272e;
+  --border-strong: #6b737f;
+  --text: #e6e8ec;
+  --muted: #969ca7;
   --primary: #14b8a6;
   --primary-hover: #2dd4bf;
   --primary-contrast: #04211d;
-  --primary-wash: #10312e;
+  --primary-wash: #0d2b28;
   --amber: #f59e0b;
-  --amber-surface: #241c0c;
+  --amber-surface: #1f1808;
   --pos: #34d399;
   --neg: #fb7185;
-  --pos-wash: #102c24;
-  --neg-wash: #2c1219;
+  --pos-wash: #0d2620;
+  --neg-wash: #261016;
 
-  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
-  --shadow-md: 0 1px 2px rgb(0 0 0 / 0.35), 0 4px 12px rgb(0 0 0 / 0.3);
-  --shadow-lg: 0 1px 2px rgb(0 0 0 / 0.4), 0 12px 32px rgb(0 0 0 / 0.45);
+  --shadow-sm: none;
+  --shadow-md: none;
+  --shadow-lg: none;
   --ring: 0 0 0 3px rgb(20 184 166 / 0.25);
 }
 
@@ -178,10 +189,13 @@
   --text-2xl: 1.75rem;
   --text-2xl--line-height: 2.125rem;
 
-  --radius-sm: 0.375rem;
-  --radius-md: 0.5rem;
-  --radius-lg: 0.75rem;
-  --radius-xl: 1rem;
+  /* Re-cut for Console. Small radii are most of what separates a tool from a
+     consumer app, and re-cutting the scale tightens every existing
+     `rounded-*` usage at once rather than editing each of them. */
+  --radius-sm: 0.125rem;
+  --radius-md: 0.25rem;
+  --radius-lg: 0.375rem;
+  --radius-xl: 0.5rem;
 
   --shadow-card: var(--shadow-md);
   --shadow-raised: var(--shadow-lg);

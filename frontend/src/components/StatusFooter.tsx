@@ -23,7 +23,7 @@ export default function StatusFooter({
   requestId: string;
 }) {
   return (
-    <div className="flex flex-wrap items-start gap-x-8 gap-y-3 rounded-xl border border-border bg-surface-2 px-4 py-3">
+    <div className="flex flex-wrap items-start gap-x-6 gap-y-2 rounded-md border border-border bg-surface-2 px-3 py-2">
       <Stat label="Model" value={modelVersion} mono />
       <div className="min-w-0 flex-1">
         <Stat label="Request id — matches the server log line" value={requestId} mono />

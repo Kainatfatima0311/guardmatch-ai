@@ -144,12 +144,14 @@ export default function Page() {
        pair — that is, the layout said nothing. Proximity is the cheapest
        grouping signal there is, and it was being spent on nothing.
        The outer gap separates regions; the inner one holds a region together.
-       The ratio is what reads, not the absolute values. */
-    <div className="flex flex-col gap-6 sm:gap-8">
+       The ratio is what reads, not the absolute values — which is why the ratio
+       survived the redesign and the absolute values did not: they were chosen for
+       a looser design and would read as holes in this one. */
+    <div className="flex flex-col gap-4 sm:gap-5">
       {notReady && (
         <div
           role="status"
-          className="flex gap-3 rounded-xl border border-amber/40 bg-amber-surface px-4 py-3.5"
+          className="flex gap-2.5 rounded-md border border-amber/40 bg-amber-surface px-3 py-2.5"
         >
           <span
             aria-hidden="true"
@@ -166,7 +168,7 @@ export default function Page() {
 
       {/* One region: what is being ranked, where it came from, and the act of
           ranking it. Held together at `gap-3.5` against the `gap-8` outside. */}
-      <section aria-label="What to rank" className="flex flex-col gap-3.5">
+      <section aria-label="What to rank" className="flex flex-col gap-2.5">
         {/* Two columns from `md`, not only from `lg`. Between 48rem and 64rem
             everything used to stack into one narrow column, which wastes a
             tablet and a small laptop entirely. The rail is narrower at `md`
@@ -193,7 +195,7 @@ export default function Page() {
         {generatedNote && (
           <div
             role="status"
-            className="flex gap-2.5 rounded-lg border border-amber/40 bg-amber-surface px-4 py-2.5"
+            className="flex gap-2 rounded-md border border-amber/40 bg-amber-surface px-3 py-2"
           >
             <span aria-hidden="true" className="text-amber">
               ◈
@@ -219,7 +221,7 @@ export default function Page() {
         <Card>
           <CardHeader
             step={3}
-            title="Rank the applications"
+            title="Rank"
             subtitle="Parses each CV, builds twelve features, ranks, and explains every placement."
             actions={
               <Button type="button" variant="primary" onClick={submit} disabled={busy}>
@@ -231,7 +233,7 @@ export default function Page() {
               the signal. A count that lives in a subtitle competes with prose;
               one that arrives as a new row does not. */}
           {showErrors && problems > 0 && (
-            <div role="alert" className="px-4 py-3 sm:px-6">
+            <div role="alert" className="px-3 py-2 sm:px-4">
               <p className="flex items-center gap-1.5 text-sm font-medium text-neg">
                 <span aria-hidden="true">▲</span>
                 {problems} thing{problems === 1 ? "" : "s"} to fix above.
@@ -243,9 +245,9 @@ export default function Page() {
 
       {/* One live region for every outcome, so a screen reader is told what
           happened once rather than having three regions compete. */}
-      <div aria-live="polite" className="flex flex-col gap-5">
+      <div aria-live="polite" className="flex flex-col gap-3">
         {busy && (
-          <div className="rounded-xl border border-border bg-surface px-4 py-3.5 text-sm text-muted">
+          <div className="rounded-md border border-border bg-surface px-3 py-2.5 text-xs text-muted">
             Parsing {candidates.length} application{candidates.length === 1 ? "" : "s"}, building
             features and computing explanations…
           </div>
@@ -254,17 +256,17 @@ export default function Page() {
         {error && !busy && (
           <div
             role="alert"
-            className="rounded-xl border border-neg bg-surface p-4 shadow-[var(--shadow-card)]"
+            className="rounded-md border border-neg bg-surface p-3"
           >
             <p className="flex items-center gap-2 font-semibold text-neg">
               <span aria-hidden="true">▲</span>
               {error.title}
             </p>
-            <p className="mt-1.5 text-sm leading-relaxed text-muted">{error.detail}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted">{error.detail}</p>
             {error.fieldErrors.length > 0 && (
-              <ul className="mt-3 flex flex-col gap-1 rounded-lg bg-neg-wash px-3 py-2">
+              <ul className="mt-2 flex flex-col gap-0.5 rounded-md bg-neg-wash px-2.5 py-1.5">
                 {error.fieldErrors.map((f, i) => (
-                  <li key={i} className="text-xs">
+                  <li key={i} className="text-2xs">
                     <span className="tabular text-neg">{f.path || "request"}</span>
                     <span className="text-muted"> — {f.message}</span>
                   </li>
@@ -272,7 +274,7 @@ export default function Page() {
               </ul>
             )}
             {error.retryable && (
-              <Button type="button" onClick={submit} className="mt-3">
+              <Button type="button" onClick={submit} className="mt-2">
                 Try again
               </Button>
             )}
@@ -290,9 +292,12 @@ export default function Page() {
         )}
 
         {!result && !error && !busy && (
-          <div className="rounded-xl border border-dashed border-border-strong px-5 py-8 text-center">
-            <p className="text-sm font-medium">Nothing ranked yet</p>
-            <p className="mx-auto mt-1.5 max-w-xl text-sm leading-relaxed text-muted">
+          /* Left-aligned and short. A centred block in a dashed box reads as a
+             placeholder waiting to be replaced; a line of text at the start of the
+             column reads as the interface telling you where you are. */
+          <div className="rounded-md border border-dashed border-border-strong px-3 py-4">
+            <p className="text-xs font-medium">Nothing ranked yet</p>
+            <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted">
               Fill in the posting and the applications, or press{" "}
               <span className="font-medium text-text">Load samples</span> to try it with four
               example CVs. One of them is deliberately thin, so the difference between “the CV did

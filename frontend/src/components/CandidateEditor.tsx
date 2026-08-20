@@ -197,11 +197,11 @@ export default function CandidateEditor({
     <Card>
       <CardHeader
         step={2}
-        title="The applications"
+        title="Applications"
         subtitle={
           fromFiles > 0
-            ? `${filled} of ${candidates.length} ready · ${fromFiles} from files`
-            : `${filled} of ${candidates.length} ready. Drop files, paste text, or generate a batch.`
+            ? `${filled}/${candidates.length} ready · ${fromFiles} from files`
+            : `${filled}/${candidates.length} ready`
         }
         actions={
           <>
@@ -252,8 +252,14 @@ export default function CandidateEditor({
             setDragging(false);
             if (!disabled) void ingest(e.dataTransfer.files);
           }}
+          /* A strip rather than a panel. It was a tall centred box carrying
+             three paragraphs, which is a lot of furniture for a target you hit
+             once — and in a dense list it was the single biggest thing on screen.
+             The refusal note stays, because it is the one sentence here that
+             prevents a silent wrong ranking; it just no longer needs its own
+             storey. */
           className={clsx(
-            "rounded-lg border border-dashed px-4 py-5 text-center transition-colors",
+            "rounded-md border border-dashed px-3 py-2.5 transition-colors",
             dragging ? "border-primary bg-primary-wash" : "border-border-strong",
           )}
         >
@@ -269,30 +275,29 @@ export default function CandidateEditor({
               e.target.value = "";
             }}
           />
-          <p className="text-sm font-medium">
-            Drop CV files here, or{" "}
-            <button
-              type="button"
-              disabled={disabled}
-              onClick={() => fileInput.current?.click()}
-              className="text-primary underline underline-offset-2 hover:text-primary-hover"
-            >
-              choose files
-            </button>
-          </p>
-          <p className="mx-auto mt-1.5 max-w-md text-xs leading-relaxed text-muted">
-            {ACCEPTED.join(", ")}. Text files are read in your browser; PDF and Word are sent to
-            the service to have their text extracted.
-          </p>
-          <p className="mx-auto mt-1 max-w-md text-2xs leading-relaxed text-muted">
-            A scanned PDF has no text in it to read, and is refused rather than ranked as an
-            empty CV.
-          </p>
-          {uploading && (
-            <p className="tabular mt-2 text-xs text-primary">
-              Extracting {uploading.done} of {uploading.total}…
+          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
+            <p className="text-xs font-medium">
+              Drop CVs, or{" "}
+              <button
+                type="button"
+                disabled={disabled}
+                onClick={() => fileInput.current?.click()}
+                className="text-primary underline underline-offset-2 hover:text-primary-hover"
+              >
+                choose files
+              </button>
             </p>
-          )}
+            <p className="tabular text-2xs text-muted">{ACCEPTED.join(" ")}</p>
+            {uploading && (
+              <p className="tabular text-2xs text-primary">
+                extracting {uploading.done}/{uploading.total}…
+              </p>
+            )}
+          </div>
+          <p className="mt-1 text-2xs leading-relaxed text-muted">
+            Text files are read in your browser; PDF and Word go to the service for extraction. A
+            scanned PDF has no text to read and is refused rather than ranked as an empty CV.
+          </p>
         </div>
 
         {rejections.length > 0 && (
@@ -355,18 +360,19 @@ export default function CandidateEditor({
           </div>
         )}
 
-        <div
-          className={clsx(
-            "flex flex-col gap-2",
-            // Its own scroll area once long, so the posting and the Rank button
-            // stay reachable instead of being pushed off the page.
-            isLong && "max-h-140 overflow-y-auto pr-1",
-          )}
-        >
+        {/* ONE TABLE, NOT N BOXES
+            Each row used to be its own bordered, rounded box with a gap between
+            them, which at two hundred and fifty rows is five hundred borders and
+            two hundred and fifty gaps of nothing. A single bordered container with
+            hairline dividers is the same information with a fraction of the
+            furniture, and it is what makes the list read as a list.
+            The scroll area moves inside the border so the frame stays put while
+            the rows move, and the cap drops from 35rem to 30rem because a row is
+            now about half the height it was. */}
+        <div className="overflow-hidden rounded-md border border-border">
+          <div className={clsx("divide-y divide-border", isLong && "max-h-120 overflow-y-auto")}>
           {shown.length === 0 && (
-            <p className="py-4 text-center text-sm text-muted">
-              Nothing matches “{query}”.
-            </p>
+            <p className="py-4 text-center text-xs text-muted">Nothing matches “{query}”.</p>
           )}
 
           {shown.map(({ candidate, index }) => {
@@ -379,11 +385,16 @@ export default function CandidateEditor({
             const panelId = `cv-panel-${index}`;
 
             return (
+              /* A row with a problem is marked by a left edge and a wash rather
+                 than by a full border, which is the only marker available once the
+                 rows share one frame — and it reads better anyway, because the eye
+                 finds a broken vertical line down a list faster than it finds one
+                 box among many. */
               <div
                 key={key}
                 className={clsx(
-                  "overflow-hidden rounded-lg border transition-colors",
-                  mine.length ? "border-neg" : "border-border",
+                  "border-l-2 transition-colors",
+                  mine.length ? "border-l-neg bg-neg-wash" : "border-l-transparent",
                 )}
               >
                 {/* Tinted only while open, where it is genuinely the header of an
@@ -394,7 +405,7 @@ export default function CandidateEditor({
                     section header above it, which is backwards. */}
                 <div
                   className={clsx(
-                    "flex flex-wrap items-center gap-2 px-3 py-2 transition-colors",
+                    "flex flex-wrap items-center gap-2 px-2.5 py-1.5 transition-colors",
                     isOpen && "border-b border-border bg-surface-2",
                   )}
                 >
@@ -507,6 +518,7 @@ export default function CandidateEditor({
               </div>
             );
           })}
+        </div>
         </div>
 
         {atCapacity && (

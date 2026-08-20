@@ -94,18 +94,21 @@ export default function JobForm({
   const chosen = value.required_certifications.length;
 
   return (
-    /* A CONTAINER QUERY, BECAUSE `sm:` WAS ASKING THE WRONG QUESTION
-       These fields went two-across at `sm:`, a *viewport* breakpoint — but this
-       card's width is set by the grid column it sits in, not by the window. The
-       two agreed only by luck, and adding a two-column layout at `md` broke the
-       agreement: a 640px-wide window with a 304px rail would have put two selects
-       side by side in 256px. `@container` asks the card how wide *it* is, which
-       is the question that was always meant. */
-    <Card className="@container">
-      <CardHeader step={1} title="The posting" subtitle="What this vacancy actually needs." />
-      <CardBody className="flex flex-col gap-6">
-        <div className="grid gap-5 @min-[21rem]:grid-cols-2">
-          <Field label="Shift pattern" error={errors?.shift_pattern}>
+    /* THE CONTAINER QUERY IS RETIRED, AND THE REASON IS WORTH KEEPING
+       These fields used to go two-across, keyed to `sm:` — a *viewport*
+       breakpoint, while this panel's width comes from the grid column it sits in.
+       Those are different questions that had been agreeing by luck, and a
+       two-column page layout at `md` broke the agreement at once. The fix was a
+       container query, and it was right.
+       It is gone now because the layout it existed for is gone: a definition list
+       is one column at every width, so there is nothing to switch. The note stays
+       so that whoever reintroduces a multi-column grid here reaches for
+       `@container` rather than for `sm:`. */
+    <Card>
+      <CardHeader step={1} title="Posting" subtitle="What this vacancy actually needs." />
+      <CardBody className="flex flex-col gap-4">
+        <div className="flex flex-col gap-2.5">
+          <Field label="Shift" inline error={errors?.shift_pattern}>
             {(p) => (
               <Select
                 {...p}
@@ -119,7 +122,7 @@ export default function JobForm({
             )}
           </Field>
 
-          <Field label="Site type" error={errors?.site_type}>
+          <Field label="Site" inline error={errors?.site_type}>
             {(p) => (
               <Select
                 {...p}
@@ -132,12 +135,11 @@ export default function JobForm({
               />
             )}
           </Field>
-        </div>
 
-        <div className="grid gap-5 @min-[21rem]:grid-cols-2">
           <Field
-            label="Minimum experience"
-            hint={`Years, 0 to ${MAX_YEARS_EXPERIENCE}. A candidate below it is not excluded — the gap becomes one factor among twelve.`}
+            label="Min years"
+            inline
+            hint={`0 to ${MAX_YEARS_EXPERIENCE}. A candidate below it is not excluded — the gap becomes one factor among twelve.`}
           >
             {(p) => (
               <TextInput
@@ -154,7 +156,8 @@ export default function JobForm({
           </Field>
 
           <Field
-            label="Job reference"
+            label="Reference"
+            inline
             hint="Groups the ranking. Any stable identifier will do."
             error={errors?.job_id}
           >
@@ -173,14 +176,16 @@ export default function JobForm({
 
         <div className="hairline" />
 
-        <fieldset className="flex flex-col gap-3">
+        <fieldset className="flex flex-col gap-2">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <legend className="text-sm font-medium">Required certifications</legend>
-            <span className="tabular text-xs text-muted">
-              {chosen} of {CERTIFICATIONS.length} selected
+            <legend className="text-2xs font-medium tracking-[0.07em] text-muted uppercase">
+              Required certifications
+            </legend>
+            <span className="tabular text-2xs text-muted">
+              {chosen}/{CERTIFICATIONS.length}
             </span>
           </div>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-wrap gap-1.5">
             {CERTIFICATIONS.map((code) => (
               <Chip
                 key={code}
@@ -197,7 +202,7 @@ export default function JobForm({
               </Chip>
             ))}
           </div>
-          <p className="text-xs leading-relaxed text-muted">
+          <p className="text-2xs leading-relaxed text-muted">
             <span aria-hidden="true">★ </span>
             {label(CRITICAL_CERTIFICATION)} gates eligibility. Its absence is scored differently
             from a missing nice-to-have, through a feature of its own.

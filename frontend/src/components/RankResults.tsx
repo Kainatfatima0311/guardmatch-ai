@@ -86,7 +86,7 @@ export default function RankResults({
           belongs here, next to the list; the footer keeps provenance. */}
       <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
         <div className="min-w-0">
-          <h2 id="results-heading" className="text-xl font-semibold tracking-tight">
+          <h2 id="results-heading" className="text-base font-semibold tracking-tight">
             Shortlist
           </h2>
           <p className="mt-1 text-sm text-muted">
@@ -121,7 +121,7 @@ export default function RankResults({
       <Disclaimer text={result.disclaimer} />
 
       {isLong && (
-        <div className="flex flex-col gap-2 rounded-xl border border-border bg-surface px-4 py-3">
+        <div className="flex flex-col gap-2 rounded-md border border-border bg-surface px-3 py-2.5">
           <div className="flex flex-wrap items-center gap-2">
             <TextInput
               type="search"
@@ -186,16 +186,38 @@ export default function RankResults({
       {shown.length === 0 ? (
         <p className="py-6 text-center text-sm text-muted">No candidate matches these filters.</p>
       ) : (
-        <ol className="flex flex-col gap-3">
-          {shown.map((candidate) => (
-            <li key={candidate.candidate_id}>
-              <CandidateCard
-                candidate={candidate}
-                displayName={labels.get(candidate.candidate_id)}
-              />
-            </li>
-          ))}
-        </ol>
+        <div className="overflow-hidden rounded-md border border-border bg-surface">
+          {/* A column header, which is the point of moving to a table: the
+              caveat on the score is stated once here instead of once per row.
+              `aria-hidden` because it is a visual header over a list rather than
+              a real table — each row still carries the caveat for a screen
+              reader, since a row read on its own has no header above it. */}
+          <div
+            aria-hidden="true"
+            className="flex items-baseline gap-2.5 border-b border-border px-2.5 py-1.5 text-2xs tracking-[0.07em] text-muted uppercase sm:gap-3 sm:px-3"
+          >
+            <span className="w-5 shrink-0 text-right">#</span>
+            <span className="min-w-0 flex-1">Candidate and why</span>
+            <span className="shrink-0 normal-case">
+              <span className="tracking-[0.07em] uppercase">Score</span>
+              <span className="ml-1.5 tracking-normal lowercase">
+                this posting only, not a probability
+              </span>
+            </span>
+            <span className="w-5 shrink-0" />
+          </div>
+
+          <ol className="divide-y divide-border">
+            {shown.map((candidate) => (
+              <li key={candidate.candidate_id}>
+                <CandidateCard
+                  candidate={candidate}
+                  displayName={labels.get(candidate.candidate_id)}
+                />
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </section>
   );

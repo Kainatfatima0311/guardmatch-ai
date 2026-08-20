@@ -25,24 +25,29 @@ export default function Shell({ children }: { children: ReactNode }) {
       </a>
 
       <header className="sticky top-0 z-30 border-b border-border bg-surface/95 backdrop-blur">
-        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-4 py-3 sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl items-center justify-between gap-4 px-3 py-2 sm:px-4">
           <div className="flex min-w-0 items-center gap-3">
             {/* A mark rather than a logo: two bars reading as a ranked pair,
                 which is the whole subject of the page. */}
             <span
               aria-hidden="true"
-              className="flex h-8 w-8 shrink-0 flex-col items-center justify-center gap-1 rounded-lg bg-primary-wash"
+              className="flex h-6 w-6 shrink-0 flex-col items-center justify-center gap-0.5 rounded-sm bg-primary-wash"
             >
-              <span className="block h-1 w-4 rounded-full bg-primary" />
-              <span className="block h-1 w-2.5 rounded-full bg-primary opacity-55" />
+              <span className="block h-0.5 w-3 rounded-full bg-primary" />
+              <span className="block h-0.5 w-2 rounded-full bg-primary opacity-55" />
             </span>
-            <span className="text-base font-semibold tracking-tight">GuardMatch</span>
+            <span className="text-sm font-semibold tracking-tight">GuardMatch</span>
           </div>
           <ThemeToggle />
         </div>
 
+        {/* Tightened, but NOT shrunk. Everything else on this bar gave up a
+            size for density; this is the one sentence that has to survive a
+            partial read of the whole interface, so it keeps `text-xs` and only
+            its padding moves. Making the disclaimer smaller to win vertical
+            space would be spending the wrong thing. */}
         <div className="border-t border-border bg-amber-surface">
-          <p className="mx-auto w-full max-w-6xl px-4 py-2 text-xs leading-relaxed sm:px-6">
+          <p className="mx-auto w-full max-w-6xl px-3 py-1.5 text-xs leading-relaxed sm:px-4">
             <span className="font-semibold text-amber">Shortlisting aid. </span>
             <span className="text-text">
               This orders a queue for a human reviewer. It does not reject candidates and does not
@@ -52,12 +57,12 @@ export default function Shell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main id="workspace" className="mx-auto w-full max-w-6xl flex-1 px-4 py-8 sm:px-6">
+      <main id="workspace" className="mx-auto w-full max-w-6xl flex-1 px-3 py-5 sm:px-4">
         {children}
       </main>
 
       <footer className="mt-4 border-t border-border bg-surface">
-        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-2 px-4 py-4 text-xs text-muted sm:px-6">
+        <div className="mx-auto flex w-full max-w-6xl flex-wrap items-center justify-between gap-x-6 gap-y-1 px-3 py-2.5 text-2xs text-muted sm:px-4">
           <p>Scores are relative to a single posting and are not probabilities.</p>
           <p>
             Synthetic training data. Read the model card before drawing conclusions from any
