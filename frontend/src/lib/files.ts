@@ -35,14 +35,37 @@ import { MAX_CV_LENGTH, MAX_RANK_BATCH, type Candidate } from "./types";
  */
 
 /**
- * A file larger than this is refused before it is read.
+ * A **text** file larger than this is refused before it is read.
  *
  * A CV is capped at 20,000 characters server-side, so a 2 MB text file cannot be
  * one — and reading it only to reject it wastes the reviewer's time and the
  * browser's memory. The allowance over `MAX_CV_LENGTH` is for multi-byte
  * characters: 20,000 characters of UTF-8 can exceed 20,000 bytes.
+ *
+ * THIS BOUND IS ONLY CORRECT FOR TEXT
+ *
+ * It was applied to the `.pdf` / `.docx` path too, and there it was wrong. A PDF
+ * is a binary container — fonts, cross-reference tables, compressed streams — so a
+ * two-page CV with an embedded font is routinely 200 KB to 1 MB while holding far
+ * fewer than 20,000 characters. Every one of those was refused in the browser
+ * before a request was made, with a message telling the reviewer their CV was too
+ * large when the service would have accepted it. Reasoning about the *text* a file
+ * contains says nothing about the *bytes* a container needs to hold it.
  */
-export const MAX_FILE_BYTES = MAX_CV_LENGTH * 4;
+export const MAX_TEXT_BYTES = MAX_CV_LENGTH * 4;
+
+/**
+ * An **uploaded document** larger than this is refused before it is sent.
+ *
+ * Mirrors `MAX_UPLOAD_BYTES` in `guardmatch.parsing.documents`, so the browser
+ * refuses exactly what the service would refuse and nothing more. Checking here
+ * as well saves a 5 MB upload that was always going to be rejected; the service
+ * checks anyway, because a client-side limit is a courtesy and not a control.
+ */
+export const MAX_UPLOAD_BYTES = 5 * 1024 * 1024;
+
+/** @deprecated Use `MAX_TEXT_BYTES` or `MAX_UPLOAD_BYTES`; one bound could not be both. */
+export const MAX_FILE_BYTES = MAX_TEXT_BYTES;
 
 /** Read in the browser with `File.text()`, no server involved. */
 export const BROWSER_READABLE = [".txt", ".text", ".md"] as const;
@@ -166,7 +189,7 @@ export async function readTextFiles(
       continue;
     }
 
-    if (file.size > MAX_FILE_BYTES) {
+    if (file.size > MAX_TEXT_BYTES) {
       rejected.push({
         filename: file.name,
         reason: `${Math.round(file.size / 1024).toLocaleString()} KB is too large for a CV — the limit is ${MAX_CV_LENGTH.toLocaleString()} characters.`,
@@ -248,10 +271,12 @@ export async function readServerFiles(
   const rejected: FileRejection[] = [];
 
   for (const [index, file] of files.entries()) {
-    if (file.size > MAX_FILE_BYTES) {
+    // The document limit, not the text limit. See MAX_TEXT_BYTES for why using
+    // one bound for both refused legitimate PDFs.
+    if (file.size > MAX_UPLOAD_BYTES) {
       rejected.push({
         filename: file.name,
-        reason: `${Math.round(file.size / 1024).toLocaleString()} KB is too large for a CV.`,
+        reason: `${(file.size / (1024 * 1024)).toFixed(1)} MB is too large — the limit is ${MAX_UPLOAD_BYTES / (1024 * 1024)} MB.`,
       });
       onProgress?.(index + 1, files.length);
       continue;

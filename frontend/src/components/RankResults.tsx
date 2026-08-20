@@ -12,10 +12,11 @@ import {
   type ShortlistFilters,
   type SortKey,
 } from "@/lib/shortlist";
-import type { RankResponse } from "@/lib/types";
+import { FEATURE_ORDER } from "@/lib/features";
+import type { Job, RankResponse } from "@/lib/types";
 import CandidateCard from "./CandidateCard";
 import Disclaimer from "./Disclaimer";
-import { Button, Chip, Select, TextInput } from "./ui";
+import { Button, Card, CardBody, CardHeader, Chip, Select, TextInput } from "./ui";
 
 /**
  * The shortlist.
@@ -41,10 +42,16 @@ import { Button, Chip, Select, TextInput } from "./ui";
  */
 export default function RankResults({
   result,
+  job,
   names,
+  roundTripMs,
 }: {
   result: RankResponse;
+  /** Needed to say what was asked for, which is what "requirements met" counts. */
+  job: Job;
   names?: Map<string, string>;
+  /** Measured in the browser, because the service does not report its own latency. */
+  roundTripMs?: number;
 }) {
   const [filters, setFilters] = useState<ShortlistFilters>(NO_FILTERS);
   const [sort, setSort] = useState<SortKey>("rank");
@@ -72,53 +79,72 @@ export default function RankResults({
   }
 
   return (
-    <section aria-labelledby="results-heading" className="flex flex-col gap-4">
-      {/* ONE THING LEADS
-          This was a heading on the left and three label-and-value pairs plus a
-          button on the right, all at the same weight — four items with no order,
-          and a reader takes the heading first whatever the layout intends. The
-          counts are now a subordinate line under the heading, and the export is
-          the only thing competing with it, because it is the only action.
+    <Card>
+      <CardHeader
+        icon="▤"
+        title="Ranked results"
+        subtitle="Scores are relative to this posting."
+        actions={
+          <Button type="button" size="sm" onClick={download}>
+            Download CSV
+          </Button>
+        }
+      />
 
-          "Ranked" is gone rather than moved: the status footer reported the same
-          number as "Applications", so one screen carried one figure under two
-          names, which invites a reader to wonder whether they differ. The count
-          belongs here, next to the list; the footer keeps provenance. */}
-      <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
-        <div className="min-w-0">
-          <h2 id="results-heading" className="text-base font-semibold tracking-tight">
+      <CardBody className="flex flex-col gap-4">
+        {/* STATISTIC TILES, WITH THE MOCKUP'S FOURTH ONE REPLACED
+            The mockup's fourth tile was a ring reading "100% Completed". Every
+            submitted candidate is always ranked, so the figure is always 100 and
+            reports nothing — and a filled ring beside a list of scores is exactly
+            the proportional idiom the score itself is not allowed. The model
+            version takes its place, which is the thing a reviewer would actually
+            want to know about a set of results they are about to act on.
+
+            "Processing time" is measured in the browser and labelled as a round
+            trip, because that is what was observed. The service does not report
+            its own latency, and calling a round trip "processing time" would
+            attribute the network to the model. */}
+        <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+          <Tile label="Candidates" value={String(result.candidates.length)} />
+          <Tile label="Features used" value={String(FEATURE_ORDER.length)} />
+          <Tile
+            label="Round trip"
+            value={roundTripMs === undefined ? "—" : `${(roundTripMs / 1000).toFixed(2)} s`}
+          />
+          <Tile label="Model" value={result.model_version} />
+        </dl>
+
+        <div>
+          <h2 id="results-heading" className="sr-only">
             Shortlist
           </h2>
-          <p className="mt-1 text-sm text-muted">
-            Ordered best fit first. Ties break by reference, so an identical pair does not reorder
-            on re-submission.
-          </p>
-          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-            <span>
-              <span className="tabular font-medium text-text">{result.candidates.length}</span>{" "}
-              ranked
-            </span>
-            <span aria-hidden="true">·</span>
-            <span>
-              posting <span className="tabular font-medium text-text">{result.job_id}</span>
+          <p className="text-xs text-muted">
+            Ordered best fit first for posting{" "}
+            <span className="tabular font-medium text-text">{result.job_id}</span>. Ties break by
+            reference, so an identical pair does not reorder on re-submission.
+            {" "}
+            {/* Stated because it looks like an inconsistency and is not. The badge
+                counts requirements; the rank is the model weighing them, and it
+                does not weigh them equally — shift availability carries about
+                26% of the model's effect and site experience about 6%. A
+                candidate meeting fewer requirements can legitimately rank higher
+                for meeting the ones that matter most. Without this sentence, the
+                first reviewer to notice it concludes the ranking is broken. */}
+            <span className="text-muted">
+              A candidate meeting fewer requirements can still rank higher: the model does not
+              weigh them equally.
             </span>
             {withGaps > 0 && (
               <>
-                <span aria-hidden="true">·</span>
-                <span>
-                  <span className="tabular font-medium text-text">{withGaps}</span> left something
-                  unstated
-                </span>
+                {" "}
+                <span className="tabular font-medium text-text">{withGaps}</span> left something
+                unstated.
               </>
             )}
           </p>
         </div>
-        <Button type="button" size="sm" onClick={download}>
-          Export CSV
-        </Button>
-      </div>
 
-      <Disclaimer text={result.disclaimer} />
+        <Disclaimer text={result.disclaimer} />
 
       {isLong && (
         <div className="flex flex-col gap-2 rounded-md border border-border bg-surface px-3 py-2.5">
@@ -212,6 +238,7 @@ export default function RankResults({
               <li key={candidate.candidate_id}>
                 <CandidateCard
                   candidate={candidate}
+                  job={job}
                   displayName={labels.get(candidate.candidate_id)}
                 />
               </li>
@@ -219,6 +246,19 @@ export default function RankResults({
           </ol>
         </div>
       )}
-    </section>
+      </CardBody>
+    </Card>
+  );
+}
+
+/** One statistic. `dt` before `dd` so the pair is read as a pair. */
+function Tile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-border bg-surface-2/60 px-3 py-2">
+      <dt className="text-2xs tracking-[0.07em] text-muted uppercase">{label}</dt>
+      <dd className="tabular mt-0.5 truncate text-sm font-semibold" title={value}>
+        {value}
+      </dd>
+    </div>
   );
 }

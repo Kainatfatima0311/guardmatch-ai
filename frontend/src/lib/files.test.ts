@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
-  MAX_FILE_BYTES,
+  MAX_TEXT_BYTES,
+  MAX_UPLOAD_BYTES,
   isBrowserReadable,
   isLegacy,
   needsServer,
@@ -176,7 +177,7 @@ describe("readTextFiles", () => {
   });
 
   it("refuses an oversized file before reading it", async () => {
-    const { rejected } = await readTextFiles([txt("huge.txt", "a".repeat(MAX_FILE_BYTES + 1))]);
+    const { rejected } = await readTextFiles([txt("huge.txt", "a".repeat(MAX_TEXT_BYTES + 1))]);
 
     expect(rejected[0]!.reason).toContain("too large");
   });
@@ -196,6 +197,60 @@ describe("readTextFiles", () => {
 
     expect(drafts).toEqual([]);
     expect(rejected[0]!.reason).toContain("not read in the browser");
+  });
+});
+
+describe("the two size bounds, which were once one", () => {
+  // A single bound of MAX_CV_LENGTH * 4 was applied to both paths. It is correct
+  // for text — 20,000 characters of UTF-8 cannot exceed it — and wrong for a
+  // container. A PDF carries fonts, cross-reference tables and compressed
+  // streams, so a two-page CV is routinely 200 KB to 1 MB while holding far
+  // fewer than 20,000 characters. Every one of those was refused in the browser
+  // with a message saying the CV was too large, when the service would have
+  // taken it. Reasoning about the text a file contains says nothing about the
+  // bytes its container needs.
+
+  it("the document bound is far larger than the text bound", () => {
+    expect(MAX_UPLOAD_BYTES).toBeGreaterThan(MAX_TEXT_BYTES * 50);
+  });
+
+  it("mirrors the service's own upload cap, so the client refuses no more than it would", () => {
+    expect(MAX_UPLOAD_BYTES).toBe(5 * 1024 * 1024);
+  });
+
+  it("a 400 KB PDF is not refused for its size", async () => {
+    // The exact failure the single bound caused: comfortably under the service's
+    // 5 MB cap, comfortably over 80 KB. It must reach `/extract` rather than
+    // being turned away locally — so what is asserted is that the rejection, if
+    // any, is not about size.
+    const pdf = new File(["%PDF-1.4" + "x".repeat(400_000)], "cv.pdf", {
+      type: "application/pdf",
+    });
+    expect(pdf.size).toBeGreaterThan(MAX_TEXT_BYTES);
+    expect(pdf.size).toBeLessThan(MAX_UPLOAD_BYTES);
+
+    const { rejected } = await readAnyFiles([pdf]);
+
+    for (const r of rejected) {
+      expect(r.reason).not.toMatch(/too large/i);
+    }
+  });
+
+  it("a PDF over the service's cap is still refused, and in megabytes", async () => {
+    const huge = new File(["%PDF-1.4" + "x".repeat(MAX_UPLOAD_BYTES + 1)], "huge.pdf", {
+      type: "application/pdf",
+    });
+    const { drafts, rejected } = await readAnyFiles([huge]);
+
+    expect(drafts).toEqual([]);
+    expect(rejected[0]!.reason).toContain("MB");
+    expect(rejected[0]!.reason).toContain("too large");
+  });
+
+  it("an oversized text file is still refused, and in characters", async () => {
+    const { rejected } = await readTextFiles([txt("huge.txt", "a".repeat(MAX_TEXT_BYTES + 1))]);
+
+    expect(rejected[0]!.reason).toContain("characters");
   });
 });
 

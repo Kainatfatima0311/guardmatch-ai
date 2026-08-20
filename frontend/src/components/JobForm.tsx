@@ -11,7 +11,7 @@ import {
   type ShiftType,
   type SiteType,
 } from "@/lib/types";
-import { Card, CardBody, CardHeader, Chip, Field, Select, TextInput, Toggle } from "./ui";
+import { Card, CardBody, CardHeader, Chip, Field, Select, Slider, TextInput, Toggle } from "./ui";
 
 /**
  * The posting being ranked against.
@@ -94,21 +94,25 @@ export default function JobForm({
   const chosen = value.required_certifications.length;
 
   return (
-    /* THE CONTAINER QUERY IS RETIRED, AND THE REASON IS WORTH KEEPING
-       These fields used to go two-across, keyed to `sm:` — a *viewport*
-       breakpoint, while this panel's width comes from the grid column it sits in.
-       Those are different questions that had been agreeing by luck, and a
-       two-column page layout at `md` broke the agreement at once. The fix was a
-       container query, and it was right.
-       It is gone now because the layout it existed for is gone: a definition list
-       is one column at every width, so there is nothing to switch. The note stays
-       so that whoever reintroduces a multi-column grid here reaches for
-       `@container` rather than for `sm:`. */
-    <Card>
-      <CardHeader step={1} title="Posting" subtitle="What this vacancy actually needs." />
-      <CardBody className="flex flex-col gap-4">
-        <div className="flex flex-col gap-2.5">
-          <Field label="Shift" inline error={errors?.shift_pattern}>
+    /* THE CONTAINER QUERY IS BACK, BECAUSE THE GRID IS BACK
+       These fields go two-across again, and the breakpoint has to be the panel's
+       own width rather than the window's: this panel sits in a grid column, so
+       `sm:` and the actual available width are different questions that agree only
+       by luck. They stopped agreeing the moment a two-column page layout arrived
+       at `md` — a 640px window with a 304px rail would have put two selects side
+       by side inside 256px. `@container` asks the question that was always meant.
+       Retired in 26.3 when the layout became a single-column definition list;
+       restored here with it. The reasoning survived two redesigns, which is why it
+       was left in place rather than deleted. */
+    <Card className="@container">
+      <CardHeader
+        icon="◈"
+        title="Job requirements"
+        subtitle="Define what we are looking for."
+      />
+      <CardBody className="flex flex-col gap-5">
+        <div className="grid gap-4 @min-[21rem]:grid-cols-2">
+          <Field label="Shift pattern" error={errors?.shift_pattern}>
             {(p) => (
               <Select
                 {...p}
@@ -122,7 +126,7 @@ export default function JobForm({
             )}
           </Field>
 
-          <Field label="Site" inline error={errors?.site_type}>
+          <Field label="Site type" error={errors?.site_type}>
             {(p) => (
               <Select
                 {...p}
@@ -135,57 +139,50 @@ export default function JobForm({
               />
             )}
           </Field>
-
-          <Field
-            label="Min years"
-            inline
-            hint={`0 to ${MAX_YEARS_EXPERIENCE}. A candidate below it is not excluded — the gap becomes one factor among twelve.`}
-          >
-            {(p) => (
-              <TextInput
-                {...p}
-                type="number"
-                min={0}
-                max={MAX_YEARS_EXPERIENCE}
-                step={0.5}
-                value={value.min_years_experience}
-                disabled={disabled}
-                onChange={(e) => set("min_years_experience", Number(e.target.value) || 0)}
-              />
-            )}
-          </Field>
-
-          <Field
-            label="Reference"
-            inline
-            hint="Groups the ranking. Any stable identifier will do."
-            error={errors?.job_id}
-          >
-            {(p) => (
-              <TextInput
-                {...p}
-                value={value.job_id}
-                invalid={Boolean(errors?.job_id)}
-                disabled={disabled}
-                onChange={(e) => set("job_id", e.target.value)}
-                placeholder="j_nightsite"
-              />
-            )}
-          </Field>
         </div>
+
+        <Field
+          label="Minimum experience (years)"
+          hint={`0 to ${MAX_YEARS_EXPERIENCE}. A candidate below it is not excluded — the gap becomes one factor among twelve. At 0, experience stops being a factor at all.`}
+        >
+          {(p) => (
+            <Slider
+              {...p}
+              min={0}
+              max={MAX_YEARS_EXPERIENCE}
+              step={0.5}
+              value={value.min_years_experience}
+              disabled={disabled}
+              onChange={(next) => set("min_years_experience", next)}
+            />
+          )}
+        </Field>
+
+        <Field
+          label="Job reference"
+          hint="Groups the ranking. Any stable identifier will do."
+          error={errors?.job_id}
+        >
+          {(p) => (
+            <TextInput
+              {...p}
+              value={value.job_id}
+              invalid={Boolean(errors?.job_id)}
+              disabled={disabled}
+              onChange={(e) => set("job_id", e.target.value)}
+              placeholder="j_nightsite"
+            />
+          )}
+        </Field>
 
         <div className="hairline" />
 
-        <fieldset className="flex flex-col gap-2">
+        <fieldset className="flex flex-col gap-2.5">
           <div className="flex flex-wrap items-baseline justify-between gap-2">
-            <legend className="text-2xs font-medium tracking-[0.07em] text-muted uppercase">
-              Required certifications
-            </legend>
-            <span className="tabular text-2xs text-muted">
-              {chosen}/{CERTIFICATIONS.length}
-            </span>
+            <legend className="text-sm font-medium">Required certifications</legend>
+            <span className="tabular text-xs text-muted">{chosen} selected</span>
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {CERTIFICATIONS.map((code) => (
               <Chip
                 key={code}

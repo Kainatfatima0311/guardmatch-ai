@@ -5,12 +5,14 @@ import CandidateEditor, { validateCandidates } from "@/components/CandidateEdito
 import JobForm, { type JobDraft, type JobFormErrors } from "@/components/JobForm";
 import RankResults from "@/components/RankResults";
 import StatusFooter from "@/components/StatusFooter";
+import Steps, { type Step } from "@/components/Steps";
 import { Button, Card, CardHeader } from "@/components/ui";
 import { rank, ready, sampleCandidates } from "@/lib/api";
 import type { NormalisedError } from "@/lib/errors";
 import { SAMPLE_CANDIDATES, SAMPLE_JOB } from "@/lib/samples";
 import { toRequestCandidates, type CandidateDraft } from "@/lib/files";
 import { displayNames } from "@/lib/shortlist";
+import { usePublishStatus } from "@/lib/status";
 import type { Job, RankResponse } from "@/lib/types";
 
 /**
@@ -50,6 +52,10 @@ export default function Page() {
   const [notReady, setNotReady] = useState<string | null>(null);
   const [loadingDataset, setLoadingDataset] = useState(false);
   const [generatedNote, setGeneratedNote] = useState<string | null>(null);
+  // Measured here rather than reported by the service, and labelled as a round
+  // trip in the results for exactly that reason: calling it "processing time"
+  // would attribute the network to the model.
+  const [roundTripMs, setRoundTripMs] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     let cancelled = false;
@@ -64,6 +70,13 @@ export default function Page() {
     };
   }, []);
 
+  // The rail displays what the workspace is holding; publishing it here keeps
+  // the frame from having to own the workspace's state to describe it.
+  const publish = usePublishStatus();
+  useEffect(() => {
+    publish({ applications: candidates.length, ranked: result?.candidates.length ?? null });
+  }, [publish, candidates.length, result]);
+
   const candidateIssues = useMemo(() => validateCandidates(candidates), [candidates]);
 
   const jobErrors: JobFormErrors = useMemo(() => {
@@ -75,6 +88,34 @@ export default function Page() {
   }, [job]);
 
   const problems = candidateIssues.length + Object.keys(jobErrors).length;
+
+  /**
+   * Derived from what is true, not from a counter this page increments. A stepper
+   * that keeps its own idea of progress drifts from reality the moment a reviewer
+   * works out of order, which is most of the time. Nothing here gates anything.
+   */
+  const steps: Step[] = useMemo(() => {
+    const postingReady = Object.keys(jobErrors).length === 0;
+    const anyText = candidates.some((c) => c.cv_text.trim().length > 0);
+    const filled = candidates.filter((c) => c.cv_text.trim().length > 0).length;
+    return [
+      {
+        title: "The posting",
+        detail: postingReady ? "Ready" : "What this vacancy actually needs",
+        state: postingReady ? "ready" : "current",
+      },
+      {
+        title: "The applications",
+        detail: anyText ? `${filled} with text` : "Drop CVs, generate a batch, or paste",
+        state: anyText ? "ready" : postingReady ? "current" : "waiting",
+      },
+      {
+        title: "Rank",
+        detail: result ? `${result.candidates.length} placed, with reasons` : "Ranked results and explanations",
+        state: result ? "ready" : postingReady && anyText ? "current" : "waiting",
+      },
+    ];
+  }, [jobErrors, candidates, result]);
 
   /**
    * Generated applications, so the ranking path can be tried at the volume the
@@ -117,6 +158,7 @@ export default function Page() {
 
     setBusy(true);
     setError(null);
+    const startedAt = performance.now();
 
     const response = await rank({
       // Safe: `problems` is 0, so both selects hold a real enum value.
@@ -125,6 +167,8 @@ export default function Page() {
       // dropped here — see the note in @/lib/files on why the name must not travel.
       candidates: toRequestCandidates(candidates),
     });
+
+    setRoundTripMs(performance.now() - startedAt);
 
     if (response.ok) {
       setResult(response.data);
@@ -148,6 +192,8 @@ export default function Page() {
        survived the redesign and the absolute values did not: they were chosen for
        a looser design and would read as holes in this one. */
     <div className="flex flex-col gap-4 sm:gap-5">
+      <Steps steps={steps} />
+
       {notReady && (
         <div
           role="status"
@@ -166,31 +212,35 @@ export default function Page() {
         </div>
       )}
 
-      {/* One region: what is being ranked, where it came from, and the act of
-          ranking it. Held together at `gap-3.5` against the `gap-8` outside. */}
-      <section aria-label="What to rank" className="flex flex-col gap-2.5">
-        {/* Two columns from `md`, not only from `lg`. Between 48rem and 64rem
-            everything used to stack into one narrow column, which wastes a
-            tablet and a small laptop entirely. The rail is narrower at `md`
-            because 23rem there would leave the applications about 384px — phone
-            width on a landscape screen. */}
-        <div className="grid items-start gap-4 md:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:gap-5">
+      {/* THREE COLUMNS, AS IN THE SUPPLIED MOCKUP
+          Posting, then applications with the action beneath them, then the
+          shortlist. The action sits in the applications column because that is
+          what it acts on: a button under the thing it submits needs no
+          explaining, and the mockup puts it there for the same reason.
+
+          Three columns only from `xl`. Below that the shortlist takes the full
+          width under a two-column top, because a results row carries a rank, an
+          avatar, a name, its reasons and a score — squeezing all of that into a
+          third of a 1024px screen makes every reason wrap to four lines. */}
+      <div className="grid items-start gap-4 md:grid-cols-2 xl:grid-cols-[minmax(0,17rem)_minmax(0,1fr)_minmax(0,1.2fr)] xl:gap-5">
           <JobForm
             value={job}
             errors={showErrors ? jobErrors : undefined}
             onChange={setJob}
             disabled={busy}
           />
-          <CandidateEditor
-            candidates={candidates}
-            issues={showErrors ? candidateIssues : []}
-            disabled={busy}
-            onChange={setCandidates}
-            onLoadSamples={loadSamples}
-            onLoadDataset={loadDataset}
-            loadingDataset={loadingDataset}
-          />
-        </div>
+          {/* One column: what is being ranked, where it came from, and the
+              act of ranking it. */}
+          <div className="flex flex-col gap-3">
+            <CandidateEditor
+              candidates={candidates}
+              issues={showErrors ? candidateIssues : []}
+              disabled={busy}
+              onChange={setCandidates}
+              onLoadSamples={loadSamples}
+              onLoadDataset={loadDataset}
+              loadingDataset={loadingDataset}
+            />
 
         {generatedNote && (
           <div
@@ -213,15 +263,12 @@ export default function Page() {
             which is the last place a pattern should give way.
 
             Deliberately NOT sticky. The premise for making it so was that
-            loading 250 applications pushes it off screen — checked, and it does
-            not: the list caps itself at 35rem and scrolls internally, so this
-            lands at roughly the fold rather than being pushed away. A sticky
-            element that could sit over the shortlist is a worse trade than one
-            small scroll. */}
+            the mockup places it directly under the applications it submits, so
+            it is now beside them rather than below the whole workspace. */}
         <Card>
           <CardHeader
-            step={3}
-            title="Rank"
+            icon="▶"
+            title="Rank applications"
             subtitle="Parses each CV, builds twelve features, ranks, and explains every placement."
             actions={
               <Button type="button" variant="primary" onClick={submit} disabled={busy}>
@@ -240,12 +287,12 @@ export default function Page() {
               </p>
             </div>
           )}
-        </Card>
-      </section>
+            </Card>
+          </div>
 
       {/* One live region for every outcome, so a screen reader is told what
           happened once rather than having three regions compete. */}
-      <div aria-live="polite" className="flex flex-col gap-3">
+        <div aria-live="polite" className="flex flex-col gap-3 md:col-span-2 xl:col-span-1">
         {busy && (
           <div className="rounded-md border border-border bg-surface px-3 py-2.5 text-xs text-muted">
             Parsing {candidates.length} application{candidates.length === 1 ? "" : "s"}, building
@@ -283,7 +330,12 @@ export default function Page() {
 
         {result && !busy && (
           <>
-            <RankResults result={result} names={displayNames(candidates)} />
+            <RankResults
+              result={result}
+              job={job as Job}
+              names={displayNames(candidates)}
+              roundTripMs={roundTripMs}
+            />
             <StatusFooter
               modelVersion={result.model_version}
               requestId={result.request_id}
@@ -305,6 +357,7 @@ export default function Page() {
             </p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

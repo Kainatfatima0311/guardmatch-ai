@@ -30,15 +30,15 @@ import { useId } from "react";
 /**
  * A panel.
  *
- * Flat, and defined by a single-pixel rule rather than by floating above the
- * page. Shadow was doing the separating before; on a near-black ground a shadow
- * reads as a smudge rather than as height, so the rule does it instead and the
- * elevation tokens are `none`.
+ * Elevated again, for the supplied mockup's light and soft treatment. The Console
+ * phase made these flat and defined them by a rule, which was right for a
+ * near-black ground where a shadow reads as a smudge; on this ground depth is
+ * legible and the mockup uses it.
  *
- * `emphasis` replaces what `raised` used to do. Depth cannot mark the leading
- * candidate when nothing has depth, so the border carries it — which is a better
- * signal anyway, because it survives a screenshot, a print, and a viewer who
- * cannot separate two shadows.
+ * `emphasis` still puts its marker on the **border** rather than on the shadow,
+ * even though there is depth to spend now. A border survives a screenshot, a
+ * print, and a viewer who cannot separate two shadows, and the leading candidate
+ * is exactly the thing that must not depend on subtle rendering.
  */
 export function Card({
   children,
@@ -52,7 +52,7 @@ export function Card({
   return (
     <section
       className={clsx(
-        "overflow-hidden rounded-md border bg-surface",
+        "overflow-hidden rounded-xl border bg-surface shadow-[var(--shadow-card)]",
         emphasis ? "border-primary" : "border-border",
         className,
       )}
@@ -84,40 +84,47 @@ export function Card({
  * `--border-strong` exists for those. Darkening a decorative rule to pass a check
  * that does not apply to it would make every panel heavier to no benefit.
  *
- * A MICRO LABEL, NOT A HEADING
+ * A TITLE AND AN ICON, PER THE SUPPLIED MOCKUP
  *
- * The title is set as a small tracked uppercase label rather than as prose at
- * `text-base`. That is the single biggest difference between this and the design
- * it replaces: a heading competes with the content for the reader's first look,
- * while a label names a region and then gets out of the way. It also buys back
- * vertical space, which is what lets two hundred and fifty rows be worth showing.
+ * The Console phase set this as a small tracked uppercase label on the argument
+ * that a heading competes with the content for the reader's first look. That
+ * argument still holds and is worth keeping on the record — but the panels are now
+ * three named regions in a workspace rather than rows in a dense table, and the
+ * step header above them carries the sequence, so the panel titles no longer have
+ * to earn their space by getting out of the way.
  *
- * The step number is mono and unboxed. A filled badge was one more shape to
- * parse; the figure alone is enough to read three panels as a sequence.
+ * The icon is decorative and `aria-hidden`. It is a landmark for someone
+ * scanning, not information — every panel's meaning is in its title.
  */
 export function CardHeader({
-  step,
+  icon,
   title,
   subtitle,
   actions,
 }: {
-  step?: number;
+  /** Decorative landmark. Never the only carrier of meaning. */
+  icon?: string;
   title: string;
   subtitle?: string;
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2 border-b border-border px-3 py-2 sm:px-4">
-      <div className="flex min-w-0 items-baseline gap-2.5">
-        {step !== undefined && (
-          <span aria-hidden="true" className="tabular shrink-0 text-2xs text-primary">
-            {String(step).padStart(2, "0")}
+    <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-2 border-b border-border px-4 py-3">
+      <div className="flex min-w-0 items-center gap-2.5">
+        {icon && (
+          <span
+            aria-hidden="true"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary-wash text-sm text-primary"
+          >
+            {icon}
           </span>
         )}
-        <h2 className="truncate text-2xs font-semibold tracking-[0.09em] uppercase">{title}</h2>
-        {subtitle && <p className="hidden truncate text-xs text-muted sm:block">{subtitle}</p>}
+        <div className="min-w-0">
+          <h2 className="truncate text-sm font-semibold tracking-tight">{title}</h2>
+          {subtitle && <p className="truncate text-xs text-muted">{subtitle}</p>}
+        </div>
       </div>
-      {actions && <div className="flex flex-wrap items-center gap-1.5">{actions}</div>}
+      {actions && <div className="flex flex-wrap items-center gap-2">{actions}</div>}
     </header>
   );
 }
@@ -131,7 +138,7 @@ export function CardHeader({
  * two values cover the difference that actually matters here.
  */
 export function CardBody({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={clsx("px-3 py-3 sm:px-4 sm:py-3.5", className)}>{children}</div>;
+  return <div className={clsx("px-4 py-4", className)}>{children}</div>;
 }
 
 /* --------------------------------------------------------------------------
@@ -209,7 +216,7 @@ export function Field({
 }
 
 const CONTROL =
-  "w-full rounded-md border border-border-strong bg-surface-2 px-2.5 py-1.5 text-sm " +
+  "w-full rounded-lg border border-border-strong bg-surface-2 px-3 py-2 text-sm " +
   "transition-colors placeholder:text-muted hover:border-primary " +
   "disabled:cursor-not-allowed disabled:opacity-55";
 
@@ -279,14 +286,17 @@ export function Chip({
       onClick={onToggle}
       title={note}
       className={clsx(
-        "inline-flex items-center gap-1 rounded-md border px-2 py-1 text-2xs font-medium transition-colors",
+        "inline-flex items-center gap-1.5 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors",
         selected
-          ? "border-primary bg-primary text-primary-contrast"
-          : "border-border-strong bg-surface-2 text-muted hover:border-primary hover:text-text",
+          ? "border-primary bg-primary-wash text-primary"
+          : "border-border-strong bg-surface text-muted hover:border-primary hover:text-text",
       )}
     >
+      {/* A checkbox glyph rather than a fill, so the selected state is legible
+          without depending on the difference between two backgrounds. The
+          `aria-pressed` on the button is what assistive technology reads. */}
       <span aria-hidden="true" className="text-2xs">
-        {selected ? "✓" : "+"}
+        {selected ? "☑" : "☐"}
       </span>
       {children}
     </button>
@@ -344,6 +354,70 @@ export function Toggle({
   );
 }
 
+/**
+ * A range paired with the number it sets.
+ *
+ * The slider is for getting close quickly and the number input is for being
+ * exact, and neither is sufficient alone: dragging cannot reliably land on 4.5,
+ * and typing gives no sense of where 4.5 sits between 0 and 40. They edit one
+ * value, so there is one label and one `id` — the range is `aria-hidden` and the
+ * input is the labelled control, because two focusable controls announcing the
+ * same field is worse for a screen reader than one.
+ */
+export function Slider({
+  id,
+  value,
+  min,
+  max,
+  step,
+  disabled,
+  onChange,
+  ...rest
+}: {
+  id?: string;
+  value: number;
+  min: number;
+  max: number;
+  step: number;
+  disabled?: boolean;
+  onChange: (next: number) => void;
+} & Omit<InputHTMLAttributes<HTMLInputElement>, "value" | "onChange" | "type">) {
+  return (
+    <div className="flex flex-col gap-1.5">
+      <div className="flex items-center gap-3">
+        <input
+          type="range"
+          aria-hidden="true"
+          tabIndex={-1}
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(Number(e.target.value))}
+          className="accent-primary h-1.5 min-w-0 flex-1 cursor-pointer disabled:cursor-not-allowed disabled:opacity-55"
+        />
+        <input
+          {...rest}
+          id={id}
+          type="number"
+          min={min}
+          max={max}
+          step={step}
+          value={value}
+          disabled={disabled}
+          onChange={(e) => onChange(Number(e.target.value) || 0)}
+          className="tabular w-16 shrink-0 rounded-lg border border-border-strong bg-surface-2 px-2 py-1.5 text-center text-sm transition-colors hover:border-primary disabled:cursor-not-allowed disabled:opacity-55"
+        />
+      </div>
+      <div aria-hidden="true" className="tabular flex justify-between text-2xs text-muted">
+        <span>{min}</span>
+        <span>{max}</span>
+      </div>
+    </div>
+  );
+}
+
 /* --------------------------------------------------------------------------
    Actions
    -------------------------------------------------------------------------- */
@@ -361,10 +435,11 @@ export function Button({
     <button
       {...props}
       className={clsx(
-        "inline-flex items-center justify-center gap-1.5 rounded-md font-medium transition-colors",
+        "inline-flex items-center justify-center gap-1.5 rounded-lg font-medium transition-colors",
         "disabled:cursor-not-allowed disabled:opacity-50",
-        size === "sm" ? "px-2 py-1 text-2xs" : "px-3 py-1.5 text-sm",
-        variant === "primary" && "bg-primary text-primary-contrast hover:bg-primary-hover",
+        size === "sm" ? "px-2.5 py-1.5 text-xs" : "px-3.5 py-2 text-sm",
+        variant === "primary" &&
+          "bg-primary text-primary-contrast shadow-[var(--shadow-sm)] hover:bg-primary-hover",
         variant === "secondary" &&
           "border border-border-strong bg-surface-2 text-text hover:border-primary",
         variant === "ghost" && "text-muted hover:bg-surface-2 hover:text-text",

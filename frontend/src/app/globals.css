@@ -26,32 +26,37 @@
    and the figure recorded is the worst of them.
 
      DARK             worst    LIGHT            worst
-     text             13.50    text             16.70
-     muted             6.00    muted             5.89
-     primary           6.65    primary           4.79
-     primary-hover     8.90    primary-hover     6.64
-     amber             7.71    amber             4.90
-     pos               8.61    pos               4.80
-     neg               6.15    neg               5.50
+     text             11.86    text             15.50
+     muted             5.57    muted             5.57
+     primary           5.65    primary           4.78
+     primary-hover     7.56    primary-hover     6.62
+     amber             6.55    amber             4.80
+     pos               7.32    pos               4.79
+     neg               5.23    neg               5.49
 
-   All clear WCAG AA for body text (4.5:1). Measuring against the deepest surface
-   rather than the page background caught four failures in the first draft of the
-   original palette, and one in the first draft of this ground: light --primary
-   landed on exactly 4.50 against --surface-3, with --pos at 4.51 and --amber at
-   4.60 close behind it. Lightening --surface-3 from #e7e9ec to #eef0f2 bought all
-   three about 0.3 of headroom, which is the difference between passing and
-   passing on a rounding.
+   All clear WCAG AA for body text (4.5:1). This is the third ground this accent
+   has sat on, and measuring against the deepest surface rather than the page
+   background has caught something in each of the first two: four failures in the
+   first palette once a fourth layer was introduced, and one marginal failure in
+   the Console ground where light --primary landed on exactly 4.50.
 
-   --border is a decorative separator and is deliberately low contrast (1.27 dark,
-   1.31 light). --border-strong is the one used for control boundaries and clears
-   the 3:1 that WCAG 1.4.11 asks of them on every surface: 3.46 dark, 3.68 light.
+   This one cleared on the first attempt, and two values were still moved for
+   headroom rather than left on the line: dark --border-strong from #6D7987 to
+   #747F8C (3.17 -> 3.46) and light --surface-3 from #E9EEF3 to #ECF0F4, which
+   lifted light --primary, --amber and --pos from about 4.70 to about 4.80. A pair
+   that passes by 0.19 is a pair that fails after the next small adjustment.
 
-   NO ELEVATION
+   --border is a decorative separator and is deliberately low contrast (1.34 dark,
+   1.22 light). --border-strong carries control boundaries and clears the 3:1 that
+   WCAG 1.4.11 asks of them on every surface: 3.46 dark, 3.60 light.
 
-   The three shadow tokens are `none`. A panel in this interface is defined by a
-   rule, not by floating above the page, and shadows on a near-black ground read
-   as smudges rather than as height. They are kept as tokens so a future design
-   can reintroduce depth in one place.
+   ELEVATION IS BACK
+
+   The Console phase set all three shadow tokens to `none`, because a panel defined
+   by a rule needs no depth and a shadow on a near-black ground reads as a smudge.
+   This design is light and soft and asks for real elevation, so the tokens carry
+   shadows again -- and the fact that they were kept at `none` rather than deleted
+   is why restoring them was one edit in one file.
 
    THREE THEME STATES
 
@@ -65,82 +70,82 @@
 :root {
   /* Light — the bare :root default, so "system" resolves correctly with no
      attribute set and no JavaScript having run. */
-  --bg: #f7f8f9;
+  --bg: #f6f8fa;
   --surface: #ffffff;
-  --surface-2: #f4f5f7;
-  --surface-3: #eef0f2;
-  --border: #dfe1e5;
-  --border-strong: #767c86;
-  --text: #0d1013;
-  --muted: #565c66;
+  --surface-2: #f2f5f8;
+  --surface-3: #ecf0f4;
+  --border: #e3e9ef;
+  --border-strong: #757e88;
+  --text: #101828;
+  --muted: #556070;
   --primary: #0f766e;
   --primary-hover: #115e59;
   --primary-contrast: #ffffff;
-  --primary-wash: #e4f2f0;
-  --amber: #a94d08;
-  --amber-surface: #fdf6ec;
+  --primary-wash: #e2f2f0;
+  --amber: #a4530a;
+  --amber-surface: #fdf6ea;
   --pos: #047857;
   --neg: #be123c;
-  --pos-wash: #e6f4ef;
-  --neg-wash: #fceaee;
+  --pos-wash: #e5f4ef;
+  --neg-wash: #fdeaee;
 
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
+  --shadow-sm: 0 1px 2px rgb(16 24 40 / 0.05);
+  --shadow-md: 0 1px 3px rgb(16 24 40 / 0.06), 0 4px 12px rgb(16 24 40 / 0.05);
+  --shadow-lg: 0 2px 6px rgb(16 24 40 / 0.06), 0 12px 28px rgb(16 24 40 / 0.1);
   --ring: 0 0 0 3px rgb(15 118 110 / 0.18);
 }
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #08090c;
-    --surface: #0e1013;
-    --surface-2: #14171b;
-    --surface-3: #1b1f24;
-    --border: #23272e;
-    --border-strong: #6b737f;
-    --text: #e6e8ec;
-    --muted: #969ca7;
+    --bg: #0d1117;
+    --surface: #151b23;
+    --surface-2: #1c232d;
+    --surface-3: #242c38;
+    --border: #2a323d;
+    --border-strong: #747f8c;
+    --text: #e8ecf1;
+    --muted: #99a4b2;
     --primary: #14b8a6;
     --primary-hover: #2dd4bf;
     --primary-contrast: #04211d;
-    --primary-wash: #0d2b28;
+    --primary-wash: #10312e;
     --amber: #f59e0b;
-    --amber-surface: #1f1808;
+    --amber-surface: #241c0c;
     --pos: #34d399;
     --neg: #fb7185;
-    --pos-wash: #0d2620;
-    --neg-wash: #261016;
+    --pos-wash: #102c24;
+    --neg-wash: #2c1219;
 
-    --shadow-sm: none;
-    --shadow-md: none;
-    --shadow-lg: none;
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+    --shadow-md: 0 1px 3px rgb(0 0 0 / 0.35), 0 4px 12px rgb(0 0 0 / 0.28);
+    --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 28px rgb(0 0 0 / 0.45);
     --ring: 0 0 0 3px rgb(20 184 166 / 0.25);
   }
 }
 
 :root[data-theme="dark"] {
-  --bg: #08090c;
-  --surface: #0e1013;
-  --surface-2: #14171b;
-  --surface-3: #1b1f24;
-  --border: #23272e;
-  --border-strong: #6b737f;
-  --text: #e6e8ec;
-  --muted: #969ca7;
+  --bg: #0d1117;
+  --surface: #151b23;
+  --surface-2: #1c232d;
+  --surface-3: #242c38;
+  --border: #2a323d;
+  --border-strong: #747f8c;
+  --text: #e8ecf1;
+  --muted: #99a4b2;
   --primary: #14b8a6;
   --primary-hover: #2dd4bf;
   --primary-contrast: #04211d;
-  --primary-wash: #0d2b28;
+  --primary-wash: #10312e;
   --amber: #f59e0b;
-  --amber-surface: #1f1808;
+  --amber-surface: #241c0c;
   --pos: #34d399;
   --neg: #fb7185;
-  --pos-wash: #0d2620;
-  --neg-wash: #261016;
+  --pos-wash: #102c24;
+  --neg-wash: #2c1219;
 
-  --shadow-sm: none;
-  --shadow-md: none;
-  --shadow-lg: none;
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / 0.3);
+  --shadow-md: 0 1px 3px rgb(0 0 0 / 0.35), 0 4px 12px rgb(0 0 0 / 0.28);
+  --shadow-lg: 0 2px 6px rgb(0 0 0 / 0.4), 0 12px 28px rgb(0 0 0 / 0.45);
   --ring: 0 0 0 3px rgb(20 184 166 / 0.25);
 }
 
@@ -192,10 +197,10 @@
   /* Re-cut for Console. Small radii are most of what separates a tool from a
      consumer app, and re-cutting the scale tightens every existing
      `rounded-*` usage at once rather than editing each of them. */
-  --radius-sm: 0.125rem;
-  --radius-md: 0.25rem;
-  --radius-lg: 0.375rem;
-  --radius-xl: 0.5rem;
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
+  --radius-xl: 0.75rem;
 
   --shadow-card: var(--shadow-md);
   --shadow-raised: var(--shadow-lg);

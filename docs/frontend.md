@@ -130,7 +130,83 @@ appears at the moment it is acting on a candidate.
 
 ---
 
-## 4. The colour system — "Night Watch"
+## 4. Built from a supplied mockup, and the two things in it that could not be built
+
+A design mockup was supplied and asked for. It is a good design and most of it is
+here: a sidebar rail carrying brand and live status, a three-step header, three
+panels, statistic tiles over the results, and candidate rows with avatars, a large
+score and an expandable breakdown.
+
+Two things in it assert something the model does not support. Both were raised
+before any of it was built, and both were resolved by keeping the shape and
+changing the claim.
+
+### `92 /100` became the real score
+
+The mockup put a large green figure out of one hundred on every candidate. The
+model emits a **relative ranking score within a single posting**. It is not
+calibrated to a 0—100 scale, and `/100` reads as "92% suitable" whatever caption
+sits beside it — which is the failure section 3 exists to prevent, arriving
+through the front door.
+
+The resolution keeps the layout exactly: the same large figure in the same
+position, carrying the real signed score. A reviewer scanning the column still
+feels the differences between rows, because those differences are real.
+
+### "Strong match" became a counted fact
+
+The mockup badged each candidate **Strong**, **Moderate**, **Weak** or **Low**
+match. This is the match level that was already considered and rejected once: the
+training labels are graded 0—3, so a level is meaningful in the label space, but
+the output has no calibration to those grades. Any level shown would be a
+threshold the interface invented, and the model card's second condition is that
+nothing in the output supports one.
+
+The badge stays and reads **"5 of 6 requirements met"**, derived in
+`lib/requirements.ts` from feature values the model actually used. The difference
+matters in a way worth stating: *"Strong match"* is a judgement nothing here made,
+and *"5 of 6"* is something a reviewer can check against the CV themselves.
+
+**A `null` is never counted as a failure**, and that is the module's central rule.
+A feature value of `null` means the parser did not find the fact, not that the
+candidate lacks it — and the model itself treats those differently, penalising a
+stated negative harder than an unknown. So `not-stated` is its own state, it is
+never folded into unmet, and the badge names the count: *"4 of 6 requirements met ·
+1 not stated"*. Without that suffix, "4 of 6" invites the reader to conclude two
+failures when one of them is a CV that stayed silent. In a real 250-candidate
+batch, **191 rows carried at least one unstated value**, so this is the common case
+rather than an edge one.
+
+### Smaller things from the mockup that are not here
+
+| In the mockup | Why not |
+|---|---|
+| Gold, silver and bronze medals on the top three | A reward metaphor. A medal says a person won something; the only available claim is that one CV matched a posting's stated requirements more closely than another. The rank number carries the ordering without the framing |
+| A trophy over the results | Same reason |
+| A different avatar colour per candidate | This palette reserves colour for meaning. An orange avatar would read as a constraint and a green one as something in the candidate's favour, neither of which is being claimed. Initials carry identity; hue carries nothing |
+| A "100% Completed" ring | Every submitted candidate is always ranked, so the figure is always 100 and reports nothing — and a filled ring beside a column of scores is exactly the proportional idiom the score is not allowed. Replaced with the model version |
+| Drag handles on the file list | They imply the order matters. It does not: the service breaks ties by candidate reference, so a reviewer who drags a CV to the top and sees it rank third concludes the tool ignored them |
+| "2.4 MB · 2 min ago" per file | The size is real only for an uploaded file, and after extraction what is held is text rather than the original bytes. The character count is shown instead, which is also the figure the 20,000 limit applies to |
+| A **Share** button | A shareable ranking link turns a working file into a record of a decision — the same argument that keeps a shortlist unpersisted |
+| Seven sidebar navigation items | One page exists. Seven dead links around one live one makes a working tool read as a prototype. The rail carries live model status and counts instead |
+| `Hospital` as a site type | Not one of the six the service accepts: retail, corporate, construction, event, residential, industrial |
+| "Max 10MB each" | The service refuses above 5 MB. The figure is derived from the constant rather than typed |
+| Per-certification ticks ("Has First aid and CPR") | `POST /rank` returns `cert_overlap_count`, not which certifications matched. Naming them would need a second parse request per candidate, so the **count** is shown, since the count is what the model used |
+
+### One thing that looks like an inconsistency and is not
+
+The requirements count and the rank need not agree. The model does not weigh
+requirements equally — shift availability carries about 26% of its effect and
+site experience about 6% — so a candidate meeting **fewer** requirements can
+legitimately rank higher for meeting the ones that matter most.
+
+The interface says so, in the results panel, next to the ordering. Without that
+sentence the first reviewer to notice concludes the ranking is broken, and a
+correct system that looks broken gets worked around.
+
+---
+
+## 5. The colour system — "Night Watch"
 
 Colour carries meaning here rather than decorating. Three families are reserved, and nothing
 else may use them:
@@ -149,8 +225,8 @@ means "saved" and sometimes means "counted in favour" teaches nothing.
 Every foreground is measured against **all four background layers it can sit on**, and the
 figure recorded is the worst of them. Body text requires 4.5:1 under WCAG AA.
 
-Backgrounds — dark: `--bg #08090C`, `--surface #0E1013`, `--surface-2 #14171B`,
-`--surface-3 #1B1F24`. Light: `#F7F8F9`, `#FFFFFF`, `#F4F5F7`, `#EEF0F2`.
+Backgrounds — dark: `--bg #0D1117`, `--surface #151B23`, `--surface-2 #1C232D`,
+`--surface-3 #242C38`. Light: `#F6F8FA`, `#FFFFFF`, `#F2F5F8`, `#ECF0F4`.
 
 The **accent is unchanged**. The ground under it was replaced for the Console redesign: deeper,
 less blue, and low enough in chroma that a single-pixel rule reads as structure rather than as
@@ -160,36 +236,41 @@ the surfaces were the part still open.
 
 | Token | Dark | worst | Light | worst |
 |---|---|---|---|---|
-| `--text` | `#E6E8EC` | 13.50 | `#0D1013` | 16.70 |
-| `--muted` | `#969CA7` | 6.00 | `#565C66` | 5.89 |
-| `--primary` | `#14B8A6` | 6.65 | `#0F766E` | 4.79 |
-| `--primary-hover` | `#2DD4BF` | 8.90 | `#115E59` | 6.64 |
-| `--amber` | `#F59E0B` | 7.71 | `#A94D08` | 4.90 |
-| `--pos` | `#34D399` | 8.61 | `#047857` | 4.80 |
-| `--neg` | `#FB7185` | 6.15 | `#BE123C` | 5.50 |
+| `--text` | `#E8ECF1` | 11.86 | `#101828` | 15.50 |
+| `--muted` | `#99A4B2` | 5.57 | `#556070` | 5.57 |
+| `--primary` | `#14B8A6` | 5.65 | `#0F766E` | 4.78 |
+| `--primary-hover` | `#2DD4BF` | 7.56 | `#115E59` | 6.62 |
+| `--amber` | `#F59E0B` | 6.55 | `#A4530A` | 4.80 |
+| `--pos` | `#34D399` | 7.32 | `#047857` | 4.79 |
+| `--neg` | `#FB7185` | 5.23 | `#BE123C` | 5.49 |
 
-**Measuring against the deepest surface rather than the page background is what makes this table
-worth having, and it has now earned its keep twice.** The first draft of the original palette
-failed in four places once the fourth layer was introduced: `--border-strong` at 2.86 and 2.51 on
-the dark raised surfaces, light `--amber` at 4.18, and light `--border-strong` at 2.98.
+**This is the fourth ground this accent has sat on, and measuring against the deepest surface
+rather than the page background has found something in three of them.** The first palette failed in
+four places once a fourth layer was introduced: `--border-strong` at 2.86 and 2.51 on the dark
+raised surfaces, light `--amber` at 4.18, and light `--border-strong` at 2.98.
 
-The first draft of this ground failed once, and marginally, which is the more instructive case.
-Light `--primary` landed on **exactly 4.50** against `--surface-3`, with `--pos` at 4.51 and
-`--amber` at 4.60 behind it — three colours passing on a rounding. Lightening `--surface-3` from
-`#E7E9EC` to `#EEF0F2` bought all three about 0.3 of headroom. Nothing was visibly wrong before
-the change and nothing looks different after it, which is exactly why the figure has to be read
+The Console ground failed once and marginally, which is the more instructive case. Light
+`--primary` landed on **exactly 4.50** against `--surface-3`, with `--pos` at 4.51 and `--amber` at
+4.60 behind it — three colours passing on a rounding. Nothing was visibly wrong before the
+adjustment and nothing looks different after it, which is exactly why the figure has to be read
 rather than eyeballed.
 
+This ground cleared on the first attempt and **two values were still moved**, which is the habit
+worth keeping rather than the result. Dark `--border-strong` sat at 3.17 against a 3.0 floor and
+went to `#747F8C` for 3.46; light `--primary`, `--amber` and `--pos` all sat near 4.70 and were
+lifted to about 4.80 by lightening `--surface-3`. A pair that passes by 0.19 is a pair that fails
+after the next small adjustment, and this palette has now been adjusted four times.
+
 Semantic colours are also used as tints, so text on each tint was measured separately. The
-tightest of the eight pairs is `--primary` on `--primary-wash` in light at **4.76**.
+tightest of the eight pairs is `--primary` on `--primary-wash` in light at **4.74**.
 
 | On its own wash | Dark | Light |
 |---|---|---|
-| `--primary` | 6.06 | 4.76 |
-| `--amber` | 8.20 | 5.22 |
-| `--pos` | 8.31 | 4.84 |
-| `--neg` | 6.68 | 5.43 |
-| `--text` on any wash | ≥ 12.29 | ≥ 16.48 |
+| `--primary` | 5.62 | 4.74 |
+| `--amber` | 7.84 | 5.12 |
+| `--pos` | 7.76 | 4.84 |
+| `--neg` | 6.46 | 5.44 |
+| `--text` on any wash | ≥ 11.79 | ≥ 15.36 |
 
 ### Two border tokens, because one was not enough
 
@@ -200,8 +281,8 @@ boundaries:
 
 | Token | Dark | Light | Used for |
 |---|---|---|---|
-| `--border` | `#23272E`, 1.27 | `#DFE1E5`, 1.31 | Panel edges, table rules — decorative |
-| `--border-strong` | `#6B737F`, worst 3.46 | `#767C86`, worst 3.68 | Inputs, selects, buttons, switches |
+| `--border` | `#2A323D`, 1.34 | `#E3E9EF`, 1.22 | Panel edges, table rules — decorative |
+| `--border-strong` | `#747F8C`, worst 3.46 | `#757E88`, worst 3.60 | Inputs, selects, buttons, switches |
 
 **This distinction became load-bearing in the Console redesign rather than merely tidy.** Once
 panels are defined by rules instead of by shadow, `--border` is doing structural work everywhere
@@ -216,15 +297,20 @@ ratio is visible in the same file as the change.
 A six-step type scale with explicit line heights and a four-step radius scale. Six sizes is
 enough for this interface; a scale with more steps than the design needs invites inconsistency.
 
-**There are no elevation levels.** The three shadow tokens are `none`. A panel here is defined by
-a rule, not by floating above the page, and on a near-black ground a shadow reads as a smudge
-rather than as height. The tokens are kept rather than deleted so that a future design wanting
-depth changes one place instead of thirty.
+**Elevation is back**, at 0.25 to 0.75rem radii and three soft shadow levels, for the supplied
+mockup's light treatment. The Console phase set all three shadow tokens to `none`, on the argument
+that a panel defined by a rule needs no depth and that a shadow on a near-black ground reads as a
+smudge rather than as height. That argument was right for that ground and does not apply to this
+one.
 
-The radius scale was **re-cut** for Console rather than re-applied: 0.125, 0.25, 0.375 and 0.5rem,
-down from 0.375 to 1rem. Re-cutting the scale tightens every existing `rounded-*` usage at once,
-which is both less churn and less risk than editing several dozen class names — and small radii
-are most of what separates a tool from a consumer app.
+Worth recording: the tokens were set to `none` rather than **deleted**, with a note saying why.
+Restoring depth was therefore one edit in one file rather than thirty — the first time in this
+project that a deliberately kept dead token paid for itself.
+
+The radius scale has been **re-cut twice** rather than re-applied: down to 0.125-0.5rem for Console,
+where small radii are most of what separates a tool from a consumer app, and back up to
+0.25-0.75rem here. Re-cutting the scale moves every existing `rounded-*` usage at once, which is
+less churn and less risk than editing several dozen class names.
 
 Fonts are **self-hosted** through `next/font`, not linked from a CDN, and the reason is not
 performance. A runtime request to `fonts.gstatic.com` would put a third party in the request
@@ -238,7 +324,10 @@ the decimal point on every row.
 
 ### Hierarchy, and what carries it
 
-This section records two rounds, because the second one only makes sense against the first.
+This section records three rounds, because each one only makes sense against the last. The record
+matters more than any single round: **a decision that survives a redesign is better evidence than
+one that has only ever been tested against the design it was made for**, and three redesigns have
+now sorted these into the ones that held and the ones that were local to a look.
 
 **Round one refined the design and the user's verdict was that nothing had changed.** That verdict
 was correct, and it is the most useful thing in this document. Card headers became hairline rules,
@@ -246,6 +335,12 @@ a uniform spacing scale became a grouped one, a viewport breakpoint became a con
 a results header stopped competing with itself. Every one of those improved how the design worked.
 None of them changed **what it was**: a card stack, in the same palette, at the same density, reads
 as the same interface however much better it behaves.
+
+**Round three replaced it again, from a mockup the user supplied.** Light, soft and elevated;
+panels with icons and titles; a sidebar rail; statistic tiles. Section 4 covers what that mockup
+asked for and the two things in it that could not be built. What survived from round two is the
+density discipline in the applications list, and the habit of measuring a palette before writing
+any of it.
 
 **Round two changed the visual language instead of tuning it.** Direction chosen from four mockups:
 Console — flat surfaces separated by single-pixel rules, small radii, dense rows, micro uppercase
@@ -377,7 +472,7 @@ destroys it the first time anyone clicks.
 
 ---
 
-## 5. Accessibility
+## 6. Accessibility
 
 - **Direction never depends on colour alone.** Every contribution row carries a `+`/`−` sign and
   an arrow glyph alongside the emerald/rose fill, so the information survives greyscale
@@ -408,7 +503,7 @@ destroys it the first time anyone clicks.
 
 ---
 
-## 6. How applications get in
+## 7. How applications get in
 
 The brief opens with *"Given SAJCO's hiring volume"* — hundreds of applications per vacancy. The
 first version of this interface required every CV to be pasted by hand, which is fine for three
@@ -514,7 +609,7 @@ to them.
 
 ---
 
-## 7. Reading the shortlist
+## 8. Reading the shortlist
 
 Past eight candidates the results gain a filter, a sort and an export. All three are ways of
 reading a ranking, and the interface is explicit that none of them is a way of *making* one.
@@ -553,7 +648,7 @@ later column by one and quietly corrupt the file it was exported to.
 
 ---
 
-## 8. Boundary limits, mirrored client-side
+## 9. Boundary limits, mirrored client-side
 
 The server enforces these; the client repeats them so a reviewer meets the ceiling while typing
 rather than after a submit comes back `422`.
@@ -575,7 +670,7 @@ the model's largest single input.
 
 ---
 
-## 9. Errors
+## 10. Errors
 
 `422` arrives in two incompatible shapes and both are handled in one place
 (`src/lib/errors.ts`), because they mean different things:
@@ -599,7 +694,7 @@ message for six situations.
 
 ---
 
-## 10. Dependencies
+## 11. Dependencies
 
 Next.js, React, and `clsx`. That is the whole runtime list.
 
@@ -615,7 +710,7 @@ three highs and an explanation. Next 16.3 reports zero.
 
 ---
 
-## 11. Deliberately not built
+## 12. Deliberately not built
 
 Scope, not oversight.
 
@@ -632,7 +727,7 @@ Scope, not oversight.
 
 ---
 
-## 12. Known limitations
+## 13. Known limitations
 
 - **No end-to-end browser tests.** The API client, error normalisation, feature metadata and
   warning phrasings are unit tested; the rendered components are verified by hand. A Playwright

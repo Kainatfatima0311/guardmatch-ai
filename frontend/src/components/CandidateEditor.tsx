@@ -4,6 +4,7 @@ import clsx from "clsx";
 import { useMemo, useRef, useState } from "react";
 import {
   ACCEPTED,
+  MAX_UPLOAD_BYTES,
   readAnyFiles,
   remainingCapacity,
   type CandidateDraft,
@@ -48,6 +49,12 @@ import { Button, Card, CardBody, CardHeader, Select, TextInput } from "./ui";
 export const DATASET_COUNTS = [10, 50, 100, 250] as const;
 
 /** Above this the list gets a filter and its own scroll area. */
+// Derived from the shared limit rather than typed, so a change to the cap cannot
+// leave the interface advertising the old one. The mockup said 10 MB; the service
+// refuses above 5. `MAX_UPLOAD_BYTES` is the document bound, not the text bound —
+// see the note on MAX_TEXT_BYTES for why one value could not serve both.
+const MAX_UPLOAD_MB = MAX_UPLOAD_BYTES / (1024 * 1024);
+
 const LONG_LIST = 8;
 
 export interface CandidateIssue {
@@ -196,12 +203,12 @@ export default function CandidateEditor({
   return (
     <Card>
       <CardHeader
-        step={2}
+        icon="⇧"
         title="Applications"
         subtitle={
           fromFiles > 0
-            ? `${filled}/${candidates.length} ready · ${fromFiles} from files`
-            : `${filled}/${candidates.length} ready`
+            ? `${filled} of ${candidates.length} ready · ${fromFiles} from files`
+            : "Upload CVs (PDF, DOCX, TXT) or paste text."
         }
         actions={
           <>
@@ -252,15 +259,15 @@ export default function CandidateEditor({
             setDragging(false);
             if (!disabled) void ingest(e.dataTransfer.files);
           }}
-          /* A strip rather than a panel. It was a tall centred box carrying
-             three paragraphs, which is a lot of furniture for a target you hit
-             once — and in a dense list it was the single biggest thing on screen.
-             The refusal note stays, because it is the one sentence here that
-             prevents a silent wrong ranking; it just no longer needs its own
-             storey. */
+          /* Back to a proper target, per the mockup. The Console phase cut this
+             to a strip on the argument that it was a lot of furniture for
+             something you hit once — true in a dense list, and this is not one.
+             It is the primary intake path for the volume the brief describes, and
+             a drop target that does not look like one gets used once and then
+             worked around. */
           className={clsx(
-            "rounded-md border border-dashed px-3 py-2.5 transition-colors",
-            dragging ? "border-primary bg-primary-wash" : "border-border-strong",
+            "rounded-xl border-2 border-dashed px-4 py-6 text-center transition-colors",
+            dragging ? "border-primary bg-primary-wash" : "border-border-strong bg-surface-2/40",
           )}
         >
           <input
@@ -275,29 +282,33 @@ export default function CandidateEditor({
               e.target.value = "";
             }}
           />
-          <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-            <p className="text-xs font-medium">
-              Drop CVs, or{" "}
-              <button
-                type="button"
-                disabled={disabled}
-                onClick={() => fileInput.current?.click()}
-                className="text-primary underline underline-offset-2 hover:text-primary-hover"
-              >
-                choose files
-              </button>
-            </p>
-            <p className="tabular text-2xs text-muted">{ACCEPTED.join(" ")}</p>
-            {uploading && (
-              <p className="tabular text-2xs text-primary">
-                extracting {uploading.done}/{uploading.total}…
-              </p>
-            )}
-          </div>
-          <p className="mt-1 text-2xs leading-relaxed text-muted">
+          <span
+            aria-hidden="true"
+            className="mx-auto flex h-11 w-11 items-center justify-center rounded-full bg-primary-wash text-lg text-primary"
+          >
+            ⇧
+          </span>
+          <p className="mt-2.5 text-sm font-medium">Drag &amp; drop files here</p>
+          <button
+            type="button"
+            disabled={disabled}
+            onClick={() => fileInput.current?.click()}
+            className="mt-0.5 text-xs text-primary underline underline-offset-2 hover:text-primary-hover"
+          >
+            or click to browse
+          </button>
+          <p className="tabular mx-auto mt-2 text-2xs text-muted">
+            {ACCEPTED.join(", ")} · up to {MAX_UPLOAD_MB} MB
+          </p>
+          <p className="mx-auto mt-1.5 max-w-sm text-2xs leading-relaxed text-muted">
             Text files are read in your browser; PDF and Word go to the service for extraction. A
             scanned PDF has no text to read and is refused rather than ranked as an empty CV.
           </p>
+          {uploading && (
+            <p className="tabular mt-2 text-xs text-primary">
+              Extracting {uploading.done} of {uploading.total}…
+            </p>
+          )}
         </div>
 
         {rejections.length > 0 && (
