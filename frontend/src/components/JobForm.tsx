@@ -94,10 +94,17 @@ export default function JobForm({
   const chosen = value.required_certifications.length;
 
   return (
-    <Card>
+    /* A CONTAINER QUERY, BECAUSE `sm:` WAS ASKING THE WRONG QUESTION
+       These fields went two-across at `sm:`, a *viewport* breakpoint — but this
+       card's width is set by the grid column it sits in, not by the window. The
+       two agreed only by luck, and adding a two-column layout at `md` broke the
+       agreement: a 640px-wide window with a 304px rail would have put two selects
+       side by side in 256px. `@container` asks the card how wide *it* is, which
+       is the question that was always meant. */
+    <Card className="@container">
       <CardHeader step={1} title="The posting" subtitle="What this vacancy actually needs." />
       <CardBody className="flex flex-col gap-6">
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 @min-[21rem]:grid-cols-2">
           <Field label="Shift pattern" error={errors?.shift_pattern}>
             {(p) => (
               <Select
@@ -127,7 +134,7 @@ export default function JobForm({
           </Field>
         </div>
 
-        <div className="grid gap-5 sm:grid-cols-2">
+        <div className="grid gap-5 @min-[21rem]:grid-cols-2">
           <Field
             label="Minimum experience"
             hint={`Years, 0 to ${MAX_YEARS_EXPERIENCE}. A candidate below it is not excluded — the gap becomes one factor among twelve.`}

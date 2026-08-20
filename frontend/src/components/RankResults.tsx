@@ -15,7 +15,7 @@ import {
 import type { RankResponse } from "@/lib/types";
 import CandidateCard from "./CandidateCard";
 import Disclaimer from "./Disclaimer";
-import { Button, Chip, Select, Stat, TextInput } from "./ui";
+import { Button, Chip, Select, TextInput } from "./ui";
 
 /**
  * The shortlist.
@@ -73,24 +73,49 @@ export default function RankResults({
 
   return (
     <section aria-labelledby="results-heading" className="flex flex-col gap-4">
-      <div className="flex flex-wrap items-end justify-between gap-x-8 gap-y-3">
-        <div>
+      {/* ONE THING LEADS
+          This was a heading on the left and three label-and-value pairs plus a
+          button on the right, all at the same weight — four items with no order,
+          and a reader takes the heading first whatever the layout intends. The
+          counts are now a subordinate line under the heading, and the export is
+          the only thing competing with it, because it is the only action.
+
+          "Ranked" is gone rather than moved: the status footer reported the same
+          number as "Applications", so one screen carried one figure under two
+          names, which invites a reader to wonder whether they differ. The count
+          belongs here, next to the list; the footer keeps provenance. */}
+      <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
+        <div className="min-w-0">
           <h2 id="results-heading" className="text-xl font-semibold tracking-tight">
             Shortlist
           </h2>
-          <p className="mt-0.5 text-sm text-muted">
+          <p className="mt-1 text-sm text-muted">
             Ordered best fit first. Ties break by reference, so an identical pair does not reorder
             on re-submission.
           </p>
+          <p className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+            <span>
+              <span className="tabular font-medium text-text">{result.candidates.length}</span>{" "}
+              ranked
+            </span>
+            <span aria-hidden="true">·</span>
+            <span>
+              posting <span className="tabular font-medium text-text">{result.job_id}</span>
+            </span>
+            {withGaps > 0 && (
+              <>
+                <span aria-hidden="true">·</span>
+                <span>
+                  <span className="tabular font-medium text-text">{withGaps}</span> left something
+                  unstated
+                </span>
+              </>
+            )}
+          </p>
         </div>
-        <div className="flex flex-wrap items-end gap-x-7 gap-y-2">
-          <Stat label="Ranked" value={String(result.candidates.length)} mono />
-          <Stat label="Posting" value={result.job_id} mono />
-          {withGaps > 0 && <Stat label="CVs with gaps" value={String(withGaps)} mono />}
-          <Button type="button" size="sm" onClick={download}>
-            Export CSV
-          </Button>
-        </div>
+        <Button type="button" size="sm" onClick={download}>
+          Export CSV
+        </Button>
       </div>
 
       <Disclaimer text={result.disclaimer} />

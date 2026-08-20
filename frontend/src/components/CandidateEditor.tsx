@@ -386,7 +386,18 @@ export default function CandidateEditor({
                   mine.length ? "border-neg" : "border-border",
                 )}
               >
-                <div className="flex flex-wrap items-center gap-2 bg-surface-2 px-3 py-2">
+                {/* Tinted only while open, where it is genuinely the header of an
+                    open panel. Collapsed rows sit on the card surface and are
+                    defined by their own border, because two hundred and fifty
+                    tinted strips is the weight this list was already trying to
+                    lose — and it would have left every row heavier than the
+                    section header above it, which is backwards. */}
+                <div
+                  className={clsx(
+                    "flex flex-wrap items-center gap-2 px-3 py-2 transition-colors",
+                    isOpen && "border-b border-border bg-surface-2",
+                  )}
+                >
                   <button
                     type="button"
                     aria-expanded={isOpen}
@@ -429,6 +440,12 @@ export default function CandidateEditor({
                     </span>
                   )}
 
+                  {/* Left on a viewport breakpoint deliberately. This one still
+                      agrees with the column it sits in — at `md` the applications
+                      get about 444px, so `sm:` is active and the reference shows,
+                      which is what should happen. If this card is ever given a
+                      narrow column, this becomes a container query like the
+                      posting form's, for the reason recorded there. */}
                   {candidate.displayName && (
                     <span className="tabular hidden shrink-0 text-2xs text-muted sm:inline">
                       {candidate.candidate_id}

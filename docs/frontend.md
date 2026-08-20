@@ -211,6 +211,73 @@ figures, because scores and contributions are read down a column and compared �
 proportional digits a 1 is narrower than a 7, the columns misalign, and the eye has to re-find
 the decimal point on every row.
 
+### Hierarchy, and what carries it
+
+The palette was measured and the type scale was restrained, and the page still read flat. Every
+card wore the same filled header band, every gap was the same size, and the most important control
+was the one element that was not a card. None of that is a colour problem, which is why none of it
+was fixed with colour.
+
+**Card headers are a hairline rule, not a filled band.** The band used to sit on `surface-2`, and it
+was asserting something untrue: a fill says the header is a different *kind* of surface from the
+content, when all that is true is that one thing ends and another begins. A rule says only the
+second. Separation now comes from type and space — `text-base font-semibold` against `text-sm`
+content — with the rule as a hint rather than the mechanism.
+
+That is also why `--border` at 1.3:1 is correct here rather than a failure. WCAG 1.4.11's 3:1
+governs the boundary of a **control**, which is what `--border-strong` exists for. Darkening a
+decorative rule to satisfy a criterion that does not apply to it would make every card heavier for
+nothing.
+
+**A row inside a card is tinted only while it is open.** With two hundred and fifty applications
+loaded, a tinted strip per row would have left every row visually heavier than the section heading
+above it, which is backwards. Collapsed rows sit on the card surface and are defined by their own
+border; an open row gets a header band, because there it genuinely is the header of an open panel.
+
+**Padding answers to the width it is given.** One fixed value from phone to monitor gives a wide
+screen the gutter a narrow one needs, so the header and body step up at `sm`. Two values, not four:
+a responsive scale nobody can hold in their head is a scale that drifts.
+
+**Spacing carries the grouping.** Every gap on the page was `gap-6`, which means the layout made no
+claim at all — the posting, the note describing what had just been loaded into it, the button
+that acts on it, and the results were each as related to one another as any other pair. What is
+being ranked, where it came from, and the act of ranking it are now one region held at `gap-3.5`,
+with `gap-6 sm:gap-8` between regions. **The ratio is what reads, not the absolute values.**
+
+**The posting form asks its own width, not the window's.** Its two-column grid was keyed to `sm:`, a
+*viewport* breakpoint, while the card's width is set by the grid column it sits in. The two had been
+agreeing only by luck, and introducing a two-column layout at `md` broke the agreement at once: a
+640px window with a 304px rail would have put two selects side by side inside 256px. It is a
+**container query** now — `@container` on the card and `@min-[21rem]` on the grid — which asks
+the question that was always meant. Tailwind 4 has this in core, so it cost a class name.
+
+One instance was deliberately left on a viewport breakpoint, with a comment saying so: the reference
+chip in a candidate row hides below `sm:`, and that still agrees with its column. The comment records
+when it would need to change, because it is the kind of line someone corrects in the wrong direction.
+
+**Two columns from `md`, with a narrower rail there.** Between 48rem and 64rem everything used to
+stack into a single narrow column, wasting a tablet and a small laptop. The rail is 19rem at `md`
+and 23rem at `lg`, because 23rem at `md` would leave the applications about 384px — phone width
+on a landscape screen.
+
+**One thing leads.** The results header was a heading on the left with three label-and-value pairs
+and a button on the right, all at the same weight: four items with no order, while a reader takes
+the heading first whatever the layout intends. The counts are subordinate now, and the export is the
+only thing beside the heading, because it is the only action there.
+
+Doing that surfaced a duplication worth more than the layout fix. The header read `Ranked 5` while
+the status footer read `Applications 5` — **one figure under two names on one screen**, which
+invites a reader to wonder whether they are different measurements. It was resolved by deciding
+where the number belongs rather than by moving it: the count sits with the list, and the footer
+reports only what answered, which is what it always said it was for.
+
+**The rank action is deliberately not sticky.** The case for making it so was that loading 250
+applications pushes it off screen. Measured, and it does not: the list caps itself at 35rem and
+scrolls internally, so the tallest the applications card gets is about 758px and the action lands
+near the fold rather than being pushed away. An element that can float over the shortlist is a worse
+trade than one small scroll.
+
+
 ### Three theme states
 
 An explicit choice stamps `data-theme` on the root element; the default "system" stamps nothing,
@@ -241,9 +308,11 @@ destroys it the first time anyone clicks.
 - **The contribution table is a table.** `<th scope>` on both axes and an `sr-only` caption, so
   a row can be read as "Shift availability, 1.0, counted in favour" rather than as loose cells.
   The sign, the arrow and an `sr-only` phrase all state direction, so it is available three ways.
-- **The step numbers are decoration, not a wizard.** The posting, the applications and the action
-  bar are numbered 1–3 so three stacked cards read as a sequence rather than three unrelated
+- **The step numbers are decoration, not a wizard.** The posting, the applications and the rank
+  action are numbered 1–3 so three stacked cards read as a sequence rather than three unrelated
   panels. Nothing is gated on completing a step, because a reviewer may fill them in any order.
+- **Pressing Rank with problems announces them.** The validation count renders into a
+  `role="alert"` row, so it is spoken rather than only drawn.
 - **Long CVs collapse.** With four applications pasted in full the page becomes a scroll wall and
   the posting scrolls out of view — the one thing a reviewer needs in sight while comparing. Each
   row collapses to its first meaningful line, with `aria-expanded` on the control.

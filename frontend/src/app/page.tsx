@@ -5,7 +5,7 @@ import CandidateEditor, { validateCandidates } from "@/components/CandidateEdito
 import JobForm, { type JobDraft, type JobFormErrors } from "@/components/JobForm";
 import RankResults from "@/components/RankResults";
 import StatusFooter from "@/components/StatusFooter";
-import { Button } from "@/components/ui";
+import { Button, Card, CardHeader } from "@/components/ui";
 import { rank, ready, sampleCandidates } from "@/lib/api";
 import type { NormalisedError } from "@/lib/errors";
 import { SAMPLE_CANDIDATES, SAMPLE_JOB } from "@/lib/samples";
@@ -137,7 +137,15 @@ export default function Page() {
   }
 
   return (
-    <div className="flex flex-col gap-6">
+    /* SPACING CARRIES THE GROUPING
+       Every gap on this page used to be `gap-6`, which means the posting, the
+       note describing what was just loaded into it, the button that acts on it
+       and the results were all exactly as related to each other as any other
+       pair — that is, the layout said nothing. Proximity is the cheapest
+       grouping signal there is, and it was being spent on nothing.
+       The outer gap separates regions; the inner one holds a region together.
+       The ratio is what reads, not the absolute values. */
+    <div className="flex flex-col gap-6 sm:gap-8">
       {notReady && (
         <div
           role="status"
@@ -156,60 +164,82 @@ export default function Page() {
         </div>
       )}
 
-      <div className="grid items-start gap-6 lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)]">
-        <JobForm
-          value={job}
-          errors={showErrors ? jobErrors : undefined}
-          onChange={setJob}
-          disabled={busy}
-        />
-        <CandidateEditor
-          candidates={candidates}
-          issues={showErrors ? candidateIssues : []}
-          disabled={busy}
-          onChange={setCandidates}
-          onLoadSamples={loadSamples}
-          onLoadDataset={loadDataset}
-          loadingDataset={loadingDataset}
-        />
-      </div>
-
-      {generatedNote && (
-        <div
-          role="status"
-          className="flex gap-2.5 rounded-lg border border-amber/40 bg-amber-surface px-4 py-2.5"
-        >
-          <span aria-hidden="true" className="text-amber">
-            ◈
-          </span>
-          <p className="text-xs leading-relaxed">
-            <span className="font-semibold text-amber">Generated data. </span>
-            <span className="text-text">{generatedNote}</span>
-          </p>
+      {/* One region: what is being ranked, where it came from, and the act of
+          ranking it. Held together at `gap-3.5` against the `gap-8` outside. */}
+      <section aria-label="What to rank" className="flex flex-col gap-3.5">
+        {/* Two columns from `md`, not only from `lg`. Between 48rem and 64rem
+            everything used to stack into one narrow column, which wastes a
+            tablet and a small laptop entirely. The rail is narrower at `md`
+            because 23rem there would leave the applications about 384px — phone
+            width on a landscape screen. */}
+        <div className="grid items-start gap-4 md:grid-cols-[minmax(0,19rem)_minmax(0,1fr)] lg:grid-cols-[minmax(0,23rem)_minmax(0,1fr)] lg:gap-5">
+          <JobForm
+            value={job}
+            errors={showErrors ? jobErrors : undefined}
+            onChange={setJob}
+            disabled={busy}
+          />
+          <CandidateEditor
+            candidates={candidates}
+            issues={showErrors ? candidateIssues : []}
+            disabled={busy}
+            onChange={setCandidates}
+            onLoadSamples={loadSamples}
+            onLoadDataset={loadDataset}
+            loadingDataset={loadingDataset}
+          />
         </div>
-      )}
 
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-3 rounded-xl border border-border bg-surface px-4 py-3.5 shadow-[var(--shadow-card)]">
-        <span
-          aria-hidden="true"
-          className="tabular flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-primary-wash text-2xs font-semibold text-primary"
-        >
-          3
-        </span>
-        <Button type="button" variant="primary" onClick={submit} disabled={busy}>
-          {busy ? "Ranking…" : "Rank applications"}
-        </Button>
-        {showErrors && problems > 0 ? (
-          <p className="flex items-center gap-1.5 text-sm font-medium text-neg">
-            <span aria-hidden="true">▲</span>
-            {problems} thing{problems === 1 ? "" : "s"} to fix above.
-          </p>
-        ) : (
-          <p className="text-xs text-muted">
-            Parses each CV, builds twelve features, ranks, and explains every placement.
-          </p>
+        {generatedNote && (
+          <div
+            role="status"
+            className="flex gap-2.5 rounded-lg border border-amber/40 bg-amber-surface px-4 py-2.5"
+          >
+            <span aria-hidden="true" className="text-amber">
+              ◈
+            </span>
+            <p className="text-xs leading-relaxed">
+              <span className="font-semibold text-amber">Generated data. </span>
+              <span className="text-text">{generatedNote}</span>
+            </p>
+          </div>
         )}
-      </div>
+
+        {/* Step three was the one element on this page that was not a card:
+            steps one and two were numbered sections and the act they lead to was
+            a bare strip. The sequence broke at exactly the moment of the action,
+            which is the last place a pattern should give way.
+
+            Deliberately NOT sticky. The premise for making it so was that
+            loading 250 applications pushes it off screen — checked, and it does
+            not: the list caps itself at 35rem and scrolls internally, so this
+            lands at roughly the fold rather than being pushed away. A sticky
+            element that could sit over the shortlist is a worse trade than one
+            small scroll. */}
+        <Card>
+          <CardHeader
+            step={3}
+            title="Rank the applications"
+            subtitle="Parses each CV, builds twelve features, ranks, and explains every placement."
+            actions={
+              <Button type="button" variant="primary" onClick={submit} disabled={busy}>
+                {busy ? "Ranking…" : "Rank applications"}
+              </Button>
+            }
+          />
+          {/* Only present when something is wrong, so the card growing is itself
+              the signal. A count that lives in a subtitle competes with prose;
+              one that arrives as a new row does not. */}
+          {showErrors && problems > 0 && (
+            <div role="alert" className="px-4 py-3 sm:px-6">
+              <p className="flex items-center gap-1.5 text-sm font-medium text-neg">
+                <span aria-hidden="true">▲</span>
+                {problems} thing{problems === 1 ? "" : "s"} to fix above.
+              </p>
+            </div>
+          )}
+        </Card>
+      </section>
 
       {/* One live region for every outcome, so a screen reader is told what
           happened once rather than having three regions compete. */}
@@ -255,7 +285,6 @@ export default function Page() {
             <StatusFooter
               modelVersion={result.model_version}
               requestId={result.request_id}
-              candidateCount={result.candidates.length}
             />
           </>
         )}

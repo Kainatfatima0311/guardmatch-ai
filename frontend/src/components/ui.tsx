@@ -56,6 +56,21 @@ export function Card({
  * unrelated panels; the same three numbered read as a sequence with an order to
  * work through. It is a visual affordance only — nothing is gated on finishing a
  * step, because a reviewer may fill these in whatever order suits them.
+ *
+ * A HAIRLINE RULE, NOT A FILLED BAND
+ *
+ * This header used to sit on `surface-2`. With three input cards and a card per
+ * candidate, that made the page a stack of banded boxes, and the band was making
+ * a claim that is not true: a fill says the header is a different *kind* of
+ * surface from the content, when all that is true is that one thing ends and
+ * another begins. A rule says only the second.
+ *
+ * Which means the separation has to come from type and space instead, and it
+ * does — the title is `text-base font-semibold` against `text-sm` content. The
+ * rule is a hint, not the mechanism, which is why `--border` at 1.3:1 is right
+ * here: WCAG 1.4.11's 3:1 governs the boundary of a *control*, and `--border-strong`
+ * exists for those. Darkening a decorative rule to pass a check that does not
+ * apply to it would make every card heavier to no benefit.
  */
 export function CardHeader({
   step,
@@ -69,7 +84,7 @@ export function CardHeader({
   actions?: ReactNode;
 }) {
   return (
-    <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b border-border bg-surface-2 px-5 py-4">
+    <header className="flex flex-wrap items-start justify-between gap-x-4 gap-y-3 border-b border-border px-4 py-3.5 sm:px-6 sm:py-4">
       <div className="flex min-w-0 items-start gap-3">
         {step !== undefined && (
           <span
@@ -89,8 +104,16 @@ export function CardHeader({
   );
 }
 
+/**
+ * Padding that answers to the width it is given.
+ *
+ * One fixed value from phone to monitor means the same cramped gutter on a wide
+ * screen that a narrow one needs. The step at `sm` is small on purpose: a
+ * responsive scale with many steps is a scale nobody can hold in their head, and
+ * two values cover the difference that actually matters here.
+ */
 export function CardBody({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={clsx("px-5 py-5", className)}>{children}</div>;
+  return <div className={clsx("px-4 py-4 sm:px-6 sm:py-5", className)}>{children}</div>;
 }
 
 /* --------------------------------------------------------------------------
