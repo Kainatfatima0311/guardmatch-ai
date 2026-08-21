@@ -7,11 +7,6 @@ Drop a folder of CVs, or generate a couple of hundred to see the volume the prob
 Every placement comes with the twelve numbers behind it, and the interface refuses the things it
 cannot read rather than ranking them badly.
 
-[![CI](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml/badge.svg)](https://github.com/Kainatfatima0311/guardmatch-ai/actions/workflows/ci.yml)
-![Python](https://img.shields.io/badge/python-3.12-blue)
-![Coverage](https://img.shields.io/badge/coverage-94.80%25-brightgreen)
-![Licence](https://img.shields.io/badge/licence-MIT-lightgrey)
-
 
 ## The problem
 
